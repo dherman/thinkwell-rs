@@ -1,0 +1,4 @@
+[workspace]
+members = ["crates/thinkwell", "tools/anchor"]
+default-members = ["crates/thinkwell"]
+resolver = "3"

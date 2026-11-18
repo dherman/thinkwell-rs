@@ -1,0 +1,76 @@
+# Working on the project
+
+Start with `cargo anchor contract`, then the root repository guidance, this Book's
+`SUMMARY.md`, and every listed chapter. Run
+`cargo anchor check --config anchorbook.toml` and report readiness before implementation.
+Use the compiled contract's report template, identifying assigned work, open
+decisions, and gaps. `AGENTS.md` is the compact startup entry point.
+
+## Phase and assignment
+
+Read `[project].phase` in `anchorbook.toml`; it is the single authoritative phase
+setting. The [Phase 0 roadmap](implementation-roadmaps/phase-0.md) owns scaffold
+status and evidence. Work starts only on a human-approved Ready milestone, then
+continues as In progress within that assignment. Future port work needs its own
+reviewed scope. Completion of preparation does not change the project phase.
+
+## Setup and validation
+
+The repository-root `CONTRIBUTING.md` owns exact installation, version pins, checks,
+and update instructions. The workspace has one unpublished, dependency-free
+`thinkwell` library in `crates/thinkwell`; its empty API does not fix future
+architecture. Edition 2024 and resolver 3 are scaffold settings. Rust 1.100.0 is
+the owner-selected development baseline, not the project's MSRV.
+
+`cargo anchor` is the Anchor Engineering entry point. Its dependency-free
+`anchor-runner` binary under `tools/anchor/` checks the engine identity in
+`target/tools/bin/` on every invocation. Missing or mismatched engines trigger
+installation of the pinned Git revision with locked dependencies, followed by
+another identity check. Failure stops execution. The launcher never looks up
+anchorbook on PATH. It forwards engine arguments and streams; installation output
+uses stderr so mdBook's JSON protocol stays intact. Cargo/rustup and the local
+filesystem remain trusted; the identity check prevents accidental version drift,
+not malicious binary impersonation. First use or recovery needs network access.
+
+The alias works from the repository root and workspace subdirectories; engine
+relative arguments retain the caller's working directory. The root remains the
+recommended location for Book commands. The library is the default workspace
+member; `--workspace` checks also exercise the development launcher.
+
+Edit Book sources under `book/`. Generated HTML and locally installed tools belong
+under ignored `target/`. Run structural checking after Book/configuration edits,
+build with mdBook, and inspect affected records and navigation. Reconcile discoveries
+into owning chapters rather than appending a session journal. Keep evidence tied
+to its tested state; a green structural check establishes no product behavior.
+
+## Pinned method references
+
+The installed engine is pinned to
+[`9689b00416fd577bfb68a02f1fa310f6088404cf`](https://github.com/anchor-book/anchor-book/tree/9689b00416fd577bfb68a02f1fa310f6088404cf),
+with mdBook 0.5.4. Use the formats from that revision:
+
+- [Anchor definitions](https://github.com/anchor-book/anchor-book/blob/9689b00416fd577bfb68a02f1fa310f6088404cf/book/design/anchor-definitions.md)
+- [Authority definitions](https://github.com/anchor-book/anchor-book/blob/9689b00416fd577bfb68a02f1fa310f6088404cf/book/design/authority-definitions.md)
+- [Verification](https://github.com/anchor-book/anchor-book/blob/9689b00416fd577bfb68a02f1fa310f6088404cf/book/design/verification.md)
+- [Roadmap format](https://github.com/anchor-book/anchor-book/blob/9689b00416fd577bfb68a02f1fa310f6088404cf/book/implementation-roadmaps/index.md)
+- [Working guidance and implementation status](https://github.com/anchor-book/anchor-book/blob/9689b00416fd577bfb68a02f1fa310f6088404cf/book/working-on-anchor-book.md)
+
+The CLI implements `check`, `contract`, `md`, `verify`, and `proof`, plus help
+and version. The first three serve this scaffold. `check` evaluates structural/v1;
+the mdBook preprocessor also validates record syntax, authority references, and
+roadmap identifiers and coverage. Neither establishes semantic correctness or
+milestone completion. Criteria can require tests, proofs, and reviews; their
+declarations are obligations, not evidence.
+
+Do not assume designed features are implemented. This revision has no initialization,
+materialization, RFD template command/validation, cross-Book support, or `[engine]`
+configuration. Use schema 1 and manual authoring. No RFD section or verification
+runners are configured here: there are no product anchors or linked evidence yet.
+Do not add nextest, Verus, or mutation tooling merely because upstream uses them.
+
+## Review boundaries
+
+Respect the [source-provenance constraint](authority/requirements.md#R-source-provenance)
+before copying or adapting source. Public research is context, not approval to
+publish unrelated material. Commit, push, publication, and repository-setting
+authorization remain separate from implementing an assigned milestone.

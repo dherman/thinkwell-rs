@@ -1,0 +1,2 @@
+[alias]
+anchor = "run --quiet --locked --package anchor-runner --"

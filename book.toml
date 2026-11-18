@@ -1,0 +1,16 @@
+[book]
+title = "Thinkwell Rust Project Book"
+description = "Project knowledge, decisions, and evidence for the Rust reimplementation."
+language = "en"
+src = "book"
+
+[build]
+build-dir = "target/anchorbook"
+create-missing = false
+
+[output.html]
+
+[preprocessor.anchorbook]
+command = "cargo anchor md"
+config = "anchorbook.toml"
+after = ["links"]

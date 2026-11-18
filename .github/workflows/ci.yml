@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Rust and Book checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.100.0 --profile minimal --component rustfmt --component clippy
+      - name: Install pinned Book tools
+        run: |
+          cargo anchor --version
+          cargo install mdbook --version 0.5.4 --locked --root target/tools
+          echo "$GITHUB_WORKSPACE/target/tools/bin" >> "$GITHUB_PATH"
+      - name: Check tool identities
+        run: |
+          rustc --version
+          cargo anchor --version
+          test "$(mdbook --version)" = "mdbook v0.5.4"
+      - name: Formatting
+        run: cargo fmt --all -- --check
+      - name: Compilation
+        run: cargo check --workspace --all-targets --locked
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Tests
+        run: cargo test --workspace --locked
+      - name: Book structure
+        run: cargo anchor check --config anchorbook.toml
+      - name: Render Book
+        run: mdbook build
+      - name: Whitespace
+        run: git show --format= --check HEAD
