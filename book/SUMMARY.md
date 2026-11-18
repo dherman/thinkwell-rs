@@ -1,6 +1,8 @@
 # Summary
 
 - [Introduction](introduction.md)
+- [Lifecycle](lifecycle.md)
+- [Porting research (migration-only)](migration.md)
 - [Boundary and non-goals](boundary.md)
 - [Authority](authority/index.md)
   - [Requirements](authority/requirements.md)
@@ -8,5 +10,7 @@
 - [Design](design/index.md)
 - [Open questions](open-questions.md)
 - [Implementation roadmaps](implementation-roadmaps/index.md)
-  - [Phase 0](implementation-roadmaps/phase-0.md)
+  - [Completed project scaffolding](implementation-roadmaps/phase-0.md)
+  - [Lifecycle and change delivery](implementation-roadmaps/lifecycle-delivery.md)
+- [Change delivery](change-delivery.md)
 - [Working on the project](working-on-the-project.md)

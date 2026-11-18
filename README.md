@@ -1,10 +1,9 @@
-# Thinkwell in Rust
+# Thinkwell
 
-This repository prepares a Rust reimplementation of the
-[Thinkwell TypeScript framework](https://github.com/dherman/thinkwell), which
-combines deterministic code with LLM-powered reasoning through a fluent API.
+This repository is the future of Thinkwell, implemented in Rust. The current
+lifecycle state is the [Porting Phase](book/lifecycle.md).
 
-Phase 0 supplies project scaffolding only. The unpublished `thinkwell` library
+The completed project scaffolding supplies preparation only. The unpublished `thinkwell` library
 has no product API or dependencies. Its presence makes workspace checks usable;
 it does not establish the eventual crate architecture or compatibility goals.
 

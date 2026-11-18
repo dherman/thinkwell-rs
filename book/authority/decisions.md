@@ -59,3 +59,19 @@ describe tradeoffs, not an assertion that an earlier evaluation occurred.
 > - MIT only: provides permissive reuse but omits an explicit Apache-2.0 option.
 > - Apache-2.0 only: provides an explicit patent-license framework but omits the MIT option requested by the owner.
 > Reconsider when: The owner proposes a licensing change or a source-specific incompatibility requires review; preserve rights already granted and obtain necessary permissions.
+
+> **`D-thinkwell-identity`** (accepted): **Make this repository the future of Thinkwell**
+> Choice: The project is Thinkwell; this repository and its Rust implementation are its future. The current lifecycle state is Porting Phase, with legacy TypeScript evidence temporary and distinct from accepted Thinkwell requirements. After transition, unqualified Thinkwell means this project and its Rust implementation.
+> Requirements: `R-temporary-migration-reference`; `R-porting-transition`
+> Rationale: The owner explicitly establishes project identity and a bounded migration lifecycle, without accepting product compatibility or architecture.
+> Alternatives:
+> - Treat this as a permanently subordinate implementation: conflicts with the owner's chosen project identity.
+> Reconsider when: The owner explicitly revises project identity or lifecycle direction.
+
+> **`D-future-independence`** (accepted): **Govern future phases independently**
+> Choice: After the human-approved transition, deprecate the TypeScript implementation. Thinkwell is governed by this repository's Book, decisions, code, tests, and delivery records, with no continuing compatibility, parity, synchronization, or tracking obligation. Remove migration-only material except required notices and provenance; active instructions, requirements, designs, roadmaps, CI, builds, tests, and releases must not depend on or refer developers back to that implementation. Introduce future lifecycle states as needed without a numbered sequence.
+> Requirements: `R-temporary-migration-reference`; `R-porting-transition`
+> Rationale: The owner explicitly requires independence after migration and clean removal of temporary research.
+> Alternatives:
+> - Maintain indefinite cross-implementation parity: creates the permanent obligation the owner rejected.
+> Reconsider when: The owner explicitly approves a changed lifecycle policy; no automatic transition or inherited compatibility duty is implied.

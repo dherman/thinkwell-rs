@@ -1,9 +1,11 @@
 # Implementation roadmaps
 
-[Phase 0](phase-0.md) is the only assigned roadmap. There is no detailed product
+[Project scaffolding](phase-0.md) is historical completed preparation.
+[Lifecycle and change delivery](lifecycle-delivery.md) is the current bounded assignment. There is no detailed product
 port roadmap yet. Proposed work becomes Ready only with human agreement and
-satisfied prerequisites; assigned work becomes In progress. Complete requires
-evidence for every criterion, independently of design acceptance.
+satisfied prerequisites; assigned work becomes In progress. Durable completion requires
+evidence for every criterion and the integration conditions in
+[change delivery](../change-delivery.md), independently of design acceptance.
 
 Use the pinned [roadmap format](../working-on-the-project.md#pinned-method-references):
 stable milestone and criterion fragments, outcome, status, identifier,

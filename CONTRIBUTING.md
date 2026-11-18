@@ -3,7 +3,8 @@
 Read the [Book](book/SUMMARY.md), particularly
 [working on the project](book/working-on-the-project.md) and the
 [current boundary](book/boundary.md), before changes. Work requires a human-approved
-milestone; Phase 0 does not authorize implementing the port.
+milestone; lifecycle integration does not authorize implementing the port.
+See [change delivery](book/change-delivery.md) for review and merge requirements.
 
 ## Install the pinned tools
 
@@ -43,11 +44,15 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo anchor check --config anchorbook.toml
 mdbook build
+cargo test -p anchor-runner --test bootstrap_consistency --locked
 git diff --check
 ```
 
 The library intentionally has no tests yet; the development launcher has focused
-bootstrap tests. Successful Cargo commands establish
+bootstrap tests. The bootstrap-consistency integration test checks startup, Book
+navigation, documented engine pins, and CI/rendering entry points without duplicating
+installation tests. It runs in workspace tests and has the explicit command above
+for focused diagnostics. Successful Cargo commands establish
 that the scaffold compiles and its test harness runs, not Thinkwell behavior.
 `check` evaluates Book structure, not semantic validity or completion.
 The mdBook preprocessor additionally validates authority records and roadmap
@@ -55,7 +60,7 @@ references. Inspect generated navigation, records, and links under
 `target/anchorbook/`; a build is not a complete content review.
 
 Use default rustfmt and Clippy behavior. There is no custom lint configuration.
-CI runs the six Cargo/Book checks above and whitespace checking on Ubuntu 24.04.
+CI runs the Cargo/Book and bootstrap checks above and whitespace checking on Ubuntu 24.04.
 It installs exact tool versions and uses a SHA-pinned checkout action. Runner images
 can change; this is not a hermetic or bit-for-bit reproducibility guarantee.
 Local results do not establish that GitHub CI has run.

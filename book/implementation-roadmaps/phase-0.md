@@ -1,6 +1,8 @@
-# Phase 0: project scaffolding
+# Completed project scaffolding
 
-Roadmap identifier: `phase-zero`.
+Roadmap identifier: `phase-zero`. Historical name: Phase 0. This is completed
+scaffolding work, not a numbered product-lifecycle phase. Its local completion
+records retain their original scope; they do not establish later integration.
 
 Goal: make the repository ready for a later design session with a compilable
 minimal workspace, an authoritative Book, reproducible checks, and explicit gaps.

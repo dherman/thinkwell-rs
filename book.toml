@@ -1,5 +1,5 @@
 [book]
-title = "Thinkwell Rust Project Book"
+title = "Thinkwell Project Book"
 description = "Project knowledge, decisions, and evidence for the Rust reimplementation."
 language = "en"
 src = "book"
