@@ -35,6 +35,8 @@ jobs:
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Tests
         run: cargo test --workspace --locked
+      - name: Bootstrap consistency
+        run: cargo test -p anchor-runner --test bootstrap_consistency --locked
       - name: Book structure
         run: cargo anchor check --config anchorbook.toml
       - name: Render Book

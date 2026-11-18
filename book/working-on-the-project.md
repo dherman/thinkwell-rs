@@ -8,11 +8,23 @@ decisions, and gaps. `AGENTS.md` is the compact startup entry point.
 
 ## Phase and assignment
 
-Read `[project].phase` in `anchorbook.toml`; it is the single authoritative phase
-setting. The [Phase 0 roadmap](implementation-roadmaps/phase-0.md) owns scaffold
-status and evidence. Work starts only on a human-approved Ready milestone, then
-continues as In progress within that assignment. Future port work needs its own
-reviewed scope. Completion of preparation does not change the project phase.
+The current lifecycle state is the [Porting Phase](lifecycle.md). The single
+engine working-mode setting, `[project].phase` in `anchorbook.toml`, remains
+`prototyping`; it does not name the project lifecycle. The completed
+[project-scaffolding roadmap](implementation-roadmaps/phase-0.md) preserves
+historical evidence, not a numbered product phase.
+
+Work requires an accepted design basis and a human-approved Ready milestone;
+record it In progress before implementation. A roadmap alone does not authorize
+work. No detailed port milestone is authorized by this workflow update. Agents
+must distinguish observed legacy TypeScript behavior from accepted Thinkwell
+requirements: migration evidence is not permanent authority. Record Rust-native
+requirements and deliberate differences explicitly. See [migration research](migration.md).
+
+Ending the Porting Phase requires separate human approval of the lifecycle gate.
+Future phases retain no active dependency on the TypeScript implementation.
+Follow [change delivery](change-delivery.md) for deliberate review, merge authority,
+durable completion, and roadmap synchronization.
 
 ## Setup and validation
 
