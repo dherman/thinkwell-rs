@@ -12,7 +12,7 @@ These are unresolved decisions, not proposed implementations or assigned work.
 | Supported agents | Which agents and integration behaviors will be supported and tested? |
 | MSRV and platforms | What minimum compiler and platform commitments should the project make beyond its pinned development toolchain? |
 | Project identity | What wider project naming and affiliation claims are appropriate? The library name thinkwell is decided; publication is not authorized. |
-| Licensing and attribution | What license should this project use, and what exact upstream or third-party notices apply to any future adaptation? |
+| Upstream licensing and attribution | The project license is MIT OR Apache-2.0. What exact upstream or third-party licenses, copyright holders, and notices apply to each future adaptation? |
 | Verification policy | What criteria, test methods, review obligations, and any proof needs follow from the agreed product guarantees? |
 
 The next session should first establish compatibility scope and source provenance,

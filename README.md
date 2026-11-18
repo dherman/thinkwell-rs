@@ -14,5 +14,15 @@ and [boundary](book/boundary.md). See [CONTRIBUTING.md](CONTRIBUTING.md) for
 tool installation and local checks, and [AGENTS.md](AGENTS.md) for agent startup.
 
 The crate name is `thinkwell`; this is not a publication or affiliation claim.
-The project's license and upstream attribution requirements remain unresolved.
 No substantive upstream implementation has been copied or adapted.
+
+## License
+
+Original code and documentation in this repository are licensed under either the
+[MIT License](LICENSE-MIT) or the [Apache License, Version 2.0](LICENSE-APACHE),
+at your option (`MIT OR Apache-2.0`).
+
+Separately identified third-party material retains its applicable license and
+notices. Any future adaptation of upstream Thinkwell code must preserve required
+copyright and license notices; choosing Apache-2.0 does not remove upstream MIT
+notice obligations. See [contribution terms](CONTRIBUTING.md#licensing-and-contributions).

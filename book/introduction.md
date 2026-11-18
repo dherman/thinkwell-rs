@@ -42,6 +42,12 @@ Reference entry points:
 
 ## Licensing context
 
+The owner selected `MIT OR Apache-2.0` for original project code and documentation,
+as recorded in `D-dual-licensing`. Recipients may choose either license. Complete
+texts are in the repository-root `LICENSE-MIT` and `LICENSE-APACHE`; both Cargo
+packages inherit the shared license declaration. The root `CONTRIBUTING.md`
+defines submission under both licenses unless explicitly agreed otherwise.
+
 The four core package manifests and the high-level package README declare MIT.
 The inspected tree has no root license file; its explicit license file is under
 the VS Code extension. That MIT text requires copyright and permission notices
@@ -49,6 +55,13 @@ to accompany copies or substantial portions. Its location alone does not establi
 applicability to every source file or any third-party material.
 
 Before copying or adapting implementation, independently establish the applicable
-license, copyright holders, and required notices for the selected files. Resolve
-the Rust project's own license separately. Phase 0 copies no substantive upstream
-implementation and adds no license file.
+license, copyright holders, and required notices for the selected files. Preserve
+those notices and document the source revision and affected portions. Choosing
+Apache-2.0 for this project does not remove upstream MIT notice obligations or
+establish an Apache patent grant from MIT-only upstream authors. Separately
+identified third-party material retains its own terms. Phase 0 copies no
+substantive upstream implementation; no upstream code attribution is claimed yet.
+
+License references: [MIT terms](https://opensource.org/license/mit),
+[Apache-2.0 terms](https://www.apache.org/licenses/LICENSE-2.0), and
+[Apache's compatibility guidance](https://www.apache.org/legal/resolved.html#category-a).

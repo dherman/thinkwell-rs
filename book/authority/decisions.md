@@ -50,3 +50,12 @@ describe tradeoffs, not an assertion that an earlier evaluation occurred.
 > Alternatives:
 > - Use a temporary scaffold name: avoids early naming but conflicts with the owner's explicit choice.
 > Reconsider when: Publication constraints or an explicit owner decision require a different crate name.
+
+> **`D-dual-licensing`** (accepted): **Offer MIT or Apache-2.0 at the recipient's option**
+> Choice: License original project code and documentation under MIT OR Apache-2.0. Contributions are submitted under both licenses unless explicitly agreed otherwise; separately identified third-party material retains its own terms and required notices.
+> Requirements: `R-source-provenance`
+> Rationale: The owner explicitly selected and approved dual licensing after reviewing compatibility with MIT upstream material. Recipient choice does not remove upstream notice obligations or imply patent grants from MIT-only upstream authors.
+> Alternatives:
+> - MIT only: provides permissive reuse but omits an explicit Apache-2.0 option.
+> - Apache-2.0 only: provides an explicit patent-license framework but omits the MIT option requested by the owner.
+> Reconsider when: The owner proposes a licensing change or a source-specific incompatibility requires review; preserve rights already granted and obtain necessary permissions.

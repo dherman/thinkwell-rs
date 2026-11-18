@@ -179,3 +179,72 @@ termination by a signal is reported as failure (exit 1), not signal propagation.
 Complete for the approved local tooling follow-up. The alias enforces the expected
 local engine identity and is the common entry point for startup, checking, and
 rendering. Product design and implementation remain unassigned.
+
+## Milestone 3. Adopt dual licensing {#phase-zero-3}
+
+**Outcome:** The project's original code and documentation are offered under
+MIT OR Apache-2.0, with consistent package metadata and contribution guidance.
+
+**Status:** Complete
+
+**Identifier:** `phase-zero-3`
+
+**Dependencies:** The owner explicitly approved MIT OR Apache-2.0 after reviewing
+compatibility and upstream attribution obligations. No source adaptation is assigned.
+
+**Design basis:** `R-source-provenance` and the owner's licensing assignment.
+
+**Tasks**
+
+- [x] Add complete license texts and shared Cargo license metadata.
+- [x] Record the accepted choice and contribution terms; retain upstream obligations.
+- [x] Check license text, metadata, documentation consistency, and Book rendering.
+
+### Completion criteria
+
+#### Consistent license declaration {#phase-zero-3-license}
+
+Both packages declare MIT OR Apache-2.0; complete license texts are available,
+and project/contribution guidance explains recipient choice and retained notices.
+
+- **Anchor coverage:** None — project licensing preparation.
+- **Evidence:** `cargo metadata --locked --no-deps --format-version 1` reports
+  MIT OR Apache-2.0 for thinkwell and anchor-runner; both remain unpublished.
+  The MIT grant and disclaimer match the Open Source Initiative's canonical text
+  after whitespace and typographic-quote normalization. The full Apache license
+  matches the Apache Software Foundation's LICENSE-2.0.txt after whitespace
+  normalization. README and contributor guidance explain recipient choice,
+  submission under both licenses, and retained third-party obligations.
+  `cargo fmt --all -- --check` and
+  `cargo check --workspace --all-targets --locked` passed.
+
+#### Reconciled Book {#phase-zero-3-book}
+
+The accepted decision resolves the project's license question while leaving
+source-specific provenance checks open. Structural and rendering checks pass.
+
+- **Anchor coverage:** None — project knowledge maintenance.
+- **Evidence:** `cargo anchor check --config anchorbook.toml` passed structural/v1
+  with zero errors; `mdbook build` passed with the pinned preprocessor. The rendered
+  decisions include `D-dual-licensing`; project-license uncertainty was removed
+  from the introduction and open questions without removing upstream provenance
+  requirements. `git diff --check` passed, and both new license files were checked
+  separately for whitespace. No product code changed; no behavioral tests were added.
+
+### Evidence {#phase-zero-3-evidence}
+
+Validated 2026-11-17 on macOS arm64 with Rust 1.100.0, mdBook 0.5.4, and Anchor
+Book revision `9689b00416fd577bfb68a02f1fa310f6088404cf`. Tested state is the local
+licensing changes over commit `1cbaa8836108cdc6b40df7200024af57aeab5832`, with code
+and Book in the same checkout. Changes are not committed or pushed. The commands,
+metadata, canonical-text comparison, and rendered output are the supporting
+observations. Book checks were repeated after this evidence update. These results
+establish consistent declarations, not clearance of future upstream adaptations.
+
+Canonical text sources: https://opensource.org/license/mit and
+https://www.apache.org/licenses/LICENSE-2.0.txt.
+
+### Completion record
+
+Complete for the approved licensing assignment. The project license is settled;
+upstream file-specific licensing, attribution, and product design remain open.

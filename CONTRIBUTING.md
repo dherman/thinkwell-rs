@@ -76,12 +76,33 @@ checks, inspect rendered records and links, and record results and limitations
 in the assigned roadmap. Do not add the planned `[engine]` configuration until a
 reviewed revision actually supports it. Do not install a moving branch in CI.
 
+## Licensing and contributions
+
+Original project code and documentation are dual-licensed under the
+[MIT License](LICENSE-MIT) or [Apache License, Version 2.0](LICENSE-APACHE), at the
+recipient's option. Both workspace packages inherit `MIT OR Apache-2.0` from the
+root Cargo manifest.
+
+Unless explicitly agreed otherwise, any contribution you intentionally submit
+for inclusion in this project is provided under both licenses, without additional
+terms or conditions. Submit only material you have the right to contribute on
+those terms. Identify third-party material and its applicable license separately;
+this contribution policy does not override its existing terms.
+
+Before copying or adapting upstream source, verify the applicable license,
+copyright holders, and notices for those files. Preserve required copyright and
+permission notices and record the source revision and affected portions. MIT-derived
+material retains its MIT notice obligations under either project license option.
+Do not attribute an Apache patent grant to an upstream author solely because we
+incorporate their MIT-licensed material. Dependencies and development tools retain
+their own licenses; the project's dual license does not relicense them.
+
 ## Change and publication boundaries
 
 Update durable knowledge and criterion evidence alongside the work. Record exact
 commands, results, revision context, and remaining gaps; preserve stable record
-and milestone identifiers. No license has been selected for this repository.
-Check upstream applicability and attribution before any source adaptation.
+and milestone identifiers. Follow the licensing and provenance requirements above
+before any source adaptation.
 
 Commits, pushes, publishing, releases, and repository settings require explicit
 authorization. CI here only validates; it does not deploy or publish.

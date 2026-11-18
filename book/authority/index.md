@@ -5,6 +5,6 @@
 Acceptance means agreed intent, not implementation or proof.
 
 The initial authority comes from the Phase 0 assignment and its explicit
-follow-up choosing the library name. New product choices require review and
+follow-ups choosing the library name and dual licensing. New product choices require review and
 must remain draft until approved. Routine scaffold setup is described in project
 guidance; it must not silently settle the [open decisions](../open-questions.md).
