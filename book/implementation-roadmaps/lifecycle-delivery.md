@@ -72,7 +72,8 @@ synchronization are recorded before durable completion.
 - **Evidence:** All local commands below passed. Two consistency tests check the
   checkout and deliberately broken relationships, including absent guidance,
   navigation drift, mismatched documentation/pins, and direct engine invocation.
-  Existing launcher tests remain unchanged. Rendered navigation, affected authority
+  Initial validation left launcher tests unchanged; the CI follow-up below
+  serializes fixture lifetimes without changing assertions or production behavior. Rendered navigation, affected authority
   and roadmap records, and local HTML links/fragments passed inspection. GitHub CI,
   human review, merge, and post-merge synchronization remain pending.
 
@@ -118,6 +119,33 @@ Thinkwell behavior, upstream source rights, external links, GitHub CI execution,
 Linux execution of the new tests, or enabled repository protections. The engine's
 structural check does not validate lifecycle semantics, prose links, or delivery
 approval; the human gate remains procedural. No verification runners were added.
+
+### CI failure investigation
+
+The initial head `6fa55d27fd4bcf7e52078f7b991559e48946f839` had different CI outcomes:
+[push run 44255081373](https://github.com/dherman/thinkwell-rs/actions/runs/44255081373)
+failed in the existing `missing_and_mismatched_engines_install_the_pin` test with
+Linux `ExecutableFileBusy` / `Text file busy` (OS error 26), while
+[PR run 44255183349](https://github.com/dherman/thinkwell-rs/actions/runs/44255183349)
+passed all checks on the same head. The failure occurred starting the fixture
+installer, before the new consistency tests ran.
+
+The likely race is concurrent script creation and process spawning in launcher
+tests: a child can temporarily inherit a writable script descriptor before exec
+closes it, preventing Linux from executing that file. The focused correction holds
+a process-local mutex for each fixture's lifetime, including script creation,
+execution, and cleanup. Assertions, test coverage, production launcher behavior,
+and pinning are unchanged. Lock poisoning is recovered so one failed assertion
+does not prevent remaining fixtures from exercising their checks.
+
+Local validation of this follow-up: formatting, workspace compilation, Clippy,
+workspace tests, Book structure/rendering, and whitespace checks passed; 20 repeated
+launcher test runs with three test threads passed. The failure was not reproduced
+on macOS. A local Linux container was unavailable because Docker's daemon was not
+running. The updated PR head's Linux CI remains the required confirmation; passing
+local repetitions do not establish that the intermittent Linux failure is resolved.
+The PR identifies the tested follow-up commit. Human review and integration remain
+pending.
 
 ### Completion record
 

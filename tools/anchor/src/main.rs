@@ -88,26 +88,41 @@ mod tests {
         fs,
         os::unix::fs::PermissionsExt,
         path::PathBuf,
-        sync::atomic::{AtomicUsize, Ordering},
+        sync::{
+            Mutex, MutexGuard,
+            atomic::{AtomicUsize, Ordering},
+        },
     };
 
     static NEXT: AtomicUsize = AtomicUsize::new(0);
 
-    struct Fixture(PathBuf);
+    // A concurrent process spawn can inherit another test's writable script
+    // descriptor until exec closes it, causing Linux ETXTBSY when that script
+    // is executed. Serialize writing and spawning for each fixture's lifetime.
+    static FIXTURES: Mutex<()> = Mutex::new(());
+
+    struct Fixture {
+        root: PathBuf,
+        _guard: MutexGuard<'static, ()>,
+    }
 
     impl Fixture {
         fn new() -> Self {
+            let guard = FIXTURES.lock().unwrap_or_else(|error| error.into_inner());
             let root = env::temp_dir().join(format!(
                 "anchor launcher {} {}",
                 process::id(),
                 NEXT.fetch_add(1, Ordering::Relaxed)
             ));
             fs::create_dir_all(root.join("target/tools/bin")).unwrap();
-            Self(root)
+            Self {
+                root,
+                _guard: guard,
+            }
         }
 
         fn script(&self, path: &str, contents: &str) -> PathBuf {
-            let path = self.0.join(path);
+            let path = self.root.join(path);
             fs::write(&path, format!("#!/bin/sh\n{contents}\n")).unwrap();
             fs::set_permissions(&path, fs::Permissions::from_mode(0o755)).unwrap();
             path
@@ -123,7 +138,7 @@ mod tests {
 
     impl Drop for Fixture {
         fn drop(&mut self) {
-            let _ = fs::remove_dir_all(&self.0);
+            let _ = fs::remove_dir_all(&self.root);
         }
     }
 
@@ -132,7 +147,7 @@ mod tests {
         let fixture = Fixture::new();
         let engine = fixture.engine();
         assert_eq!(
-            ensure_engine(&fixture.0, OsStr::new("nonexistent-installer")).unwrap(),
+            ensure_engine(&fixture.root, OsStr::new("nonexistent-installer")).unwrap(),
             engine
         );
     }
@@ -147,12 +162,12 @@ mod tests {
             let installer = fixture.script("cargo", &format!(
                 "printf '%s\\n' \"$@\" > arguments\ncat > target/tools/bin/anchorbook <<'ENGINE'\n#!/bin/sh\necho 'anchorbook 0.1.0 ({REVISION})'\nENGINE\nchmod +x target/tools/bin/anchorbook"
             ));
-            let binary = ensure_engine(&fixture.0, installer.as_os_str()).unwrap();
+            let binary = ensure_engine(&fixture.root, installer.as_os_str()).unwrap();
             assert!(matches_pin(&binary));
-            let arguments = fs::read_to_string(fixture.0.join("arguments")).unwrap();
+            let arguments = fs::read_to_string(fixture.root.join("arguments")).unwrap();
             let expected = format!(
                 "install\n--git\n{REPOSITORY}\n--rev\n{REVISION}\n--locked\n--force\n--root\n{}\nanchor-book\n",
-                fixture.0.join("target/tools").display()
+                fixture.root.join("target/tools").display()
             );
             assert_eq!(arguments, expected);
         }
@@ -163,10 +178,10 @@ mod tests {
         let fixture = Fixture::new();
         for script in ["exit 17", "exit 0"] {
             let installer = fixture.script("cargo", script);
-            assert!(ensure_engine(&fixture.0, installer.as_os_str()).is_err());
+            assert!(ensure_engine(&fixture.root, installer.as_os_str()).is_err());
         }
         fixture.script("target/tools/bin/anchorbook", "echo wrong-version");
         let installer = fixture.script("cargo", "exit 0");
-        assert!(ensure_engine(&fixture.0, installer.as_os_str()).is_err());
+        assert!(ensure_engine(&fixture.root, installer.as_os_str()).is_err());
     }
 }
