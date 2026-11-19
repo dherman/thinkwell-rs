@@ -29,9 +29,10 @@ durable completion, and roadmap synchronization.
 ## Setup and validation
 
 The repository-root `CONTRIBUTING.md` owns exact installation, version pins, checks,
-and update instructions. The workspace has one unpublished, dependency-free
-`thinkwell` library in `crates/thinkwell`; its empty API does not fix future
-architecture. Edition 2024 and resolver 3 are scaffold settings. Rust 1.100.0 is
+and update instructions. The workspace has one unpublished `thinkwell` library in
+`crates/thinkwell`; its initial supported scope is defined in
+[typed conversations](design/typed-conversations.md), with evidence and pending
+integration in the [product roadmap](implementation-roadmaps/first-product-slice.md). Edition 2024 and resolver 3 are scaffold settings. Rust 1.100.0 is
 the owner-selected development baseline, not the project's MSRV.
 
 `cargo anchor` is the Anchor Engineering entry point. Its dependency-free
@@ -77,7 +78,7 @@ declarations are obligations, not evidence.
 Do not assume designed features are implemented. This revision has no initialization,
 materialization, RFD template command/validation, cross-Book support, or `[engine]`
 configuration. Use schema 1 and manual authoring. No RFD section or verification
-runners are configured here: there are no product anchors or linked evidence yet.
+runners are configured here: product anchors use test/review criteria with evidence recorded in the roadmap.
 Do not add nextest, Verus, or mutation tooling merely because upstream uses them.
 
 ## Review boundaries

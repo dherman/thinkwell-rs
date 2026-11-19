@@ -33,6 +33,8 @@ jobs:
         run: cargo check --workspace --all-targets --locked
       - name: Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Process fixture prerequisites
+        run: python3 --version && command -v ps
       - name: Tests
         run: cargo test --workspace --locked
       - name: Bootstrap consistency

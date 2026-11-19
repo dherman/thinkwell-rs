@@ -59,7 +59,8 @@ GitHub protections are recommendations, not claims of enabled settings.
   tested revision, integration, and post-merge synchronization. Recommended GitHub
   settings address CI, PR review, direct updates, merge permission, and stale
   approvals, including GitHub's sole-maintainer self-approval constraint. No settings
-  were changed. Human review and integration remain pending.
+  were changed. The owner merged PR #1 and confirmed reviewing it in the synchronization
+  conversation on 2026-11-18. See integration evidence below.
 
 #### Checked bootstrap and bounded validation {#lifecycle-delivery-1-validation}
 
@@ -74,8 +75,9 @@ synchronization are recorded before durable completion.
   navigation drift, mismatched documentation/pins, and direct engine invocation.
   Initial validation left launcher tests unchanged; the CI follow-up below
   serializes fixture lifetimes without changing assertions or production behavior. Rendered navigation, affected authority
-  and roadmap records, and local HTML links/fragments passed inspection. GitHub CI,
-  human review, merge, and post-merge synchronization remain pending.
+  and roadmap records, and local HTML links/fragments passed inspection. Final-head
+  and merge-commit Linux CI passed; PR #1 is merged. The owner confirmed human review.
+  Integration of this roadmap synchronization remains outstanding; see below.
 
 ### Validation and review evidence
 
@@ -84,8 +86,8 @@ working tree based on `6bf7ada5c98b64222bcd495c9c57567a780252cb` on main.
 At that validation, no new tested commit existed and changes were local, not
 committed, pushed, or integrated. The owner subsequently authorized committing,
 pushing, and opening a PR for review on branch `lifecycle-delivery-integration`.
-The PR records the tested commit and current CI/review state; merge and durable
-completion remain pending.
+PR #1 subsequently merged; its exact revisions and CI evidence are recorded below.
+Durable completion remains pending the remaining delivery-record obligations.
 Rust 1.100.0, mdBook 0.5.4, and Anchor Book revision
 `9689b00416fd577bfb68a02f1fa310f6088404cf` remain unchanged.
 
@@ -115,8 +117,9 @@ A subsequent review made the negative identity fixture independent of the numeri
 engine version. All affected checks were rerun successfully.
 
 Limits: these checks establish scaffold/workflow integrity only. They do not verify
-Thinkwell behavior, upstream source rights, external links, GitHub CI execution,
-Linux execution of the new tests, or enabled repository protections. The engine's
+Thinkwell behavior, upstream source rights, external links, or enabled repository
+protections. These local checks did not establish GitHub CI or Linux execution;
+the subsequent CI evidence below supplies that execution evidence. The engine's
 structural check does not validate lifecycle semantics, prose links, or delivery
 approval; the human gate remains procedural. No verification runners were added.
 
@@ -142,11 +145,44 @@ Local validation of this follow-up: formatting, workspace compilation, Clippy,
 workspace tests, Book structure/rendering, and whitespace checks passed; 20 repeated
 launcher test runs with three test threads passed. The failure was not reproduced
 on macOS. A local Linux container was unavailable because Docker's daemon was not
-running. The updated PR head's Linux CI remains the required confirmation; passing
-local repetitions do not establish that the intermittent Linux failure is resolved.
-The PR identifies the tested follow-up commit. Human review and integration remain
-pending.
+running. Subsequent Linux CI passed on the corrected head and merge commit, as
+recorded below. These successful runs do not prove that an intermittent failure
+can never recur.
+
+### Integration and synchronization evidence
+
+Inspected GitHub on 2026-11-18. Owner `dherman` merged
+[PR #1](https://github.com/dherman/thinkwell-rs/pull/1) at
+2026-11-18 07:06:13 UTC. The final head was
+`c1baf4d65c1d7b236f6580cdcb65bb4ced611086`; the integrated merge commit is
+`83ac7e6faf7b4e7dfd74c306436760e44ba46a21`.
+
+Both **Rust and Book checks** executions on the final head passed before merge:
+[push run 44255800781](https://github.com/dherman/thinkwell-rs/actions/runs/44255800781)
+and [PR run 44255807521](https://github.com/dherman/thinkwell-rs/actions/runs/44255807521).
+The [main push run 44256276781](https://github.com/dherman/thinkwell-rs/actions/runs/44256276781)
+also passed on the merge commit. These runs supply Linux CI evidence for the
+fixture correction and bootstrap checks, not product verification.
+
+The owner confirmed in the synchronization conversation on 2026-11-18: “I
+reviewed the PR.” This supplies human-review evidence for PR #1 alongside the
+confirmed owner merge. GitHub returns no reviews or PR comments; the review
+confirmation is recorded here rather than represented as a GitHub approval.
+No protection bypass is inferred. The earlier implementing-agent review and its
+findings remain recorded above.
+
+The owner requested this post-merge roadmap synchronization. It is a local,
+uncommitted documentation follow-up on `port-design`, based on the merge commit;
+its integration is still pending. No product milestone is assigned by this update.
+For this documentation follow-up, `cargo anchor check --config anchorbook.toml`
+passed structural/v1 with zero errors, mdBook 0.5.4 built successfully, and
+`git diff --check` passed. The changed source and rendered integration evidence,
+criterion links, and completion record were inspected. No implementation changed;
+Cargo behavior tests were not rerun.
 
 ### Completion record
 
-Not complete. Local implementation and validation do not establish durable completion.
+In progress. PR #1's implementation is integrated and its final-head and
+merge-commit CI passed. The owner confirmed human review. Integration of this
+roadmap synchronization remains outstanding. Durable completion has not been
+declared.

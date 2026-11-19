@@ -48,12 +48,16 @@ cargo test -p anchor-runner --test bootstrap_consistency --locked
 git diff --check
 ```
 
-The library intentionally has no tests yet; the development launcher has focused
-bootstrap tests. The bootstrap-consistency integration test checks startup, Book
+The library has deterministic contract, ACP/HTTP subprocess, ownership, and lifecycle
+tests. They require Python 3 and Unix ps on macOS/Linux, with bounded deadlines;
+they never invoke a real model. The development launcher has focused bootstrap
+tests. The bootstrap-consistency integration test checks startup, Book
 navigation, documented engine pins, and CI/rendering entry points without duplicating
 installation tests. It runs in workspace tests and has the explicit command above
-for focused diagnostics. Successful Cargo commands establish
-that the scaffold compiles and its test harness runs, not Thinkwell behavior.
+for focused diagnostics. Product test results cover their named behavioral cases, not all supported-agent
+behavior. Linux CI is distinct from a local macOS pass. The opt-in
+`cargo run -p thinkwell --locked --example live_check` exercises the pinned
+Claude adapter and existing authentication; it is not part of ordinary tests.
 `check` evaluates Book structure, not semantic validity or completion.
 The mdBook preprocessor additionally validates authority records and roadmap
 references. Inspect generated navigation, records, and links under
