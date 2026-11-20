@@ -51,7 +51,9 @@ turn/value envelopes are library protocol details, not callback parameters.
 Validate the finite object/array/primitive/const/enum/oneOf/anyOf contract subset,
 including signed int64 representation. Unsupported dialects, references,
 definitions, formats and constraints are preflight errors. Local contract
-validation precedes conversion and follows output serialization.
+validation precedes conversion and follows output serialization. Tool inputs and
+final answers use deserialization schemas; tool outputs use serialization schemas
+so direction-specific Serde field names describe the actual values on the wire.
 
 Defaults are 120 seconds per turn, 30 seconds per callback, 32 application calls,
 three invalid result submissions, 30 seconds for setup, and 12 for shutdown.

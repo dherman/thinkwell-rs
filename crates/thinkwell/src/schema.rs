@@ -1,11 +1,19 @@
 //! Finite contract validation; every accepted keyword is checked independently of Serde.
 //! Unknown validation keywords and references are rejected before prompting.
-use schemars::{JsonSchema, schema_for};
+use schemars::{JsonSchema, generate::SchemaSettings};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
 pub fn contract<T: JsonSchema>() -> crate::Result<Value> {
-    let schema = serde_json::to_value(schema_for!(T))
+    contract_with::<T>(SchemaSettings::default().for_deserialize())
+}
+
+pub fn output_contract<T: JsonSchema>() -> crate::Result<Value> {
+    contract_with::<T>(SchemaSettings::default().for_serialize())
+}
+
+fn contract_with<T: JsonSchema>(settings: SchemaSettings) -> crate::Result<Value> {
+    let schema = serde_json::to_value(settings.into_generator().into_root_schema_for::<T>())
         .map_err(|e| crate::Error::new(crate::ErrorKind::Contract, e.to_string()))?;
     supported(&schema).map_err(|e| crate::Error::new(crate::ErrorKind::Contract, e))?;
     Ok(schema)

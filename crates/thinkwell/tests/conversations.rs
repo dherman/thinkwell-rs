@@ -536,3 +536,53 @@ async fn unsupported_contracts_and_options_fail_before_prompt() {
     agent.shutdown().await.unwrap();
     reaped(dir.path()).await;
 }
+
+#[tokio::test]
+async fn contracts_follow_serde_direction() {
+    #[derive(Deserialize, JsonSchema)]
+    struct RenamedInput {
+        #[serde(rename(serialize = "sent_value", deserialize = "value"))]
+        value: i64,
+    }
+    #[derive(Serialize, JsonSchema)]
+    struct RenamedOutput {
+        #[serde(rename(serialize = "total", deserialize = "received_total"))]
+        total: i64,
+    }
+    #[derive(Debug, Deserialize, JsonSchema)]
+    struct RenamedResult {
+        #[serde(rename(serialize = "sent_total", deserialize = "total"))]
+        total: i64,
+    }
+
+    let dir = tempfile::tempdir().unwrap();
+    let agent = connect("normal", dir.path()).await;
+    let tool = Tool::<RenamedInput, RenamedOutput>::new("accumulate", "Add to accumulator");
+    let mut session = agent.session().tool(&tool).open().await.unwrap();
+    let mut total = 0;
+    let result = Plan::<RenamedResult>::new()
+        .bind(&tool, async |input: RenamedInput| {
+            total += input.value;
+            Ok(RenamedOutput { total })
+        })
+        .run_in(&mut session)
+        .await;
+    drop(session);
+    agent.shutdown().await.unwrap();
+    reaped(dir.path()).await;
+    assert_eq!(result.unwrap().total, 3);
+    assert_eq!(total, 3);
+
+    let catalog: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(dir.path().join("pid.catalog")).unwrap())
+            .unwrap();
+    let descriptor = catalog["result"]["tools"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|tool| tool["name"] == "accumulate")
+        .unwrap();
+    let output = &descriptor["outputSchema"]["properties"]["value"];
+    assert_eq!(output["required"], serde_json::json!(["total"]));
+    assert!(output["properties"].get("received_total").is_none());
+}

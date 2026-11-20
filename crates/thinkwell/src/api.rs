@@ -312,7 +312,7 @@ impl<I: DeserializeOwned + JsonSchema, O: Serialize + JsonSchema> Tool<I, O> {
                 name,
                 description: description.into(),
                 input: schema::contract::<I>()?,
-                output: schema::contract::<O>()?,
+                output: schema::output_contract::<O>()?,
             })
         })();
         Self {

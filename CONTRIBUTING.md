@@ -42,6 +42,7 @@ cargo fmt --all -- --check
 cargo check --workspace --all-targets --locked
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
+python3 -m unittest discover -s experiments/acp-integration -p 'test_probe_agent.py'
 RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked
 cargo anchor check --config anchorbook.toml
 mdbook build

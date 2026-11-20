@@ -546,3 +546,33 @@ Local all-target compilation, Clippy with warnings denied, strict Rustdoc, and
 workspace tests passed, including all 28 doctests, 19 product tests, and five
 launcher/bootstrap tests. Formatting, Book structure/rendering, and whitespace
 checks are required before delivery. GitHub CI for this revision remains unverified.
+
+
+### Copilot review corrections
+
+The owner requested evaluation and then correction of both findings in
+[Copilot's review of 244d27f](https://github.com/dherman/thinkwell-rs/pull/2#pullrequestreview-5988211212).
+Implementation-author evaluation confirmed both against the current code and the
+pinned Schemars 1.2.3 settings. Tool output contracts now use serialization mode;
+inputs and final answers retain explicit deserialization mode. Both paths still
+apply the same finite-schema support checks. The experimental Python capability
+probe accepts a matching response ID only when the message has no method, so an
+incoming request with the same ID is rejected normally instead of mistaken for
+a response. These fixes change no public signatures or accepted support scope.
+
+The product regression exercises different serialize/deserialize names for tool
+input, output, and final answer, verifies a single state update and successful
+result, and checks the advertised output schema. It failed before the correction
+and passes afterward. Existing rejection of deliberately invalid serialized output
+still passes. The Python regression drives the full probe against a local scripted
+peer with overlapping IDs; it demonstrably fails against the old matcher and
+passes against the corrected matcher. It is now included in CI and documented
+local checks, without credentials or model calls.
+
+On base 244d27f plus this correction, all-target compilation, formatting, Clippy,
+strict Rustdoc, 20 product tests, five launcher/bootstrap tests, 28 doctests, and
+the Python probe regression passed locally. Book structure/rendering and whitespace
+checks are required before delivery. A focused implementation-author review checked
+schema direction at all three use sites, preservation of validation, and request
+versus response dispatch. GitHub CI for these corrections remains unverified;
+owner review and authorized integration are still outstanding.

@@ -12,8 +12,13 @@ Run from the repository root:
 CARGO_TARGET_DIR="$PWD/target/acp-integration" cargo test --manifest-path experiments/acp-integration/Cargo.toml --locked
 CARGO_TARGET_DIR="$PWD/target/acp-integration" cargo clippy --manifest-path experiments/acp-integration/Cargo.toml --all-targets --locked -- -D warnings
 cargo fmt --manifest-path experiments/acp-integration/Cargo.toml -- --check
+python3 -m unittest discover -s experiments/acp-integration -p 'test_probe_agent.py'
 python3 experiments/acp-integration/probe_agent.py > target/acp-agent-capabilities.json
 ```
+
+The Python regression test uses a scripted local peer to check overlapping
+request IDs in opposite directions. It needs no installed agent or credentials
+and sends no prompts. The live capability probe remains opt-in.
 
 The original seven Rust tests have five-second deadlines. A scripted in-memory ACP peer
 accepts session setup and sends native MCP tool requests. The real SDK routes

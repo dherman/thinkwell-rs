@@ -42,7 +42,7 @@ def main():
                         continue
                     line, buffer = buffer.split(b"\n", 1)
                     response = json.loads(line)
-                    if response.get("id") == identifier:
+                    if "method" not in response and response.get("id") == identifier:
                         return response
                     # No filesystem, terminal or permission request is approved by this probe.
                     if "id" in response and "method" in response:
