@@ -2,6 +2,12 @@
 
 Roadmap identifier: `acp-integration-prototype`.
 
+Current integration state: completed work was delivered through owner-merged
+[PR #2](https://github.com/dherman/thinkwell-rs/pull/2). See the
+[shared integration evidence](first-product-slice.md#integrated-completion).
+Earlier local-stage evidence and pending-delivery statements below are historical;
+they retain their tested scope and do not describe current integration status.
+
 Goal: test whether the official ACP SDK can preserve scoped local tool ergonomics.
 
 The [integrated API review](integrated-api-review.md) is the current entry point
@@ -13,7 +19,7 @@ and the detailed exploration behind it.
 **Outcome:** A bounded integration experiment compares local dispatch and direct
 Send callbacks, assesses cancellation and teardown, and records agent capability evidence.
 
-**Status:** In progress
+**Status:** Complete
 
 **Identifier:** `acp-integration-prototype-1`
 
@@ -164,7 +170,7 @@ pushes, publication, product implementation, or lifecycle transition occurred.
 **Outcome:** A real ACP agent calls a locally hosted tool over a supported MCP
 transport, and its final reply demonstrates receipt of the tool output.
 
-**Status:** In progress
+**Status:** Complete
 
 **Identifier:** `acp-integration-prototype-2`
 

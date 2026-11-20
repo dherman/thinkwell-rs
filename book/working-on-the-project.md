@@ -31,7 +31,7 @@ durable completion, and roadmap synchronization.
 The repository-root `CONTRIBUTING.md` owns exact installation, version pins, checks,
 and update instructions. The workspace has one unpublished `thinkwell` library in
 `crates/thinkwell`; its initial supported scope is defined in
-[typed conversations](design/typed-conversations.md), with evidence and pending
+[typed conversations](design/typed-conversations.md), with evidence and completed
 integration in the [product roadmap](implementation-roadmaps/first-product-slice.md). Edition 2024 and resolver 3 are scaffold settings. Rust 1.100.0 is
 the owner-selected development baseline, not the project's MSRV.
 

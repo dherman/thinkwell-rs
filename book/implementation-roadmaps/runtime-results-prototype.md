@@ -2,6 +2,12 @@
 
 Roadmap identifier: `runtime-results-prototype`.
 
+Current integration state: completed work was delivered through owner-merged
+[PR #2](https://github.com/dherman/thinkwell-rs/pull/2). See the
+[shared integration evidence](first-product-slice.md#integrated-completion).
+Earlier local-stage evidence and pending-delivery statements below are historical;
+they retain their tested scope and do not describe current integration status.
+
 Goal: establish whether the reviewed API's two unproven foundations—per-turn typed
 final results and RAII-managed connection lifetime—work together before committing
 the public product API to their mechanisms.
@@ -14,7 +20,7 @@ without mandatory caller cleanup or scoped callbacks. Deterministic fixtures
 exercise failure and cancellation paths that live model behavior cannot reliably
 cover.
 
-**Status:** In progress
+**Status:** Complete
 
 **Identifier:** `runtime-results-prototype-1`
 
