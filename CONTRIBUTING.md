@@ -42,6 +42,7 @@ cargo fmt --all -- --check
 cargo check --workspace --all-targets --locked
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
+RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked
 cargo anchor check --config anchorbook.toml
 mdbook build
 cargo test -p anchor-runner --test bootstrap_consistency --locked
@@ -62,6 +63,17 @@ Claude adapter and existing authentication; it is not part of ordinary tests.
 The mdBook preprocessor additionally validates authority records and roadmap
 references. Inspect generated navigation, records, and links under
 `target/anchorbook/`; a build is not a complete content review.
+
+The Rustdoc check builds workspace API documentation without dependency docs and
+treats documentation warnings (including broken intra-doc links) as errors. Local
+output is under `target/doc/`, with the library entry at `target/doc/thinkwell/index.html`.
+Doctests remain part of `cargo test`.
+
+Each CI run uploads the generated tree as the `rustdoc` artifact, retained for
+14 days. In GitHub Actions, open the CI run, download `rustdoc` from its Artifacts
+section, extract the archive, and open `thinkwell/index.html`. Keep the whole
+extracted tree together for styles, search, and source links. GitHub artifacts
+are downloads, not a hosted documentation website.
 
 Use default rustfmt and Clippy behavior. There is no custom lint configuration.
 CI runs the Cargo/Book and bootstrap checks above and whitespace checking on Ubuntu 24.04.

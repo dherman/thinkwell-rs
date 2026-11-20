@@ -4,7 +4,7 @@ use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
 use std::{future::Future, marker::PhantomData, pin::Pin, time::Duration};
 
-/// Owned command configuration; custom presets can implement Into<AgentConfig>.
+/// Owned command configuration; custom presets can implement `Into<AgentConfig>`.
 #[derive(Clone, Debug)]
 pub struct AgentConfig {
     pub(crate) command: String,

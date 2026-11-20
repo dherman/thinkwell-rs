@@ -469,3 +469,24 @@ and ending the Porting Phase remain unassigned. Prior “not pushed” statement
 above describe the local validation stage. The PR will carry the tested commit
 and current CI state; milestone status remains In progress pending review,
 passing required CI, and authorized integration.
+
+
+### Rustdoc CI follow-up
+
+The owner requested generating Rustdocs in GitHub CI. The existing Rust and Book
+checks job now runs `cargo doc --workspace --no-deps --locked` with
+`RUSTDOCFLAGS="-D warnings"`. CONTRIBUTING.md documents the matching local check
+and target/doc output. This checks Rustdoc generation and warnings separately from
+the existing doctests. It adds no deployment or package-publication step.
+
+The first local Rustdoc run caught an unclosed HTML tag in the plain-text
+`Into<AgentConfig>` API comment. Marking it as inline code fixes the warning.
+This is a documentation-only source change after the product digest above.
+The corrected Rustdoc build, doctests, Book checks/rendering, bootstrap consistency,
+and whitespace checks passed locally; CI verification of this follow-up is pending.
+
+The owner also asked to view the generated output. CI uploads target/doc as the
+rustdoc artifact using a SHA-pinned actions/upload-artifact v4, retained for
+14 days; CONTRIBUTING.md explains downloading and opening thinkwell/index.html.
+The generated files include sibling assets and source pages. No external service
+or hosted-site deployment is configured. Upload execution awaits GitHub CI.
