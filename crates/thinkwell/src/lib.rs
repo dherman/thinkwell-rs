@@ -134,7 +134,7 @@ pub enum ErrorKind {
     Configuration,
     /// A schema uses an unsupported dialect, keyword, format, or structure.
     Contract,
-    /// A tool or result value violates its contract or cannot be converted.
+    /// A tool or result value is invalid, or prompt context cannot be serialized.
     InvalidValue,
     /// Tool names, declarations, or per-turn bindings are invalid or mismatched.
     Binding,

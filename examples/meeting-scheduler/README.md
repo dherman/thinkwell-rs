@@ -104,10 +104,14 @@ visible in `main`:
 ```rust
 let parsed = Plan::<ParsedAvailability>::new()
     .text("Translate this roster's availability into weekday time windows.")
-    .text(serde_json::to_string(&roster)?)
+    .json(&roster)?
     .run_in(&mut session)
     .await?;
 ```
+
+`json(&roster)?` adds the roster as JSON and reports serialization errors
+immediately. The plan owns the resulting text, so it does not borrow the roster.
+JSON formatting does not prevent the agent from interpreting data as instructions.
 
 This abbreviated snippet omits only the prompt text; the full instructions are
 readable in the source. The answer is then printed and checked with ordinary Rust

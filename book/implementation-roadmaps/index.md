@@ -12,7 +12,8 @@ connects the reviewed revision and CI evidence to their bounded criteria.
 
 The [meeting scheduler](meeting-scheduler.md) and its owner-approved
 [automatic schema inlining adaptation](meeting-scheduler.md#meeting-scheduler-inlining)
-are In progress.
+are In progress. The owner also assigned the
+[structured prompt context convenience](meeting-scheduler.md#meeting-scheduler-context).
 Its approved scope became Ready after the owner reviewed and merged the Book
 closeout in PR #3 at eecb8ec, then assigned continuation. Local implementation,
 deterministic tests, and a live demonstration are recorded in its roadmap;

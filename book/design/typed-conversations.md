@@ -44,6 +44,11 @@ the connection. Recovery is explicit reconnection.
 
 Expose typed command configuration, the `thinkwell::agent::Claude` preset, fixed typed Tool
 descriptors, cloneable unbound Plans, borrowed per-turn bindings and run_in.
+Plan::json borrows any Serialize value only while appending its compact JSON plus
+one newline to the prompt, just like text composition. Serialization is immediate
+and fallible, returning InvalidValue on failure; no schema derivation is required.
+It preserves existing Plan state and introduces no special content block, quoting
+protocol, or instruction-trust boundary.
 Use HTTP MCP 2025-11-25 with a loopback listener, bearer credential, Origin and
 body-size checks, and permission restriction to declared tools. Turn/input and
 turn/value envelopes are library protocol details, not callback parameters.

@@ -456,3 +456,51 @@ Commands: `cargo test --workspace --locked`,
 `RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked`, and
 `cargo test --manifest-path examples/meeting-scheduler/Cargo.toml --locked`
 with the previously recorded CMAKE and CARGO_TARGET_DIR settings.
+
+
+## Milestone 3. Structured prompt context {#meeting-scheduler-context}
+
+**Identifier:** `meeting-scheduler-context`
+
+**Status:** In progress
+
+**Outcome:** Callers append serializable context with `Plan::json(&value)?`;
+the scheduler demonstrates it instead of manually converting the roster to text.
+
+**Approval:** The owner explicitly assigned implementation after schema inlining;
+this bounded milestone became Ready and was assigned in the same session.
+
+**Dependencies:** Existing Plan text composition. Schema inlining is pushed at
+8fb2cba; neither feature depends on the other's integration.
+
+**Design basis:** `R-code-prompt-ergonomics` and the Plan context behavior in
+[typed conversations](../design/typed-conversations.md).
+
+**Tasks:** Add an immediately fallible JSON helper for all Plan binding states,
+explain it with a concrete Rustdoc example, update the scheduler, and validate.
+No quoting protocol, trust boundary, new content block, or schema requirement is added.
+
+### Composition and failures {#meeting-scheduler-context-behavior}
+
+- **Anchor coverage:** None — prompt composition convenience, not a new protocol guarantee.
+- **Criterion:** Tests verify text/JSON ordering, JSON escaping, no retained borrow,
+  and immediate serialization failure. The helper requires only Serialize,
+  preserves Plan state, and reports InvalidValue without invoking an agent.
+- **Evidence:** Local pass on 8fb2cba plus this adaptation: three API tests cover
+  composition/escaping and owned snapshots, bound-state preservation, and immediate
+  serialization failure. `cargo test --workspace --locked` passes, including
+  conversation preflight tests and the new runnable Rustdoc example.
+
+### Example and documentation {#meeting-scheduler-context-delivery}
+
+- **Anchor coverage:** `A-typed-turn-completion` (application usage only).
+- **Criterion:** Scheduler tests and the illustrative Rustdoc pass; documentation
+  explains fallibility and the absence of a trust boundary. Review and integration
+  are tracked independently of local evidence.
+- **Evidence:** All eight scheduler tests pass with `.json(&roster)?`. Workspace
+  Clippy with warnings denied, strict Rustdoc, formatting, Book structural checking,
+  mdBook rendering, and whitespace checks pass. Commands and native environment are
+  the same as the inlining milestone above. Separate author self-review examined
+  the full diff, error behavior, ownership, docs, and unchanged prompt bytes; no
+  unresolved findings. This is not independent or owner review. No additional live
+  agent run was performed. CI and owner-reviewed integration remain outstanding.
