@@ -2,6 +2,12 @@
 
 Roadmap identifier: `lifecycle-delivery`.
 
+Current integration state: completed work was delivered through owner-merged
+[PR #2](https://github.com/dherman/thinkwell-rs/pull/2). See the
+[shared integration evidence](first-product-slice.md#integrated-completion).
+Earlier local-stage evidence and pending-delivery statements below are historical;
+they retain their tested scope and do not describe current integration status.
+
 Goal: extend the completed scaffold with owner-approved lifecycle and delivery
 policy, without product functionality or a detailed port plan.
 
@@ -10,7 +16,7 @@ policy, without product functionality or a detailed port plan.
 **Outcome:** The Book governs the Porting Phase, its human-approved transition,
 and reviewable delivery; CI protects bootstrap relationships.
 
-**Status:** In progress
+**Status:** Complete
 
 **Identifier:** `lifecycle-delivery-1`
 
@@ -182,7 +188,8 @@ Cargo behavior tests were not rerun.
 
 ### Completion record
 
-In progress. PR #1's implementation is integrated and its final-head and
-merge-commit CI passed. The owner confirmed human review. Integration of this
-roadmap synchronization remains outstanding. Durable completion has not been
-declared.
+Complete. PR #1's implementation and the previously pending synchronization are
+integrated: the latter was included in owner-merged PR #2 at
+`1b21c83b9b713690d953df72244c7f9fcf8244ce`. PR #1 review and CI evidence remain
+above; [PR #2 delivery evidence](first-product-slice.md#integrated-completion)
+closes the synchronization gap. No lifecycle transition is implied.

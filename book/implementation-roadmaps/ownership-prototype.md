@@ -2,6 +2,12 @@
 
 Roadmap identifier: `ownership-prototype`.
 
+Current integration state: completed work was delivered through owner-merged
+[PR #2](https://github.com/dherman/thinkwell-rs/pull/2). See the
+[shared integration evidence](first-product-slice.md#integrated-completion).
+Earlier local-stage evidence and pending-delivery statements below are historical;
+they retain their tested scope and do not describe current integration status.
+
 Goal: assess Rust ownership and ergonomics for the proposed fluent API through
 an isolated simulated driver, before choosing product API signatures or ACP libraries.
 
@@ -10,7 +16,7 @@ an isolated simulated driver, before choosing product API signatures or ACP libr
 **Outcome:** Compile-checked examples and rejection cases establish the practical
 tradeoffs of borrowed callbacks, reusable plans, helper composition, and observation.
 
-**Status:** In progress
+**Status:** Complete
 
 **Identifier:** `ownership-prototype-1`
 
@@ -174,7 +180,8 @@ callbacks. It does not extend this experiment's implementation or evidence.
 
 ### Completion record
 
-The authorized local experiment and its five assessments are finished. The
-milestone remains In progress pending owner review and authorized integration;
-local evidence does not establish durable completion or accept the proposed API.
-No further prototype expansion or product milestone is assigned.
+Complete. All five bounded assessments have the evidence recorded above; their
+sources and evidence were integrated in owner-merged PR #2. See the
+[shared delivery record](first-product-slice.md#integrated-completion).
+Completion of this experiment does not promote its experimental observation or
+Send adapters into supported product API. No further prototype expansion is assigned.

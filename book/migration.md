@@ -102,6 +102,88 @@ an additional schema build tool; its durable definition is in
 [design](design/index.md#type-derived-contracts). The remaining observations guide
 API exploration, without accepting every legacy method, mechanism, or behavior.
 
+## Example selection for the next milestone {#example-selection}
+
+At the owner's request following PR #2, refreshed upstream at the same revision
+`2393101fd66b8471f33bb3a4908aeee919fdf0ce`. The repository has six runnable examples
+under examples/src and four tutorial sources under website/examples. The supplied
+[example index](https://thinkwell.sh/examples) identifies greeting, sentiment,
+unminification, and scheduling. The web fetch of the scheduler page was unavailable;
+its repository MDX source supplies the tutorial evidence below. No browser session,
+upstream example execution, or model inference was needed for this planning pass.
+
+| Example and source | Main lesson | Rust candidate / disposition |
+| --- | --- | --- |
+| [Greeting](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/examples/src/greeting.ts) and hello-world tutorial | A local time tool contributes facts to a typed greeting; the script also streams progress. | `chrono` or `time` for local date/time; IANA-zone naming needs separate consideration. Useful small tool example, but little new coverage beyond current docs; omit streaming unless separately assigned. |
+| [Summarization](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/examples/src/summarize.ts) | Read text and ask for a typed summary. | Standard Rust file I/O plus existing Plan/Serde/Schemars; simple onboarding candidate. |
+| [Classification](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/examples/src/classify.ts) | Match a typed discriminated result in ordinary application code. | A Serde tagged enum and Rust match; no extra algorithm crate required. |
+| [Sentiment](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/examples/src/sentiment.ts) and sentiment-analysis tutorial | Wrap a deterministic package in a tool; the agent chooses passages and synthesizes a report. | `vader_sentiment` 0.1.1 is a pure-Rust candidate, not an AFINN-compatible replacement for npm `sentiment`. Good later borrowed-tool example. |
+| [Scheduler](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/examples/src/schedule.ts) and meeting-scheduler tutorial | Typed language-to-constraints conversion, deterministic solving, then another typed prompt. | `z3` 0.23.0 wraps the same solver as npm `z3-solver`. Recommended first application example; native setup must be tested. |
+| [Unminifier](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/examples/src/unminify.ts) and javascript-unminifier tutorial | Model naming judgments between formatting, AST transformations, and scoped renaming; bounded parallel batches. | Oxc parser/semantic/codegen is a candidate; SWC is another. Scope-aware rename and collision correctness require a larger investigation, so defer. |
+
+The scheduler best exposes the code/prompt alternation requirement without
+requiring new library API. It does not exercise borrowed application tools; the
+sentiment example is the natural complementary candidate. Do not add artificial
+tools to scheduling solely to cover every library feature in one program.
+
+### Dependency findings
+
+Published metadata and local cargo package sources were inspected on 2026-11-20:
+
+- [`z3` 0.23.0](https://docs.rs/z3/0.23.0/z3/) is MIT-licensed and declares Rust
+  1.88.0, within this project's pinned compiler. Its API has integer/Boolean terms,
+  Solver, Sat/Unsat/Unknown results, model evaluation, timeout parameters, and
+  unknown-reason reporting. It requires a native Z3 library; this is a real setup
+  difference from the npm/WASM package. Default system linking, vendored source,
+  vcpkg, and downloaded GitHub releases are documented. `bundled` is a deprecated
+  alias; prefer an explicit native setup decision. The proposed example prefers
+  a locked vendored build, isolated from normal library compilation.
+- [`vader_sentiment` 0.1.1](https://docs.rs/vader_sentiment/0.1.1/vader_sentiment/)
+  is MIT-licensed and returns positive/negative/neutral proportions and a compound
+  score. It uses VADER rules, not the AFINN score/comparative/token-list semantics
+  of npm `sentiment`. Its latest published version dates to 2021. Build and
+  behavioral verification, floating-value schema handling, and adapted teaching
+  language remain necessary before selecting it; numerical parity is not promised.
+- [`oxc` 0.159.0](https://docs.rs/oxc/0.159.0/oxc/) is MIT-licensed and declares
+  Rust 1.98.0. Parser, semantic, and codegen features make it a plausible replacement
+  for parts of Babel/Prettier. [`swc_ecma_parser` 47.1.0](https://docs.rs/swc_ecma_parser/47.1.0/swc_ecma_parser/)
+  is Apache-2.0 and belongs to an alternative parser/visitor/codegen ecosystem.
+  Neither was built or established as a drop-in rename/formatting replacement.
+  Standard iterator batching and bounded async work can replace lodash/p-limit
+  mechanics, but concurrency would need to respect Thinkwell's session constraints.
+- `chrono` 0.4.45 and `time` 0.3.55 are MIT OR Apache-2.0 candidates for greeting
+  date/time formatting. A complete timezone-name/localization equivalent to the
+  JavaScript Intl calls was not established.
+
+Crates are candidates, not additions to the library dependency set. Exact
+versions and native prerequisites must be locked and tested in an approved
+example assignment. Package license metadata is not clearance to copy arbitrary
+upstream examples, lexicons, or third-party JavaScript fixtures.
+
+### Deliberate scheduler differences proposed for Rust
+
+The TypeScript solver skips attendees with empty availability, treats all non-sat
+outcomes as no solution, and permits hour 17 in its general domain. The Rust
+proposal instead treats empty availability as no feasible meeting, preserves
+Unknown/timeout as inconclusive, and fits a full one-hour meeting inside the
+business day. The model's parsed roster must match the input roster exactly.
+The solver proves only the parsed constraints, not faithful natural-language
+interpretation. Display the parsed windows and canonical solver result separately
+from the generated explanation.
+
+Numeric minimum/maximum keywords and schema references in the original tutorial
+are not supported by the current Rust validator. An ignored scratch check showed
+that nested records and a weekday enum marked `#[schemars(inline)]`, using i64
+hours, pass the existing support validator and decoder. Proposed Rust range and
+roster validation is explicit application code. This avoids selecting broader
+library schema support implicitly while retaining meaningful validation.
+
+The corresponding [Rust milestone proposal](implementation-roadmaps/meeting-scheduler.md)
+states independent application rules and acceptance criteria. This inventory and
+all upstream comparisons remain removable migration evidence. No source,
+prompt text, tutorial prose, or data was adapted in this planning work; the
+upstream examples directory still has no independently established license notice.
+
 ## Source provenance
 
 The four core package manifests and the high-level package README declare MIT.

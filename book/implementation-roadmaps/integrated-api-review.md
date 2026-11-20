@@ -2,6 +2,12 @@
 
 Roadmap identifier: `integrated-api-review`.
 
+Current integration state: completed work was delivered through owner-merged
+[PR #2](https://github.com/dherman/thinkwell-rs/pull/2). See the
+[shared integration evidence](first-product-slice.md#integrated-completion).
+Earlier local-stage evidence and pending-delivery statements below are historical;
+they retain their tested scope and do not describe current integration status.
+
 Goal: review one coherent candidate API through complete application workflows
 before assigning another implementation experiment.
 
@@ -10,7 +16,7 @@ before assigning another implementation experiment.
 **Outcome:** Three worked examples show standalone use, a persistent conversation,
 and embedding, including ordinary error cleanup and explicit review questions.
 
-**Status:** In progress
+**Status:** Complete
 
 **Identifier:** `integrated-api-review-1`
 

@@ -1,10 +1,11 @@
 # Open questions
 
-The current review entry point is the
-[first product slice](implementation-roadmaps/first-product-slice.md), now approved
-and locally implemented. Its supported scope and product anchors are defined in
-[typed conversations](design/typed-conversations.md). Linux CI, owner review,
-and authorized integration remain outstanding.
+The first product slice and preceding approved experiments were integrated in
+owner-merged PR #2. The [closeout record](implementation-roadmaps/first-product-slice.md#integrated-completion)
+records review and final-head/merge-commit CI. The next review entry point is the
+[approved meeting scheduler scope](implementation-roadmaps/meeting-scheduler.md):
+implementation awaits integration of the Book closeout, not another scope approval.
+The supported product scope remains [typed conversations](design/typed-conversations.md).
 
 Initial choices are settled for Tokio, one session per owned ACP connection,
 the finite Serde/schemars contract subset, fixed-catalog borrowed tools,
@@ -25,7 +26,7 @@ from this slice.
 
 Migration-only questions and provenance remain in [migration research](migration.md).
 Ending the Porting Phase and publication retain separate authorization.
-The following research notes preserve the exploration behind the current slice;
+The following research notes preserve the exploration behind the integrated slice;
 historical statements about missing evidence do not override its current roadmap.
 
 ## ACP configuration research

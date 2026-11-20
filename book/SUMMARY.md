@@ -18,5 +18,6 @@
   - [Integrated API review](implementation-roadmaps/integrated-api-review.md)
   - [Runtime and typed-result foundation experiment](implementation-roadmaps/runtime-results-prototype.md)
   - [First product slice: typed conversations](implementation-roadmaps/first-product-slice.md)
+  - [Meeting scheduler proposal](implementation-roadmaps/meeting-scheduler.md)
 - [Change delivery](change-delivery.md)
 - [Working on the project](working-on-the-project.md)

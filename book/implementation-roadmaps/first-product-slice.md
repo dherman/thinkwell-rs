@@ -13,7 +13,10 @@ with deterministic acceptance tests and an opt-in live example. Application code
 can alternate between Rust and typed prompts without explicit cleanup boilerplate
 or protocol turn identifiers in its tool signatures.
 
-**Status:** In progress
+**Status:** Complete
+
+See [integrated completion](#integrated-completion) for the merge, review, and CI
+evidence closing this milestone. Earlier local-stage statements remain historical.
 
 **Identifier:** `first-product-slice-1`
 
@@ -309,7 +312,9 @@ create an ownership cycle; absent diagnostics after runtime loss are not success
   child disappearance from ps, EOF and ignored SIGTERM for forced cleanup,
   listener closure, early error return, diagnostics, runtime destruction, and
   malformed session-constructor response. Both Tokio runtime flavors run the
-  public conversation path. Linux CI is pending; no cross-platform pass is claimed.
+  public conversation path. Final-head and merge-commit Ubuntu CI subsequently
+  passed the product fixtures; see [integration evidence](#integrated-completion).
+  This establishes the named macOS/Linux checks, not other platforms or process descendants.
 
 #### Interoperability and review {#first-product-slice-1-review}
 
@@ -323,7 +328,8 @@ licenses, and documentation; record findings and resolutions.
 - **Anchor coverage:** All six accepted product anchors, with live coverage limited to the
   chosen agent configuration; live success is not exhaustive verification.
 - **Evidence:** Local live check and separate self-review pass, as detailed
-  below. Human review, Linux CI, and authorized integration remain pending.
+  below. Owner review, final-head and merge-commit Linux CI, and integration
+  are recorded under [integrated completion](#integrated-completion).
 
 ### Verification and delivery
 
@@ -576,3 +582,65 @@ checks are required before delivery. A focused implementation-author review chec
 schema direction at all three use sites, preservation of validation, and request
 versus response dispatch. GitHub CI for these corrections remains unverified;
 owner review and authorized integration are still outstanding.
+
+
+### Integrated completion {#integrated-completion}
+
+The owner merged [PR #2](https://github.com/dherman/thinkwell-rs/pull/2) on
+2026-11-20 at 06:26:27 UTC, then requested milestone closeout and preparation of
+the next example proposal. GitHub identifies `dherman` as the merger. The final
+head is `e5a5c9da5f52e81cb8d4238481c272027b4efa26`; the integrated revision is
+`1b21c83b9b713690d953df72244c7f9fcf8244ce`.
+
+Both **Rust and Book checks** executions passed before merge:
+[push run 44687043391](https://github.com/dherman/thinkwell-rs/actions/runs/44687043391)
+and [PR run 44687046908](https://github.com/dherman/thinkwell-rs/actions/runs/44687046908).
+The [main push run 44687815722](https://github.com/dherman/thinkwell-rs/actions/runs/44687815722)
+also passed on the integrated revision. These supply Ubuntu CI evidence for
+workspace compilation, Clippy, strict Rustdoc, 20 product tests, 28 doctests,
+five launcher/bootstrap tests, the Python probe regression, Book checks/rendering,
+and whitespace checks. CI does not run real-model inference or the separate Rust
+experiment suites; their bounded local evidence remains as recorded in their roadmaps.
+
+Owner review in this conversation drove the newcomer-focused documentation and
+`agent::Claude` namespace changes. The owner then requested evaluation and fixes
+for both Copilot findings and merged the resulting revision. This records owner
+review and integration without inventing a GitHub approving review. The separate
+implementation-author reviews remain identified as self-review. Copilot's two
+findings—serialization schema direction and request/response ID collisions in
+the capability probe—were corrected in e5a5c9d, with regressions described above.
+No remaining finding from that review is deferred by this closeout.
+
+All five product criterion groups now have their recorded local, live, review,
+and applicable CI evidence and an integrated implementation. The first product
+slice is Complete. PR #2 also integrated the prior lifecycle synchronization,
+ownership experiment, both ACP experiment milestones, integrated API review,
+and runtime/result experiment including the turn-envelope follow-up. Their
+outcomes and bounded criterion evidence are complete; their milestone statuses
+are reconciled accordingly. Historical source digests and limitations are retained.
+
+This documentation follow-up records the integrated state on a fresh branch
+based on 1b21c83; its own delivery remains separate from PR #2. It introduces no
+product code or new supported capability. The scheduler milestone has
+[approved scope](meeting-scheduler.md); implementation awaits integration
+of this closeout. The project remains in the Porting Phase and unpublished.
+
+### Closeout documentation validation
+
+On the `example-milestone` documentation tree based on 1b21c83,
+`cargo anchor check --config anchorbook.toml` passed structural/v1 with zero errors,
+`target/tools/bin/mdbook build` passed with mdBook 0.5.4,
+`cargo test -p anchor-runner --test bootstrap_consistency --locked` passed both tests,
+`cargo fmt --all -- --check` and `git diff --check` passed. Inspection of generated
+HTML checked 224 local links/fragments across changed chapters, including the new
+proposal and completion records. A separate author review checked scope/status
+consistency, criterion evidence, CI revision identities, and the distinction between
+candidate dependencies and tested product support. This is not independent review.
+
+No product sources or dependencies changed, so product/runtime tests and live
+inference were not rerun for the documentation-only closeout. The scheduler
+planning probe is described in its own roadmap and does not establish solver or
+agent interoperability. On 2026-11-20 the owner approved the scheduler scope and
+explicitly authorized publishing this closeout/proposal as a new draft PR. The
+historical PR #2 CI pass is not a CI pass for this follow-up. Its CI and owner
+merge remain outstanding; approval does not itself integrate the closeout.

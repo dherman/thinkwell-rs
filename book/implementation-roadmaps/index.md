@@ -1,18 +1,21 @@
 # Implementation roadmaps
 
 [Project scaffolding](phase-0.md) is historical completed preparation.
-[Lifecycle and change delivery](lifecycle-delivery.md) retains its delivery follow-up.
-[Ownership API prototype](ownership-prototype.md) is the approved scoped experiment.
-[ACP integration prototype](acp-integration-prototype.md) is the approved SDK experiment.
-[Integrated API review](integrated-api-review.md) assembles the owner-requested
-three-example design review, now approved.
-[Runtime and typed-result foundation experiment](runtime-results-prototype.md) is
-locally validated, with review/integration pending.
-[First product slice: typed conversations](first-product-slice.md) is the approved
-current product assignment, with local implementation and evidence recorded there. Proposed work becomes Ready only with human agreement and
-satisfied prerequisites; assigned work becomes In progress. Durable completion requires
+[Lifecycle and change delivery](lifecycle-delivery.md),
+[ownership API](ownership-prototype.md),
+[ACP integration](acp-integration-prototype.md),
+[integrated API review](integrated-api-review.md),
+[runtime and typed-result foundation](runtime-results-prototype.md), and the
+[first product slice](first-product-slice.md) are complete through owner-merged
+PR #2; its [integration record](first-product-slice.md#integrated-completion)
+connects the reviewed revision and CI evidence to their bounded criteria.
+
+The [meeting scheduler](meeting-scheduler.md) is the next milestone, with scope
+approved on 2026-11-20. The owner also authorized a draft PR for this Book closeout
+and proposal. It becomes Ready after closeout integration, then In progress when
+implementation starts; no repeat scope approval is needed. Durable completion requires
 evidence for every criterion and the integration conditions in
-[change delivery](../change-delivery.md), independently of design acceptance.
+[change delivery](../change-delivery.md). No next product implementation is active.
 
 Use the pinned [roadmap format](../working-on-the-project.md#pinned-method-references):
 stable milestone and criterion fragments, outcome, status, identifier,
