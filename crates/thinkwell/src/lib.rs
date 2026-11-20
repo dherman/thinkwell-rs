@@ -1,16 +1,13 @@
-//! Typed ACP conversations that alternate ordinary Rust code with LLM prompts.
+//! Use an agent from Rust, then work with its answer as an ordinary Rust value.
 //!
-//! Thinkwell acts as a headless Agent Client Protocol client. An [Agent] owns a
-//! subprocess connection, a [Session] retains conversation history, a [Tool]
-//! describes a contract, and a [Plan] supplies a prompt, result type, and per-turn
-//! callback bindings. Callbacks can borrow application state without Send or
-//! static requirements.
+//! Thinkwell lets you alternate between prompts and code: ask an agent for an
+//! answer, process it in Rust, and ask a follow-up question. You choose the answer's
+//! type. You can also give the agent tools that call your Rust functions.
 //!
-//! # Quick start
+//! # Your first conversation
 //!
-//! Install and authenticate the Claude ACP adapter separately and make version
-//! 0.23.1 available in the npm cache. [Claude] uses offline npx; Thinkwell does not
-//! install software or obtain credentials. Use Tokio with I/O and time enabled.
+//! There are three steps: connect to an agent, open a conversation, and send a
+//! request. Here we ask Claude for a title and receive a `String`:
 //!
 //! ~~~no_run
 //! use thinkwell::{Claude, Plan};
@@ -19,73 +16,87 @@
 //! async fn main() -> thinkwell::Result<()> {
 //!     let agent = Claude::connect().await?;
 //!     let mut session = agent.session().open().await?;
-//!     let answer = Plan::<String>::new()
-//!         .text("Explain ACP in one sentence.")
+//!
+//!     let title = Plan::<String>::new()
+//!         .text("Suggest a title for a beginner's gardening guide.")
 //!         .run_in(&mut session)
 //!         .await?;
-//!     println!("{answer}");
+//!
+//!     println!("{title}");
 //!     Ok(())
 //! }
 //! ~~~
 //!
-//! This uses the agent's default model. [SessionBuilder::model] selects an
-//! agent-supported identifier. [AgentConfig] and [Connect] support custom launch
-//! commands and application-defined presets.
+//! An [Agent] is your connection to an agent program. A [Session] is one conversation:
+//! it remembers earlier questions and answers. A [Plan] describes a single request,
+//! including its prompt and the Rust type you want back. Creating a plan sends
+//! nothing; `run_in(...).await` sends it and waits for the answer.
 //!
-//! # Tools and results
+//! To run this example, use Tokio with its macros, runtime, I/O, and time support
+//! (the `full` feature includes these). You also need Node/npx, the Claude ACP
+//! adapter version 0.23.1 in your npm cache, and working Claude authentication.
+//! See [Claude] for the exact command Thinkwell runs. Thinkwell does not install
+//! or authenticate the agent for you.
 //!
-//! Declare typed contracts before opening a session and bind their implementations
-//! on every turn. [Plan] has a complete example of borrowed mutable state, deterministic
-//! work between turns, and changing result types in the same conversation.
-//! Tool inputs derive Serde Deserialize and schemars JsonSchema; outputs derive
-//! Serialize and JsonSchema; final results derive Deserialize and JsonSchema.
+//! # Build on the first example
 //!
-//! The catalog stays fixed while the callback captures and final-result type may
-//! change. Internal turn identifiers and protocol envelopes are library details,
-//! not parameters in application closures.
+//! - **Continue the conversation.** Run another plan in the same [Session]. Its
+//!   example shows a follow-up question that uses the earlier answer.
+//! - **Ask for a struct.** Derive `Deserialize` and `JsonSchema` for your answer type.
+//!   [Plan] shows how to ask for a suggestion with a title and a reason.
+//! - **Let the agent use your code.** Describe an operation with [Tool], then provide
+//!   its Rust function with [Plan::bind]. The examples count words and update a
+//!   shopping list borrowed from your application.
+//! - **Adjust the defaults.** Choose a model with [SessionBuilder::model], set time
+//!   and tool-call limits with [RunOptions], or launch another agent with [AgentConfig].
 //!
-//! # Ownership, cancellation, and cleanup
+//! Each request can return a different type. Tool functions can borrow local state,
+//! so you can use ordinary Rust values before and after a request without moving
+//! all your application logic into the agent.
 //!
-//! Only one session can be open on a connection. Each execution exclusively borrows
-//! its session and owns its local callbacks. A normally dropped session permits
-//! a fresh conversation on the same agent. Failed or abandoned started turns
-//! permanently close both session and connection; recovery means explicitly
-//! connecting again. Preflight failures and dropping an unpolled execution do not
-//! start a turn.
+//! # Finishing and handling errors
 //!
-//! Ordinary Drop revokes local access and signals an existing cleanup driver.
-//! It does not await remote acknowledgment, roll back mutations, or perform arbitrary
-//! asynchronous callback cleanup. Process guards provide fallback when the driver or
-//! runtime is destroyed. [Agent::shutdown] optionally confirms bounded cleanup;
-//! [Diagnostics] observes a recorded outcome without retaining the owner.
+//! When a request succeeds, its answer is ready to use and its tool work is finished.
+//! You do not need a separate call to finish the request. Let the session and agent
+//! go out of scope when you are done; Thinkwell starts cleanup automatically.
+//! [Agent::shutdown] is optional, for applications that need to wait for confirmation
+//! that cleanup completed.
 //!
-//! # Schema support
+//! Thinkwell checks a plan before sending it. If those checks fail, you can correct
+//! the plan and try again in the same session. If a request fails after it starts,
+//! the session and connection close; connect again to continue. Cancelling a running
+//! request by dropping its future also closes the connection. Changes already made
+//! by tools are not undone. [Plan::run_in] explains these cases in more detail.
 //!
-//! The initial validator supports object properties/required fields and boolean
-//! additionalProperties, homogeneous arrays, primitive types, const/enum, and
-//! oneOf/anyOf for tagged enums. The int64 format is enforced. Only the 2020-12 dialect
-//! is accepted. Unknown keywords, references/$defs, other formats, and unsupported
-//! constraints fail before prompting with [ErrorKind::Contract].
+//! # Current limitations
 //!
-//! Consequently some ordinary Rust types, including nested named types generating
-//! references and numeric types generating other formats, are currently unsupported.
-//! Integer contracts reject floating representations such as 3.0. Numeric const/enum
-//! comparisons avoid converting large integers to f64. Validation is separate from
-//! Serde conversion and applies to tool inputs, serialized outputs, and final results.
+//! This is an early version for Tokio on macOS and Linux. Each connection supports
+//! one open conversation at a time; use separate agents for concurrent conversations.
+//! Choose a conversation's tools when opening it and supply their functions on every
+//! request. You cannot add new tools to an already open conversation.
 //!
-//! # Initial scope
+//! Thinkwell talks to agents using ACP (Agent Client Protocol), rather than calling
+//! model providers directly. The initial tested combination is the Claude ACP
+//! adapter 0.23.1 with HTTP MCP 2025-11-25 for tools. Other agents must support the
+//! required protocols. Windows, progress streams, and shared-host embedding are
+//! not supported in this version. The crate is unpublished and its API is evolving.
 //!
-//! The runtime target is Tokio on macOS/Linux, on current-thread or multithread
-//! runtimes; callbacks stay on the calling task and may be non-Send. The crate is
-//! unpublished and its API is evolving. HTTP MCP 2025-11-25 and Claude ACP 0.23.1 are
-//! the initial interoperability path. Concurrent sessions on one connection, Windows,
-//! shared-host embedding, progress streams, and arbitrary JSON Schema are outside
-//! this initial slice.
+//! ## Schema support
 //!
-//! A matching turn identifier controls dispatch, but does not prove causal origin
-//! if a sender supplies the current identifier for work begun earlier. Effects from
-//! already executed tools survive cancellation. Configure [RunOptions] to bound work;
-//! [ErrorKind] distinguishes preflight, execution, and cleanup failures.
+//! Thinkwell uses JSON Schema to describe the types of answers and tool values it
+//! accepts. Start with strings, booleans, `i64`, lists, or simple structs like the
+//! one in [Plan]. Not every Rust type that derives `JsonSchema` is supported yet.
+//! Unsupported schemas produce [ErrorKind::Contract] before a prompt is sent.
+//!
+//! For reference, the validator accepts the 2020-12 dialect and these schema features:
+//! object properties and required fields, boolean `additionalProperties`, homogeneous
+//! arrays, primitive types, `const`/`enum`, `oneOf`/`anyOf`, and the `int64` format.
+//! References (`$ref`/`$defs`), other formats, and other constraints are rejected.
+//! This currently excludes some nested named types and numeric types.
+//!
+//! Validation checks tool inputs, tool outputs, and final answers as well as their
+//! Serde conversions. Integer fields reject floating representations such as `3.0`.
+//! Numeric `const`/`enum` comparisons preserve precision for large integers.
 #![deny(missing_docs)]
 
 mod api;
@@ -95,7 +106,7 @@ mod schema;
 pub use api::*;
 pub use runtime::{Agent, Diagnostics, Session, SessionBuilder};
 
-/// Stable categories for configuration, execution, and cleanup failures.
+/// The kind of problem that caused an operation to fail.
 ///
 /// Match categories rather than parsing [Error::message]. This enum is
 /// non-exhaustive; downstream matches need a fallback for future categories.
@@ -125,9 +136,9 @@ pub enum ErrorKind {
     InvalidValue,
     /// Tool names, declarations, or per-turn bindings are invalid or mismatched.
     Binding,
-    /// Another session holds the connection's one-session reservation.
+    /// Another conversation is already open on this agent.
     Busy,
-    /// The session/connection is unusable or its driver is unavailable.
+    /// The conversation or agent connection is no longer available.
     Closed,
     /// Agent launch, protocol setup, communication, or response delivery failed.
     Transport,
@@ -135,35 +146,36 @@ pub enum ErrorKind {
     UnsupportedModel,
     /// The agent ended normally without an accepted typed result.
     MissingResult,
-    /// Invalid result submissions exhausted the configured correction budget.
+    /// The agent tried too many times to supply an answer of the requested type.
     ResultBudget,
-    /// Application-tool requests exceeded the configured call budget.
+    /// The agent requested more tool calls than allowed by [RunOptions::max_tool_calls].
     CallBudget,
-    /// An operation exceeded its time bound; context identifies which operation.
+    /// An operation took too long; the error message explains which one.
     Deadline,
-    /// The agent returned a cancelled stop reason. Local future drop has no return value.
+    /// The agent reported that the request was cancelled. Dropping a future returns no error.
     Cancelled,
-    /// The agent returned a terminal reason other than normal completion or cancellation.
+    /// The agent stopped for a reason other than success or cancellation.
     RemoteStop,
-    /// A terminal response arrived while a local callback was still active.
+    /// The agent finished its request while one of your tool functions was still running.
     CallbackOverlap,
-    /// An application callback reported a domain-specific failure.
+    /// One of your tool functions returned an error.
     Tool,
-    /// Connection/process or HTTP cleanup failed; confirmation was not successful.
+    /// Thinkwell could not confirm successful cleanup of the agent or tool server.
     Cleanup,
 }
 
-/// An error category and human-readable context.
+/// An explanation of a failed operation.
 ///
-/// Implements [std::error::Error] and Display for application error propagation.
-/// Use [kind](Self::kind) for programmatic classification; message text is
-/// diagnostic context and is not a stable parsing interface. Schema errors
-/// include the unsupported schema location where available.
+/// Use `?` to pass errors to your caller, or display them with `eprintln!("{error}")`.
+/// If you want to handle particular problems differently, match [kind](Self::kind).
+/// The [message](Self::message) is for people to read; avoid parsing it in code.
 ///
-/// # Example: reject an application tool input
+/// Tool functions can use [Error::tool] to explain why an operation could not be
+/// performed. The agent receives that explanation and may try another approach:
 ///
 /// ~~~rust
 /// use thinkwell::{Error, Result};
+///
 /// fn require_positive(value: i64) -> Result<i64> {
 ///     if value <= 0 {
 ///         return Err(Error::tool("amount must be positive"));
@@ -174,29 +186,29 @@ pub enum ErrorKind {
 /// ~~~
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Error {
-    /// Machine-readable failure category; match with a fallback for future variants.
+    /// What kind of problem occurred. Include a fallback when matching this enum.
     pub kind: ErrorKind,
-    /// Diagnostic explanation, potentially including schema paths or transport context.
+    /// An explanation of what went wrong, for display or logging.
     pub message: String,
 }
 impl Error {
-    /// Construct an error with an explicit category and contextual explanation.
+    /// Create an error with a category and an explanation.
     ///
-    /// For application callback failures, prefer [Error::tool]. Library operations
-    /// choose categories to distinguish configuration, turn, and cleanup failures.
+    /// Use [Error::tool] for errors from your tool functions. This constructor is
+    /// useful when you need to choose another [ErrorKind] explicitly.
     pub fn new(kind: ErrorKind, message: impl Into<String>) -> Self {
         Self {
             kind,
             message: message.into(),
         }
     }
-    /// Create an application-level callback error with [ErrorKind::Tool].
+    /// Tell the agent why a tool could not complete its work.
     ///
-    /// A bound callback returning this error reports a tool failure to the agent,
-    /// which may handle it and continue. It does not roll back earlier mutations.
+    /// For example, reject division by zero before attempting the calculation:
     ///
     /// ~~~rust
     /// use thinkwell::{Error, Plan, Tool};
+    ///
     /// let divide = Tool::<i64, i64>::new("divide", "Divide 100 by an integer");
     /// let plan = Plan::<String>::new().bind(&divide, async |divisor: i64| {
     ///     if divisor == 0 {
@@ -205,6 +217,10 @@ impl Error {
     ///     Ok(100 / divisor)
     /// });
     /// ~~~
+    ///
+    /// This creates an error with [ErrorKind::Tool]. Returning it from a bound function
+    /// reports the failure to the agent, which may continue the conversation. It does
+    /// not undo any changes your function already made.
     pub fn tool(message: impl Into<String>) -> Self {
         Self::new(ErrorKind::Tool, message)
     }

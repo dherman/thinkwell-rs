@@ -69,7 +69,9 @@ treats documentation warnings (including broken intra-doc links) as errors. Loca
 output is under `target/doc/`, with the library entry at `target/doc/thinkwell/index.html`.
 Doctests remain part of `cargo test`. The Thinkwell crate denies missing public
 API documentation. Document public types, variants, fields, and methods, and
-include concrete examples for major APIs. Examples requiring an installed agent
+include concrete examples for major APIs. Write for newcomers: explain what an
+API helps them do, introduce concepts through small examples, and put advanced
+constraints after the basic workflow. Examples requiring an installed agent
 or model credentials should use `no_run` so CI still compiles them without
 inference; use ordinary runnable examples for local configuration and value logic.
 

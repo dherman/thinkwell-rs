@@ -509,3 +509,27 @@ the earlier product source digest is historical. Contributor guidance records
 the policy. Local Rustdoc with warnings denied and all 23 doctests passed
 (12 compile-only examples, nine runnable examples, two compile-fail probes).
 Final workspace and Book checks are run before updating the draft PR.
+
+
+### Learning-focused Rustdoc revision
+
+Owner review found the initial API docs too dense and architectural for newcomers.
+The revised crate introduction follows a first conversation, explains Agent,
+Session, and Plan through that example, and links to progressively richer uses.
+Public API pages lead with practical purpose and small examples: follow-up
+questions, structured answers, word counting, and a borrowed shopping list.
+Cleanup, errors, and supported schemas remain documented after the basic workflows.
+Contributor guidance records this learning-first approach.
+
+The revision changes documentation only: comparison against e0ea812 after removing
+Rustdoc comments and whitespace confirms identical executable source in all three
+edited Rust files. Local strict Rustdoc generation and all 28 doctests passed
+(18 compile-only examples, eight runnable examples, two compile-fail probes).
+Rendered crate and major type pages were inspected for introductory text and
+examples. Formatting, compilation of all targets, and Clippy with warnings denied
+passed. All 19 product tests and five launcher/bootstrap tests passed via
+`cargo test --workspace --locked`. Book structure, rendering with pinned mdBook
+0.5.4, and whitespace checks passed. The ambient mdBook was 0.5.1; installing
+the documented 0.5.4 under ignored target/tools resolved that rendering mismatch.
+GitHub CI for this revision has not yet been verified.
+No product behavior, API decision, or milestone status changes in this revision.

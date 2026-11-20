@@ -31,36 +31,43 @@ fn err(kind: ErrorKind, message: impl Into<String>) -> Error {
 fn transport(e: impl std::fmt::Display) -> Error {
     err(ErrorKind::Transport, e.to_string())
 }
-/// A non-owning observer of connection cleanup completion.
+/// A way to check whether automatic cleanup has finished.
 ///
-/// Cloning this handle does not keep [Agent] alive or prevent shutdown. It exposes
-/// a snapshot, not a subscription or an async join. An absent outcome does not prove
-/// cleanup succeeded: runtime teardown can prevent the driver from publishing one.
-/// A default-constructed handle is unattached and always has no outcome.
-///
-/// # Example
+/// Most applications can simply let their [Agent] go out of scope. Use this handle
+/// if you also want to inspect the cleanup result afterward. Keeping or cloning
+/// it does not keep the agent running.
 ///
 /// ~~~no_run
 /// use thinkwell::Claude;
+///
 /// # async fn example() -> thinkwell::Result<()> {
 /// let agent = Claude::connect().await?;
 /// let diagnostics = agent.diagnostics();
-/// agent.shutdown().await?;
-/// assert_eq!(diagnostics.outcome(), Some(Ok(())));
+/// drop(agent); // Starts cleanup without waiting for it.
+///
+/// // Elsewhere, while the Tokio runtime is still running:
+/// match diagnostics.outcome() {
+///     Some(Ok(())) => println!("Cleanup finished."),
+///     Some(Err(error)) => eprintln!("Cleanup failed: {error}"),
+///     None => println!("No cleanup result yet."),
+/// }
 /// # Ok(())
 /// # }
 /// ~~~
 ///
-/// For destructor-initiated cleanup, keep the runtime running and inspect
-/// [outcome](Self::outcome) later. Use [Agent::shutdown] when confirmation is required.
+/// This handle only reports the result available when you check it. It does not
+/// wait or notify you of changes. If you need to wait, use [Agent::shutdown].
+/// If the runtime stops before recording a result, [outcome](Self::outcome) may
+/// remain `None`. A handle created with `Default::default()` is not attached to
+/// any agent and always returns `None`.
 #[derive(Clone, Default)]
 pub struct Diagnostics(Arc<Mutex<Option<Result<()>>>>);
 impl Diagnostics {
-    /// Return the cleanup result recorded so far, cloning it.
+    /// Read the cleanup result, if one has been recorded.
     ///
-    /// `None` means no result has been published, not success. `Some(Err(_))` retains
-    /// a cleanup failure even when the Agent was dropped without awaited shutdown.
-    /// See [Diagnostics] for a confirmation example.
+    /// `Some(Ok(()))` means cleanup succeeded; `Some(Err(error))` explains a failure.
+    /// `None` means no result is available, not that cleanup succeeded. Each call
+    /// returns a copy of the current result. See [Diagnostics] for an example.
     pub fn outcome(&self) -> Option<Result<()>> {
         self.0.lock().unwrap().clone()
     }
@@ -120,42 +127,50 @@ enum Command {
         reply: oneshot::Sender<Result<()>>,
     },
 }
-/// An owned ACP subprocess connection, reusable for sequential conversations.
+/// A connection to an agent program, used to start conversations.
 ///
-/// Create it with [Agent::connect], [Claude::connect](crate::Claude::connect), or
-/// the [Connect](crate::Connect) extension trait. Only one session can be open per
-/// connection; use independent agents for concurrent sessions.
+/// Begin with [Claude::connect](crate::Claude::connect), or use [Agent::connect]
+/// with your own configuration. Then call [session](Self::session) to open a
+/// conversation. You can reuse a connection for separate conversations; each new
+/// [Session] starts without the previous conversation's history.
 ///
-/// Sessions borrow this owner. A normally dropped session releases its reservation
-/// so the agent can open a fresh conversation with new history and credentials.
-/// A failed or abandoned started turn closes the connection; reconnect explicitly.
-///
-/// Drop signals the existing owned cleanup driver. It does not block or wait for
-/// remote acknowledgment. The driver attempts graceful shutdown; process guards
-/// provide forceful fallback if the driver/runtime is destroyed. For confirmation
-/// and cleanup errors, use [shutdown](Self::shutdown) after dropping sessions.
-///
-/// # Example: reuse a connection for independent conversations
+/// # Start two independent conversations
 ///
 /// ~~~no_run
 /// use thinkwell::{Claude, Plan};
+///
 /// # async fn example() -> thinkwell::Result<()> {
 /// let agent = Claude::connect().await?;
 /// {
 ///     let mut session = agent.session().open().await?;
-///     let title = Plan::<String>::new().text("Suggest a title for a Rust workshop.")
+///     let title = Plan::<String>::new()
+///         .text("Suggest a title for a Rust workshop.")
 ///         .run_in(&mut session).await?;
 ///     println!("{title}");
-/// } // Normal session drop releases the one-session reservation.
-/// {
-///     let mut fresh = agent.session().open().await?;
-///     let title = Plan::<String>::new().text("Suggest a title for a cooking class.")
-///         .run_in(&mut fresh).await?;
-///     println!("{title}"); // Fresh conversation, not the previous session's history.
-/// }
+/// } // The first conversation ends here.
+///
+/// let mut fresh = agent.session().open().await?;
+/// let title = Plan::<String>::new()
+///     .text("Suggest a title for a cooking class.")
+///     .run_in(&mut fresh).await?;
+/// println!("{title}");
 /// # Ok(())
 /// # }
 /// ~~~
+///
+/// Only one conversation can be open on a connection at a time. Use separate
+/// agents if you need concurrent conversations. A session borrows its agent,
+/// so Rust ensures the agent stays alive while you use the session.
+///
+/// # Cleanup and failures
+///
+/// Letting the agent go out of scope starts cleanup automatically. This does not
+/// block your application while the agent stops. If you need to wait for cleanup
+/// and check its result, use [shutdown](Self::shutdown).
+///
+/// A request that fails or is cancelled after starting closes the connection as
+/// well as the session. Connect again to continue. Errors caught before sending
+/// the request leave the connection available; see [Plan::run_in](crate::Plan::run_in).
 pub struct Agent {
     control: Arc<Control>,
     commands: mpsc::Sender<Command>,
@@ -168,64 +183,79 @@ impl Drop for Agent {
         self.control.close();
     }
 }
-/// Configuration for opening a fixed-catalog conversation on an [Agent].
+/// Choose a conversation's tools and model before opening it.
 ///
-/// Create with [Agent::session], declare contracts with [tool](Self::tool),
-/// optionally select a [model](Self::model), then [open](Self::open).
-/// Building configuration sends no prompt and acquires no session reservation.
-///
-/// # Example
+/// Get a builder from [Agent::session], add any settings you need, then call
+/// [open](Self::open). If you do not add settings, the conversation has no
+/// application tools and uses the agent's default model.
 ///
 /// ~~~no_run
-/// use thinkwell::{Claude, Tool};
+/// use thinkwell::{Claude, Plan};
+///
 /// # async fn example() -> thinkwell::Result<()> {
 /// let agent = Claude::connect().await?;
-/// let echo = Tool::<String, String>::new("echo", "Echo a message");
-/// let session = agent.session().tool(&echo).model("haiku").open().await?;
-/// drop(session); // No prompts were sent.
+/// let mut session = agent.session().model("haiku").open().await?;
+/// let answer = Plan::<String>::new()
+///     .text("Suggest three herbs for a windowsill garden.")
+///     .run_in(&mut session).await?;
+/// println!("{answer}");
 /// # Ok(())
 /// # }
 /// ~~~
 ///
-/// Tool implementations are supplied later through [Plan::bind](crate::Plan::bind).
-/// The catalog stays fixed for the lifetime of the returned session.
+/// To offer Rust functions to the agent, register their descriptions with
+/// [tool](Self::tool). See [Tool] for a complete example. The tools you choose here
+/// stay available throughout the conversation; provide their functions with
+/// [Plan::bind](crate::Plan::bind) on each request.
 pub struct SessionBuilder<'a> {
     agent: &'a Agent,
     tools: Vec<Descriptor>,
     error: Option<Error>,
     model: Option<String>,
 }
-/// A persistent conversation borrowing its owning [Agent].
+/// One conversation with an agent, including its earlier questions and answers.
 ///
-/// Create through [Agent::session] and [SessionBuilder::open]. Each
-/// [Plan::run_in](crate::Plan::run_in) exclusively borrows the session for one turn.
-/// Conversation history persists, but callback captures are scoped to each execution.
-/// See [Plan](crate::Plan) for a complete borrowed-tool example.
+/// Open a session with `agent.session().open().await?`. Run a [Plan](crate::Plan)
+/// in it to ask a question, then run another plan in the same session to follow up.
+/// Each request and answer is called a *turn*.
 ///
-/// # Example: inspect usability after failure
+/// # Ask a follow-up question
 ///
 /// ~~~no_run
 /// use thinkwell::{Claude, Plan};
+///
 /// # async fn example() -> thinkwell::Result<()> {
 /// let agent = Claude::connect().await?;
 /// let mut session = agent.session().open().await?;
-/// match Plan::<String>::new().text("Summarize ACP.").run_in(&mut session).await {
-///     Ok(answer) => println!("{answer}"),
-///     Err(error) => {
-///         eprintln!("{error}");
-///         if !session.usable() {
-///             // Start a new connection explicitly; this session cannot recover.
-///         }
-///     }
+///
+/// let idea = Plan::<String>::new()
+///     .text("Suggest a vegetable to grow on a sunny balcony.")
+///     .run_in(&mut session).await?;
+/// println!("Try: {idea}");
+///
+/// let steps = Plan::<Vec<String>>::new()
+///     .text("Give me three steps to get started growing it.")
+///     .run_in(&mut session).await?;
+/// for step in steps {
+///     println!("- {step}");
 /// }
 /// # Ok(())
 /// # }
 /// ~~~
 ///
-/// Normal Drop revokes tool routes and releases the agent's session reservation.
-/// Dropping a started execution or receiving a fatal turn error permanently
-/// invalidates both session and connection. Preflight errors leave them unchanged.
-/// Cancellation never rolls back already performed application effects.
+/// The second request remembers the first answer, even though it asks for a
+/// different Rust type. Only one request can run at a time in a session.
+///
+/// # Ending a conversation
+///
+/// Let the session go out of scope when you are done. Its [Agent] can then open a
+/// fresh conversation. You do not need to explicitly finish a successful turn.
+///
+/// If a request fails or is cancelled after starting, both the session and its
+/// connection close. Changes already made by tools remain. Errors caught before
+/// sending a request leave the session available for a corrected plan. See
+/// [usable](Self::usable) for an error-handling example and
+/// [Plan::run_in](crate::Plan::run_in) for details.
 pub struct Session<'a> {
     agent: &'a Agent,
     id: SessionId,
@@ -270,12 +300,15 @@ impl Drop for TurnGuard {
     }
 }
 impl SessionBuilder<'_> {
-    /// Add a tool contract to this session's fixed catalog.
+    /// Make a tool available in this conversation.
     ///
-    /// The descriptor is cloned; the session does not borrow the Tool or own its
-    /// implementation. Bind it on every turn with [Plan::bind](crate::Plan::bind).
-    /// Duplicate names and errors retained by Tool construction are reported by
-    /// [open](Self::open). See [SessionBuilder] for an example.
+    /// Pass a [Tool] describing the operation. When sending each request, also use
+    /// [Plan::bind](crate::Plan::bind) to supply the Rust function that performs it.
+    /// [Tool] has a complete word-counting example showing both steps.
+    ///
+    /// The builder copies the description; it does not borrow the Tool or store a
+    /// function. Duplicate names and unsupported tool types are reported when you
+    /// call [open](Self::open).
     pub fn tool<I, O>(mut self, tool: &Tool<I, O>) -> Self {
         match &tool.descriptor {
             Ok(d) if self.tools.iter().any(|t| t.name == d.name) => {
@@ -286,37 +319,44 @@ impl SessionBuilder<'_> {
         }
         self
     }
-    /// Select an agent-provided model identifier when opening the session.
+    /// Choose which model the agent should use for this conversation.
     ///
-    /// Repeated calls replace the previous selection. Omitting this method preserves
-    /// the agent's default. Identifiers and availability depend on the agent; Thinkwell
-    /// does not translate provider names or enumerate models. For the tested Claude
-    /// adapter, `haiku` is one selector. See [SessionBuilder] for usage.
+    /// For example, `agent.session().model("haiku").open().await?` selects Haiku
+    /// with the tested Claude adapter. Leave this setting out to use the agent's
+    /// default. See [SessionBuilder] for a complete example.
     ///
-    /// An empty selector is a local configuration error. Failure of the model-selection
-    /// request is reported as [ErrorKind::UnsupportedModel].
+    /// Model names depend on the agent. Thinkwell passes the name through; it does
+    /// not translate names or list available models. Calling this method again
+    /// replaces the previous selection. An empty name is a configuration error;
+    /// failure of the selection request produces [ErrorKind::UnsupportedModel].
     pub fn model(mut self, model: impl Into<String>) -> Self {
         self.model = Some(model.into());
         self
     }
 }
 impl<'a> SessionBuilder<'a> {
-    /// Open a new remote conversation and its authenticated loopback tool endpoint.
+    /// Open the conversation with the settings you have chosen.
     ///
-    /// Uses the Agent's setup timeout. The endpoint/catalog is created before the
-    /// remote session request; no model prompt is sent. Session working directories
-    /// are managed internally, not a caller-specified project directory.
+    /// This prepares the agent to receive requests; it does not send a prompt. Next,
+    /// use [Plan::run_in](crate::Plan::run_in) to ask a question. See [SessionBuilder]
+    /// for a complete example.
     ///
-    /// # Errors and cancellation
+    /// # Errors
     ///
-    /// Invalid descriptors, duplicate names, or an empty model selector fail locally.
-    /// [ErrorKind::Busy] means another session is open; [ErrorKind::Closed] means the
-    /// connection is unavailable. Remote setup/model errors and deadlines are returned
-    /// with their category. Failure or cancellation after remote setup starts closes
-    /// the connection to avoid ambiguous ownership of partially acquired resources.
+    /// Only one session can be open per agent. Close the previous session before
+    /// opening another, or this returns [ErrorKind::Busy]. A closed connection
+    /// returns [ErrorKind::Closed]. Invalid tool descriptions, duplicate tool names,
+    /// and an empty model name are rejected before contacting the agent.
     ///
-    /// Requires the same enabled Tokio runtime as [Agent::connect]. See [SessionBuilder]
-    /// for a tool/model example, or [Agent] for sequential conversations.
+    /// Setup uses [AgentConfig::setup_timeout]. If setup fails or is cancelled after
+    /// contacting the agent, the connection closes; connect again before retrying.
+    /// Model-selection failures return [ErrorKind::UnsupportedModel].
+    ///
+    /// # Runtime requirements
+    ///
+    /// Use the same Tokio runtime as [Agent::connect], with I/O and time enabled.
+    /// Thinkwell manages the session's working directory internally; this method
+    /// does not open your application's project directory for the agent.
     pub async fn open(self) -> Result<Session<'a>> {
         if let Some(error) = self.error {
             return Err(error);
@@ -399,10 +439,11 @@ impl<'a> SessionBuilder<'a> {
     }
 }
 impl Agent {
-    /// Start configuring a fresh conversation with no tools or model override.
+    /// Start setting up a new conversation.
     ///
-    /// Does not contact the agent. Call [SessionBuilder::open] to acquire the
-    /// one-session reservation and create remote history. See [Agent] for reuse.
+    /// Call `agent.session().open().await?` to use the defaults, or add tools and
+    /// choose a model first. See [SessionBuilder] for those options. Creating the
+    /// builder does not contact the agent; [open](SessionBuilder::open) does.
     pub fn session(&self) -> SessionBuilder<'_> {
         SessionBuilder {
             agent: self,
@@ -411,31 +452,41 @@ impl Agent {
             model: None,
         }
     }
-    /// Obtain an observer that survives dropping this agent without keeping it alive.
+    /// Get a handle for checking the result of automatic cleanup.
     ///
-    /// See [Diagnostics] for an example and the meaning of an absent cleanup result.
+    /// The handle can outlive the agent without keeping it running. See [Diagnostics]
+    /// for an example. Most applications do not need to inspect cleanup separately.
     pub fn diagnostics(&self) -> Diagnostics {
         self.diagnostics.clone()
     }
-    /// Consume the agent, request shutdown, and await a bounded cleanup outcome.
+    /// Stop the agent and wait for cleanup to complete.
     ///
-    /// All sessions must first be dropped; the borrow checker enforces this. Uses
-    /// [AgentConfig::shutdown_timeout]. A deadline or cleanup error means successful
-    /// cleanup was not confirmed; dropping this future still leaves shutdown requested
-    /// once it has been polled. This is optional: ordinary Drop also requests cleanup.
+    /// This is optional: letting an agent go out of scope already starts cleanup.
+    /// Use this method when your application needs to confirm cleanup finished,
+    /// for example before stopping its Tokio runtime. Successful requests are already
+    /// complete before this call; shutdown does not finish or submit their answers.
     ///
     /// ~~~no_run
     /// use thinkwell::{Claude, Plan};
+    ///
     /// # async fn example() -> thinkwell::Result<()> {
     /// let agent = Claude::connect().await?;
     /// let mut session = agent.session().open().await?;
-    /// let answer = Plan::<String>::new().text("Say hello.").run_in(&mut session).await?;
-    /// println!("{answer}");
+    /// let answer = Plan::<String>::new()
+    ///     .text("Say hello.")
+    ///     .run_in(&mut session).await?;
+    /// println!("{answer}"); // The answer is ready to use.
+    ///
     /// drop(session);
-    /// agent.shutdown().await?;
+    /// agent.shutdown().await?; // Wait for cleanup before leaving the runtime.
     /// # Ok(())
     /// # }
     /// ~~~
+    ///
+    /// The agent is consumed, and all its sessions must be dropped first. Rust checks
+    /// this for you. Waiting is limited by [AgentConfig::shutdown_timeout]; a timeout
+    /// or cleanup error means success was not confirmed. Once this future has been
+    /// polled, dropping it leaves cleanup requested but stops waiting for the outcome.
     pub async fn shutdown(mut self) -> Result<()> {
         self.control.close();
         tokio::time::timeout(self.config.shutdown_timeout, self.done.take().unwrap())
@@ -443,40 +494,40 @@ impl Agent {
             .map_err(|_| err(ErrorKind::Deadline, "shutdown deadline"))?
             .map_err(|_| err(ErrorKind::Cleanup, "driver disappeared"))?
     }
-    /// Launch an ACP subprocess and initialize the protocol connection.
+    /// Start an agent program and establish a connection to it.
     ///
-    /// Accepts [AgentConfig] or any preset implementing `Into<AgentConfig>`.
-    /// No session or prompt is created yet. Install/authenticate the agent externally.
-    /// The initial supported environment is macOS/Linux with Tokio; the later session
-    /// path requires HTTP MCP support from the chosen agent.
-    ///
-    /// # Example
+    /// Pass an [AgentConfig] or a preset such as [Claude](crate::Claude). For the
+    /// standard Claude configuration, [Claude::connect](crate::Claude::connect) is
+    /// a shorter spelling. Use a custom command when connecting to another agent:
     ///
     /// ~~~no_run
     /// use thinkwell::{Agent, AgentConfig};
+    ///
     /// # async fn example() -> thinkwell::Result<()> {
-    /// let agent = Agent::connect(
-    ///     AgentConfig::new("my-acp-agent").args(["--transport", "stdio"])
-    /// ).await?;
-    /// let session = agent.session().open().await?;
-    /// drop(session);
-    /// agent.shutdown().await?;
+    /// let config = AgentConfig::new("my-acp-agent").args(["--transport", "stdio"]);
+    /// let agent = Agent::connect(config).await?;
+    /// let mut session = agent.session().open().await?;
+    /// // The session is now ready for a Plan.
     /// # Ok(())
     /// # }
     /// ~~~
     ///
-    /// # Runtime, errors, and cancellation
+    /// Install and authenticate the agent beforehand. Connecting does not open a
+    /// conversation or send a prompt; use [session](Self::session) next.
     ///
-    /// Call inside a Tokio runtime with I/O and time enabled. Missing runtime,
-    /// empty commands, or invalid time bounds produce configuration errors. Disabled
-    /// Tokio I/O/time facilities can panic when those facilities are used. Process or
-    /// initialization failures produce transport/setup errors; initialization is bounded
-    /// by [AgentConfig::setup_timeout].
+    /// # Agent and runtime requirements
     ///
-    /// Dropping a partially completed connection future signals owned cleanup.
-    /// The driver owns transport/process resources, never borrowed application callbacks.
-    /// Successful connection alone does not establish that a custom agent supports
-    /// the HTTP MCP or model-selection capabilities needed by later operations.
+    /// The agent must speak ACP over standard input/output. Opening conversations
+    /// also requires HTTP MCP support. Connecting alone does not check every
+    /// capability needed later, such as tool support or model selection.
+    ///
+    /// Call this within Tokio on macOS or Linux, with I/O and time enabled. A missing
+    /// runtime, empty command, or invalid timeout produces [ErrorKind::Configuration].
+    /// Disabled Tokio I/O or time support can cause a panic when used.
+    ///
+    /// Starting the process or establishing the connection can fail with a transport
+    /// error. Setup is limited by [AgentConfig::setup_timeout]. Cancelling a connection
+    /// attempt by dropping its future starts cleanup of any resources already acquired.
     pub async fn connect(config: impl Into<AgentConfig>) -> Result<Self> {
         let config = config.into();
         if config.command.is_empty()
@@ -629,12 +680,33 @@ impl Agent {
     }
 }
 impl Session<'_> {
-    /// Whether this session and its connection are currently available for a turn.
+    /// Check whether this session is still available for another request.
     ///
-    /// This is a local snapshot, not a remote health check. It is false during a started
-    /// turn or after connection closure. Preflight failures leave it true; failed or
-    /// abandoned started turns make it permanently false. A true snapshot cannot guarantee
-    /// the next request will succeed. See [Session] for error handling.
+    /// This is useful after an error: a plan rejected before sending can be corrected,
+    /// but a request that failed after starting closes the session and connection.
+    ///
+    /// ~~~no_run
+    /// use thinkwell::{Claude, Plan};
+    ///
+    /// # async fn example() -> thinkwell::Result<()> {
+    /// let agent = Claude::connect().await?;
+    /// let mut session = agent.session().open().await?;
+    /// if let Err(error) = Plan::<String>::new()
+    ///     .text("Suggest a herb to grow indoors.")
+    ///     .run_in(&mut session).await
+    /// {
+    ///     eprintln!("{error}");
+    ///     if !session.usable() {
+    ///         eprintln!("Connect again to start a new conversation.");
+    ///     }
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ~~~
+    ///
+    /// This checks local state, not whether the agent will answer successfully.
+    /// It is false during a running request or after closure. A failed or cancelled
+    /// request that already started leaves it permanently false.
     pub fn usable(&self) -> bool {
         self.usable && !self.agent.control.closed.load(Ordering::SeqCst)
     }
