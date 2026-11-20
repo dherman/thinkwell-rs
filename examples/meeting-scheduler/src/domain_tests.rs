@@ -1,4 +1,4 @@
-use thinkwell_meeting_scheduler::*;
+use crate::{model::*, solver::*};
 
 fn roster() -> Vec<Attendee> {
     serde_json::from_str(

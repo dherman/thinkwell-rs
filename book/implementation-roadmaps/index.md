@@ -14,7 +14,8 @@ The [meeting scheduler](meeting-scheduler.md) is the active In progress mileston
 Its approved scope became Ready after the owner reviewed and merged the Book
 closeout in PR #3 at eecb8ec, then assigned continuation. Local implementation,
 deterministic tests, and a live demonstration are recorded in its roadmap;
-native Linux/CI evidence and owner-reviewed delivery remain outstanding. Durable
+the initial implementation passed native Linux CI. The owner's learning-focused
+review changes, final revision CI, and owner-reviewed delivery remain outstanding. Durable
 completion requires criterion evidence and the integration conditions in
 [change delivery](../change-delivery.md).
 

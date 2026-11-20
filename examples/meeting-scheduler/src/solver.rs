@@ -1,4 +1,4 @@
-use crate::{Day, Slot, ValidatedAvailability};
+use crate::model::{Day, Slot, ValidatedAvailability};
 use z3::{
     Params, SatResult, Solver,
     ast::{Bool, Int},

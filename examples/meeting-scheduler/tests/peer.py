@@ -55,10 +55,10 @@ for line in sys.stdin:
             assert submit(invalid)["isError"]  # The actual product validator checks the actual example type.
             assert not submit(value)["isError"]
         elif turns == 2:
-            assert "explanation" in schema["properties"]
+            assert schema["type"] == "string"
             assert "Scheduled: Wednesday 11:00" in prompt
             if mode != "explanation_failure":
-                assert not submit({"explanation": "All three parsed windows include Wednesday at 11."})["isError"]
+                assert not submit("All three parsed windows include Wednesday at 11.")["isError"]
         else:
             raise AssertionError("only two agent turns belong in this workflow")
         record.write_text(str(turns))

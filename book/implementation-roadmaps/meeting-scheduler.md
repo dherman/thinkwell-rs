@@ -74,7 +74,7 @@ material; remove these migration references at the end of the Porting Phase.
    Print the extraction and validate it in Rust before solving.
 4. Solve for a one-hour weekday meeting in business hours with Z3. Return a Rust
    enum distinguishing a valid slot, no feasible slot, and an inconclusive solver run.
-5. Run `Plan<Explanation>` in the same session to explain that result. Display
+5. Run `Plan<String>` in the same session to explain that result. Display
    Rust's canonical status/time separately from the generated prose. Let ordinary
    ownership clean up the session and agent.
 
@@ -170,12 +170,12 @@ and time-domain checks. Output separates canonical solver facts from model prose
 and failed explanations do not erase a known solver result.
 
 - **Anchor coverage:** `A-supported-contract-boundary`; `A-typed-turn-completion`.
-- **Evidence:** Local pass. Three workflow tests use the actual product API and
-  example types through a Python ACP/HTTP peer. An invalid nested answer is
-  rejected before a corrected one succeeds; the same session returns a different
-  type on its second turn. Failure of that explanatory turn leaves the computed
-  answer available. The executable test verifies canonical stdout and nonzero
-  exit on explanation failure. Domain validation and output labeling were reviewed.
+- **Evidence:** Local pass. Two executable workflow tests exercise the actual
+  Plan calls and types through a Python ACP/HTTP peer. An invalid nested answer
+  is rejected before a corrected one succeeds; the same session returns a String
+  on its second turn. The failure case verifies canonical stdout and nonzero
+  exit on explanation failure. Six domain/solver tests retain the validation and
+  outcome coverage. See the learning-focused revision below.
 
 #### Reproducible delivery and findings {#meeting-scheduler-1-delivery}
 
@@ -185,12 +185,13 @@ setup, and keep model calls opt-in. Record a separate review, owner approval,
 merged revision, concrete ergonomic findings, and unresolved limitations.
 
 - **Anchor coverage:** None — example delivery and evaluation.
-- **Evidence:** Local compilation, Clippy, nine example tests, original workspace
-  checks, and live demonstration pass. A separate Ubuntu CI job is authored but
-  has not run for this branch. Metadata confirms the root workspace still has
-  only thinkwell and anchor-runner and no Z3 dependency. No source or CI dependency
-  on TypeScript was added. Native Linux build, CI, owner review, and authorized
-  delivery/integration remain outstanding; this criterion is not complete.
+- **Evidence:** The initial implementation at 07e745b passed both Ubuntu CI jobs,
+  including native Z3 and example tests, on push and PR runs. The subsequent
+  learning-focused revision passes eight example tests locally; its CI remains
+  pending until pushed. The root workspace still has only thinkwell and
+  anchor-runner and no Z3 dependency. No source or CI dependency on TypeScript
+  was added. Final revision review and authorized integration remain outstanding;
+  this criterion is not complete.
 
 ### Historical planning evidence and approval boundary
 
@@ -236,7 +237,7 @@ would not exercise it. Solver execution uses spawn_blocking so native work does
 not block the Tokio task driving the agent. Canonical output is printed/flushed
 before the second prompt and survives an explanation error.
 
-The validated source-set SHA-256 is
+The initial implementation source-set SHA-256 (before the owner-review revision below) is
 `fbf20adc935be14487f2dbf67f439379e2b3534d612005e07138116779fe3c54`.
 Reproduce by sorting the repository-relative example Cargo.toml, Cargo.lock,
 src/*.rs, tests/*.rs, tests/*.py, and data/*.json paths, then hashing each UTF-8
@@ -327,3 +328,60 @@ resolved, and 71 generated local Book links/fragments across the affected
 chapters were inspected. Workflow YAML parses and contains the separate scheduler
 job; parsing is not evidence that GitHub has executed it. The source digest above
 was rechecked after final formatting and documentation reconciliation.
+
+
+### Learning-focused owner review
+
+The owner requested internal `crate::` imports, readable source formatting, and
+learnability over command-line utility in PR #4's review. The example is now a
+single binary crate with ordinary internal modules. CLI path/model options and
+the separate helper library were removed. Both Plan calls are visible in main:
+ParsedAvailability for extraction and String for the explanation, using an API
+already supported by Thinkwell. The wrapper Explanation struct was unnecessary.
+The fixed sample and agent-default model keep the demonstration focused; readers
+can edit the included roster/path when experimenting.
+
+The scheduler CI job already ran `cargo fmt --check`; rustfmt does not wrap long
+string literals. Prompts are now laid out as readable multiline strings, and the
+removed usage/help parser eliminates the reported long-line example. No new lint
+or formatter policy was needed. Tests now exercise both success and explanatory
+failure through the executable itself, with six domain/solver tests and two
+executable tests. This replaces duplicated tests of extracted workflow helpers
+while retaining actual product schema validation and both typed turns.
+
+Before this revision, both **Rust and Book checks** and **Meeting scheduler example**
+passed on 07e745b250c4e9cd485073713219b6d41c2ffb6e in
+[PR run 44804899310](https://github.com/dherman/thinkwell-rs/actions/runs/44804899310)
+and [push run 44804888464](https://github.com/dherman/thinkwell-rs/actions/runs/44804888464).
+That establishes the initial native Linux build; it does not establish CI results
+for the learning-focused changes. Earlier statements about unverified Linux refer
+to the local implementation stage before these CI runs.
+
+Potential library adaptations for discussion, not implementation in this change:
+
+- Ordinary nested answer types currently need `#[schemars(inline)]` annotations.
+  Automatically inlining nonrecursive derived schemas could remove this incidental
+  burden without promising arbitrary JSON Schema reference support. Recursive
+  types and unsupported constraints would still need explicit, tested behavior.
+- Supplying structured context currently requires
+  `.text(serde_json::to_string(&roster)?)`. A JSON/context convenience could improve
+  discoverability and keep serialization errors composable. Its naming, fallibility,
+  and relationship to quoting/delimiting should be discussed first; formatting is
+  not an instruction-trust or prompt-injection security boundary.
+- The second result needs no new API: `Plan<String>` already provides the simpler
+  spelling. Synchronous Z3 work and application roster/range validation remain
+  ordinary Rust responsibilities, not reasons to introduce Thinkwell abstractions.
+
+No core API changes are made or authorized by these observations. The owner asked
+for discussion of adaptations after seeing the ergonomic evidence.
+
+
+Validation of the learning-focused revision (07e745b plus the local changes):
+example formatting, all-target compilation, Clippy with warnings denied, and all
+eight tests passed. A fresh live run of the simplified executable, with the
+agent's default model and a 300-second outer deadline, passed both turns and
+returned Wednesday 11–12 plus a plain String explanation. No underlying model
+revision is inferred from the default selection. Book structure/rendering and
+whitespace checks passed after correcting an unquoted generic type in the prose.
+The previous nine-test and haiku live records describe the initial implementation;
+they are retained as historical evidence rather than overwritten.

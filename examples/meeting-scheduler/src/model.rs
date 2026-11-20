@@ -83,14 +83,6 @@ pub struct ParsedAvailability {
     pub attendees: Vec<AttendeeAvailability>,
 }
 
-/// The second typed answer. It cannot change the canonical schedule.
-#[derive(Debug, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct Explanation {
-    /// A short explanation of the supplied solver outcome, without inventing availability.
-    pub explanation: String,
-}
-
 /// A one-hour meeting beginning at an integer hour in the shared timezone.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Slot {
@@ -104,11 +96,6 @@ pub struct Slot {
 #[derive(Debug)]
 pub struct ValidatedAvailability(pub(crate) ParsedAvailability);
 impl ValidatedAvailability {
-    /// The checked extraction, for display or inspection.
-    pub fn parsed(&self) -> &ParsedAvailability {
-        &self.0
-    }
-
     /// Independently check a whole meeting against all windows and business hours.
     pub fn permits(&self, slot: Slot) -> bool {
         if !(9..17).contains(&slot.start_hour) {
@@ -180,4 +167,32 @@ pub fn validate_availability(
         return Err("extraction must include every attendee exactly once".into());
     }
     Ok(ValidatedAvailability(parsed))
+}
+
+/// Display the agent's interpretation before it is used; names come from the input roster.
+pub fn format_extraction(roster: &[Attendee], parsed: &ParsedAvailability) -> String {
+    let mut lines = vec!["Extracted availability (review this interpretation):".to_owned()];
+    for attendee in &parsed.attendees {
+        let name = roster
+            .iter()
+            .find(|a| a.id == attendee.attendee_id)
+            .map(|a| a.name.as_str())
+            .unwrap_or("UNKNOWN ID");
+        let windows = attendee
+            .windows
+            .iter()
+            .map(|w| format!("{} {:02}:00–{:02}:00", w.day, w.start_hour, w.end_hour))
+            .collect::<Vec<_>>()
+            .join(", ");
+        lines.push(format!(
+            "  {name} [{}]: {}",
+            attendee.attendee_id,
+            if windows.is_empty() {
+                "no availability"
+            } else {
+                &windows
+            }
+        ));
+    }
+    lines.join("\n")
 }

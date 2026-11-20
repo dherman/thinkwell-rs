@@ -49,11 +49,8 @@ The example's lockfile currently resolves `z3` 0.23.0, `z3-sys` 0.14.2, and
 `z3-src` 504.1.0 (native Z3 5.4.1). Cargo downloads dependencies initially;
 the native source build itself needs no separate system Z3 installation.
 
-Use the agent's default model, or select a name the agent supports:
-
-```sh
-cargo run --manifest-path examples/meeting-scheduler/Cargo.toml --locked -- --model haiku
-```
+The example uses the agent's default model and a fixed input file so the
+conversation is easy to follow. There is no command-line parsing.
 
 A successful run with the sample roster looks like this (the explanation may vary):
 
@@ -102,14 +99,23 @@ validation step below enforces them.
 
 ## 2. Open a conversation and ask for availability
 
-In [main.rs](src/main.rs), the program loads the roster and opens an agent session.
-The optional model setting is applied before opening the conversation. The
-[extract helper](src/workflow.rs) builds a `Plan<ParsedAvailability>`, explains
-weekday/hour conventions, includes the roster as JSON text, and runs the plan
-in that session:
+In [main.rs](src/main.rs), the program reads the included JSON roster, connects
+with `Claude::connect()`, and opens one session. The first `Plan` call is directly
+visible in `main`:
 
 ```rust
-let parsed = extract(&mut session, &roster).await?;
+let parsed = Plan::<ParsedAvailability>::new()
+    .text("Translate this roster's availability into weekday time windows.")
+    .text(serde_json::to_string(&roster)?)
+    .run_in(&mut session)
+    .await?;
+```
+
+This abbreviated snippet omits only the prompt text; the full instructions are
+readable in the source. The answer is then printed and checked with ordinary Rust
+functions from [model.rs](src/model.rs):
+
+```rust
 println!("{}", format_extraction(&roster, &parsed));
 let checked = validate_availability(&roster, parsed)?;
 ```
@@ -155,7 +161,9 @@ the program may choose any one; it does not promise the earliest.
 The main program runs the synchronous native solver with `spawn_blocking`, leaving
 Tokio free to drive the agent connection while Z3 works. The solver timeout is
 separate from Thinkwell's per-turn limits. Only owned, validated data moves into
-that task; the session stays on the calling async task.
+that task; the session stays on the calling async task. The two `?` operators
+in `.await??` handle the task error and the solver error, respectively. This is
+Tokio error handling, not extra Thinkwell cleanup.
 
 ## 4. Ask for an explanation of the result
 
@@ -166,9 +174,10 @@ println!("\nSolver result: {outcome}");
 std::io::stdout().flush()?;
 ```
 
-The [explain helper](src/workflow.rs) runs a `Plan<Explanation>` in the same session.
+The second `Plan` in [main.rs](src/main.rs) asks for a `String` in the same session.
 That session remembers the roster and previous answer. The return type changes
-from `ParsedAvailability` to `Explanation`; no new agent or conversation is needed.
+from `ParsedAvailability` to `String`; no new agent or conversation is needed.
+A plain text answer needs no wrapper struct.
 
 The explanation is labeled generated prose. It cannot replace the Rust enum or
 the printed canonical slot. If this second turn fails, the program reports the
@@ -178,11 +187,8 @@ of scope.
 
 ## Try a conflicting roster
 
-```sh
-cargo run --manifest-path examples/meeting-scheduler/Cargo.toml --locked -- \
-  examples/meeting-scheduler/data/no-overlap.json --model haiku
-```
-
+To explore another input, change the single `include_str!` path in `main.rs` from
+`../data/attendees.json` to `../data/no-overlap.json`, then run the same command.
 One attendee is free only Monday and the other only Tuesday. With a faithful
 extraction the canonical output is:
 
@@ -190,10 +196,12 @@ extraction the canonical output is:
 Solver result: No feasible one-hour meeting in weekday business hours.
 ```
 
-To use your own file, supply a JSON array of objects with `id`, `name`, and
-`availability` strings. Use distinct nonempty IDs and names/descriptions. Pass
-`--help` for the command syntax. The program prints an interpretation to review;
-it does not pause for interactive approval and never books a calendar event.
+To experiment further, edit the included roster. Each object has `id`, `name`,
+and `availability` strings. Use distinct nonempty IDs and names/descriptions.
+The program displays an interpretation to review; it does not pause for approval
+and never books a calendar event. These fixtures are small enough to read alongside
+the output. Restore the original include path before running the scripted workflow
+tests, which intentionally check the original sample.
 
 ## Checks and boundaries
 
