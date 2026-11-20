@@ -35,3 +35,23 @@
 > **`R-reviewed-delivery`** (accepted): **Review and integrate before durable completion**
 > Statement: Require accepted design and a human-approved Ready milestone, a deliberate review pass separate from implementation, passing required CI and human review before merge, and owner-controlled final approval, merge, and durable completion. Record criterion evidence, tested revision, limitations, findings and resolution, and integration state. Synchronize the owning roadmap after merge before the next milestone. Local implementation is not durable completion.
 > Source: Project owner's lifecycle and change-delivery assignment, Change delivery.
+
+> **`R-easy-agent-programming`** (accepted): **Make custom agent programming easy to start**
+> Statement: Minimize the setup and code needed to begin programming a custom agent with Thinkwell, with reasonable defaults for the initial experience.
+> Source: Project owner's port-design direction, 2026-11-18.
+
+> **`R-progressive-control`** (accepted): **Introduce complexity as callers take control**
+> Statement: Let callers progressively take greater control of agent interactions without requiring advanced configuration for basic use. Establish which controls ACP and supported agents expose, including model selection, before promising them.
+> Source: Project owner's port-design direction, 2026-11-18.
+
+> **`R-provider-breadth`** (accepted): **Support many model providers through ACP agents**
+> Statement: Design Thinkwell for compatibility with many model providers through ACP, with the supported agents and capabilities to be established explicitly.
+> Source: Project owner's port-design direction, 2026-11-18.
+
+> **`R-code-prompt-ergonomics`** (accepted): **Make deterministic code and prompts easy to interleave**
+> Statement: Optimize Rust API ergonomics for repeatedly switching between deterministic code and LLM prompts within a custom agent program.
+> Source: Project owner's port-design direction, 2026-11-18.
+
+> **`R-per-turn-result-types`** (accepted): **Allow result types to vary within a conversation**
+> Statement: Allow successive turns of the same explicit session to produce different Rust result types while retaining conversation context. Do not require one fixed result type for the lifetime of a session.
+> Source: Project owner's explicit agreement during session/result API exploration: “we should be able to change result types between turns.”

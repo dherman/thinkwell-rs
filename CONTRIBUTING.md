@@ -42,22 +42,45 @@ cargo fmt --all -- --check
 cargo check --workspace --all-targets --locked
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
+python3 -m unittest discover -s experiments/acp-integration -p 'test_probe_agent.py'
+RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked
 cargo anchor check --config anchorbook.toml
 mdbook build
 cargo test -p anchor-runner --test bootstrap_consistency --locked
 git diff --check
 ```
 
-The library intentionally has no tests yet; the development launcher has focused
-bootstrap tests. The bootstrap-consistency integration test checks startup, Book
+The library has deterministic contract, ACP/HTTP subprocess, ownership, and lifecycle
+tests. They require Python 3 and Unix ps on macOS/Linux, with bounded deadlines;
+they never invoke a real model. The development launcher has focused bootstrap
+tests. The bootstrap-consistency integration test checks startup, Book
 navigation, documented engine pins, and CI/rendering entry points without duplicating
 installation tests. It runs in workspace tests and has the explicit command above
-for focused diagnostics. Successful Cargo commands establish
-that the scaffold compiles and its test harness runs, not Thinkwell behavior.
+for focused diagnostics. Product test results cover their named behavioral cases, not all supported-agent
+behavior. Linux CI is distinct from a local macOS pass. The opt-in
+`cargo run -p thinkwell --locked --example live_check` exercises the pinned
+Claude adapter and existing authentication; it is not part of ordinary tests.
 `check` evaluates Book structure, not semantic validity or completion.
 The mdBook preprocessor additionally validates authority records and roadmap
 references. Inspect generated navigation, records, and links under
 `target/anchorbook/`; a build is not a complete content review.
+
+The Rustdoc check builds workspace API documentation without dependency docs and
+treats documentation warnings (including broken intra-doc links) as errors. Local
+output is under `target/doc/`, with the library entry at `target/doc/thinkwell/index.html`.
+Doctests remain part of `cargo test`. The Thinkwell crate denies missing public
+API documentation. Document public types, variants, fields, and methods, and
+include concrete examples for major APIs. Write for newcomers: explain what an
+API helps them do, introduce concepts through small examples, and put advanced
+constraints after the basic workflow. Examples requiring an installed agent
+or model credentials should use `no_run` so CI still compiles them without
+inference; use ordinary runnable examples for local configuration and value logic.
+
+Each CI run uploads the generated tree as the `rustdoc` artifact, retained for
+14 days. In GitHub Actions, open the CI run, download `rustdoc` from its Artifacts
+section, extract the archive, and open `thinkwell/index.html`. Keep the whole
+extracted tree together for styles, search, and source links. GitHub artifacts
+are downloads, not a hosted documentation website.
 
 Use default rustfmt and Clippy behavior. There is no custom lint configuration.
 CI runs the Cargo/Book and bootstrap checks above and whitespace checking on Ubuntu 24.04.

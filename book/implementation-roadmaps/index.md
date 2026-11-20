@@ -1,8 +1,15 @@
 # Implementation roadmaps
 
 [Project scaffolding](phase-0.md) is historical completed preparation.
-[Lifecycle and change delivery](lifecycle-delivery.md) is the current bounded assignment. There is no detailed product
-port roadmap yet. Proposed work becomes Ready only with human agreement and
+[Lifecycle and change delivery](lifecycle-delivery.md) retains its delivery follow-up.
+[Ownership API prototype](ownership-prototype.md) is the approved scoped experiment.
+[ACP integration prototype](acp-integration-prototype.md) is the approved SDK experiment.
+[Integrated API review](integrated-api-review.md) assembles the owner-requested
+three-example design review, now approved.
+[Runtime and typed-result foundation experiment](runtime-results-prototype.md) is
+locally validated, with review/integration pending.
+[First product slice: typed conversations](first-product-slice.md) is the approved
+current product assignment, with local implementation and evidence recorded there. Proposed work becomes Ready only with human agreement and
 satisfied prerequisites; assigned work becomes In progress. Durable completion requires
 evidence for every criterion and the integration conditions in
 [change delivery](../change-delivery.md), independently of design acceptance.

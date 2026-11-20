@@ -1,0 +1,187 @@
+"""Original Thinkwell product ACP subprocess fixture; no model calls."""
+import json
+import os
+import re
+import signal
+import sys
+import time
+import threading
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+mode, record = sys.argv[1:]
+record = Path(record)
+record.write_text(str(os.getpid()))
+if mode == "forced":
+    signal.signal(signal.SIGTERM, lambda *_: record.with_suffix(".term").write_text("SIGTERM observed; ignored"))
+
+def send(id, result):
+    try:
+        print(json.dumps({"jsonrpc": "2.0", "id": id, "result": result}), flush=True)
+    except BrokenPipeError:
+        # Host can close transport when the correction budget is exhausted.
+        # A fixture must tolerate that cancellation without an unrelated exit error.
+        sys.stdout = open(os.devnull, "w")
+        sys.exit(0)
+
+rpc_id = 0
+def mcp(method, params=None):
+    global rpc_id
+    rpc_id += 1
+    req = urllib.request.Request(url, json.dumps({
+        "jsonrpc": "2.0", "id": rpc_id, "method": method, "params": params or {}
+    }).encode(), headers={"Content-Type": "application/json", "Authorization": token,
+                         "MCP-Protocol-Version": "2025-11-25"})
+    with urllib.request.urlopen(req, timeout=12) as response:
+        return json.load(response)
+
+def tool(name, args):
+    result = mcp("tools/call", {"name": name, "arguments": args})["result"]
+    with record.with_suffix(".calls").open("a") as out:
+        out.write(json.dumps(result) + "\n")
+    return result
+
+previous_turn = None
+previous_token = None
+session_count = 0
+count = 0
+for line in sys.stdin:
+    request = json.loads(line)
+    method = request.get("method")
+    id = request.get("id")
+    if method == "initialize":
+        send(id, {"protocolVersion": 1, "agentCapabilities": {"mcpCapabilities": {"http": True}}})
+    elif method == "session/new":
+        session_count += 1
+        server = request["params"]["mcpServers"][0]
+        url = server["url"]
+        record.with_suffix(".url").write_text(url)
+        token = server["headers"][0]["value"]
+        if mode == "sessions":
+            with record.with_suffix(".tokens").open("a") as out:
+                out.write(token + "\n")
+        if previous_token is not None:
+            try:
+                urllib.request.urlopen(urllib.request.Request(url, json.dumps({"jsonrpc":"2.0","id":99,"method":"ping"}).encode(),
+                    headers={"Content-Type":"application/json","Authorization":previous_token}),timeout=5)
+                raise AssertionError("previous session credential accepted")
+            except urllib.error.HTTPError as e:
+                assert e.code == 401
+        previous_token = token
+        mcp("initialize", {"protocolVersion": "2025-11-25"})
+        catalog = mcp("tools/list")
+        for descriptor in catalog["result"]["tools"]:
+            if descriptor["name"] == "accumulate":
+                assert descriptor["outputSchema"]["properties"]["value"]["type"] == "object"
+        record.with_suffix(".catalog").write_text(json.dumps(catalog))
+        if mode == "setup_failure":
+            send(id, {})
+            continue
+        send(id, {"sessionId": f"fixture-session-{session_count}"})
+    elif method == "session/set_config_option":
+        print(json.dumps({"jsonrpc":"2.0","id":id,"error":{"code":-32602,"message":"unsupported model"}}),flush=True)
+    elif method == "session/prompt":
+        assert request["params"]["sessionId"] == f"fixture-session-{session_count}"
+        count += 1
+        record.with_suffix(".prompts").write_text(str(count))
+        prompt = request["params"]["prompt"][0]["text"]
+        turn = re.search(r"with turn ([\w-]+) and value", prompt).group(1)
+        submit = lambda value, tid=turn: tool("return_result", {"turn": tid, "value": value})
+        if mode == "late" and count == 2:
+            assert turn != previous_turn
+            assert mcp("tools/list")["result"] == catalog["result"]
+            for arguments in [
+                {"turn": previous_turn, "input": {"value": 100}},
+                {"input": {"value": 100}},
+                {"turn": None, "input": {"value": 100}},
+                {"turn": 42, "input": {"value": 100}},
+                {"turn": {"id": turn}, "input": {"value": 100}},
+                {"turn": "unknown", "input": {"value": 100}},
+            ]:
+                denied = tool("accumulate", arguments)
+                assert denied["isError"]
+                assert turn not in denied["content"][0]["text"]
+        if mode == "overlap":
+            submit({"total": 3})
+            worker = threading.Thread(target=lambda: tool("accumulate", {"turn": turn, "input": {"value": 3}}))
+            worker.start()
+            deadline = time.monotonic() + 5
+            while not record.with_suffix(".callback-started").exists():
+                assert time.monotonic() < deadline
+                time.sleep(0.01)
+            send(id, {"stopReason": "end_turn"})
+            worker.join(timeout=5)
+            assert not worker.is_alive()
+            continue
+        if mode == "http_boundary":
+            body = json.dumps({"jsonrpc":"2.0","id":99,"method":"tools/list"}).encode()
+            for headers, payload, expected in [
+                ({"Content-Type":"application/json"}, body, 401),
+                ({"Content-Type":"application/json","Authorization":token,"Origin":"https://example.com"}, body, 403),
+                ({"Content-Type":"application/json","Authorization":token,"MCP-Protocol-Version":"unsupported"}, body, 400),
+                ({"Content-Type":"application/json","Authorization":token}, b" " * (256 * 1024 + 1), 413),
+            ]:
+                try:
+                    urllib.request.urlopen(urllib.request.Request(url,payload,headers=headers),timeout=5)
+                    raise AssertionError("expected rejection")
+                except urllib.error.HTTPError as e:
+                    assert e.code == expected, (e.code,expected)
+            assert tool("unknown", {"turn":turn,"input":{"value":100}})["isError"]
+            assert tool("accumulate", {"turn":turn,"input":{"value":3}})["isError"]
+            submit({"total":3})
+        elif mode == "call_budget":
+            for _ in range(3):
+                tool("accumulate", {"turn": turn, "input": {"value": 1}})
+        elif mode == "transport":
+            sys.exit(9)
+        elif mode == "deadline":
+            time.sleep(30)
+        elif mode == "input_error":
+            assert tool("accumulate", {"turn": turn, "input": {"value": "bad"}})["isError"]
+            submit({"total": 3})
+        elif mode == "missing":
+            pass
+        elif mode == "invalid":
+            submit({"total": "wrong"})
+            submit({"total": "wrong again"})
+            submit({"total": "third wrong"})
+        elif mode == "malformed":
+            assert tool("return_result", {"turn": turn})["isError"]
+            submit({"total": 3})
+        elif mode == "correct":
+            submit({"total": "wrong"})
+            submit({"total": 3})
+        elif mode == "stale":
+            assert submit({"total": 88}, "stale")["isError"]
+            submit({"total": 3})
+        elif mode == "duplicate":
+            submit({"total": 3})
+            assert submit({"total": 88})["isError"]
+        elif mode in ("hold", "cancelled"):
+            submit({"total": 3})
+            record.with_suffix(".candidate").write_text("accepted")
+            if mode == "hold":
+                time.sleep(30)
+        elif mode == "null_missing":
+            assert tool("return_result", {"turn": turn})["isError"]
+            submit(None)
+        elif mode == "callback_error":
+            assert tool("accumulate", {"turn": turn, "input": {"value": 3}})["isError"]
+            submit({"total": 3})
+        elif mode == "callback":
+            tool("accumulate", {"turn": turn, "input": {"value": 3}})
+            submit({"total": 3})
+        else:
+            output = tool("accumulate", {"turn": turn, "input": {"value": 3 if count == 1 else 4}})
+            total = json.loads(output["content"][0]["text"])["total"]
+            assert output["structuredContent"]["value"]["total"] == total
+            submit({"total": total} if count == 1 else {"kind": "Accept", "total": total})
+        previous_turn = turn
+        send(id, {"stopReason": "cancelled" if mode == "cancelled" else "end_turn"})
+record.with_suffix(".eof").write_text("stdin closed")
+if mode == "forced":
+    while True:
+        time.sleep(1)
+if mode == "exit_error":
+    sys.exit(7)
