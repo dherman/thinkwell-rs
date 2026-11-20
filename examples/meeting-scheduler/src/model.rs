@@ -17,7 +17,6 @@ pub struct Attendee {
 /// A weekday in the shared, notional meeting week.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "lowercase")]
-#[schemars(inline)]
 pub enum Day {
     Monday,
     Tuesday,
@@ -54,7 +53,6 @@ impl std::fmt::Display for Day {
 /// A half-open availability interval: start is included, end is excluded.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-#[schemars(inline)]
 pub struct TimeWindow {
     /// Weekday in the shared timezone.
     pub day: Day,
@@ -67,7 +65,6 @@ pub struct TimeWindow {
 /// The agent's interpretation for exactly one original attendee ID.
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-#[schemars(inline)]
 pub struct AttendeeAvailability {
     /// Copy an ID from the original roster; do not invent or change it.
     pub attendee_id: String,

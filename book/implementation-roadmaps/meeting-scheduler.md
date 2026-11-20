@@ -385,3 +385,74 @@ revision is inferred from the default selection. Book structure/rendering and
 whitespace checks passed after correcting an unquoted generic type in the prose.
 The previous nine-test and haiku live records describe the initial implementation;
 they are retained as historical evidence rather than overwritten.
+
+
+### Automatic schema inlining exploration
+
+After the owner agreed to explore schema inlining, source inspection found that
+pinned Schemars 1.2.3 already exposes `SchemaSettings::inline_subschemas`. Its
+implementation retains references when an ordinary derived type recurs during
+generation. Thinkwell currently uses default settings for both serialization and
+deserialization contracts, then rejects unsupported schema keywords.
+
+The proposed adaptation is to enable this generation setting in both directions,
+while retaining the existing supported-contract check. Ordinary nonrecursive
+nested derived types would no longer require `#[schemars(inline)]`; recursive
+schemas and manually supplied references would still fail preflight. This is a
+proposal, not an implemented or validated behavior change. It requires no new
+public builder method or Thinkwell-specific derive. The scheduler would lose the
+three inline annotations on Day, TimeWindow, and AttendeeAvailability; its Plan
+calls and application validation would remain the same.
+
+Before implementation, assign a Ready milestone covering nested result types,
+tool inputs and outputs, direction-specific Serde names, repeated nested types,
+self/mutual recursion rejection, and continued rejection of unsupported nested
+constraints and manually supplied references. Verify these through actual product
+contract paths, then remove the scheduler annotations and run its workflow tests.
+Inlining duplicates reused schemas and can increase prompt size; this proposal
+adds no reference resolver or recursive-contract support. Source inspection alone
+does not establish runtime behavior or resource bounds for deeply nested types.
+
+
+## Milestone 2. Automatic schema inlining {#meeting-scheduler-inlining}
+
+**Identifier:** `meeting-scheduler-inlining`
+**Status:** In progress
+**Approval:** The owner approved the proposed bounded implementation milestone
+  with “proceed”; it became Ready and was assigned in this session.
+**Dependencies:** Existing contract generation and scheduler review revision
+  45323db; no dependency on scheduler merge. This is an explicitly approved
+  adaptation alongside the scheduler, not implied by the original example scope.
+**Design basis:** `A-supported-contract-boundary` and the nested-type behavior
+  in [typed conversations](../design/typed-conversations.md).
+**Outcome:** Ordinary nonrecursive nested derived types need no inline annotation.
+**Tasks:** Enable generation inlining in both directions; cover nested validation,
+  recursion and unsupported contracts; simplify scheduler and documentation.
+
+### Contract behavior {#meeting-scheduler-inlining-contracts}
+
+**Anchor coverage:** `A-supported-contract-boundary`.
+**Criterion:** Tests cover nested/reused types in input/result and output contracts,
+  direction-specific names, self/mutual recursion rejection, and unsupported nested
+  constraints/manual references. Existing preflight and validation tests still pass.
+**Evidence:** Local pass at 45323db plus this uncommitted adaptation. New schema
+tests cover both directions, reused nested records, invalid nested values, recursive
+types and unsupported schemas. The existing no-prompt test now uses recursion,
+because ordinary nesting is intentionally accepted. All workspace tests pass.
+
+### Example and delivery {#meeting-scheduler-inlining-delivery}
+
+**Anchor coverage:** `A-typed-turn-completion` (application usage only).
+**Criterion:** Scheduler workflow tests pass without inline annotations; API docs
+  explain nesting and limits; review, CI, and owner integration are recorded.
+**Evidence:** All eight scheduler tests pass without inline annotations. Workspace
+Clippy and strict Rustdoc pass. A separate author self-review checked the diff,
+shared generation path, unchanged validator, and scope of recursion rejection;
+this is not independent or owner review. CI and owner integration remain pending.
+No new live inference run was needed for this schema-only change.
+
+Commands: `cargo test --workspace --locked`,
+`cargo clippy --workspace --all-targets --locked -- -D warnings`,
+`RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked`, and
+`cargo test --manifest-path examples/meeting-scheduler/Cargo.toml --locked`
+with the previously recorded CMAKE and CARGO_TARGET_DIR settings.

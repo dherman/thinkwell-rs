@@ -92,7 +92,8 @@
 //! object properties and required fields, boolean `additionalProperties`, homogeneous
 //! arrays, primitive types, `const`/`enum`, `oneOf`/`anyOf`, and the `int64` format.
 //! References (`$ref`/`$defs`), other formats, and other constraints are rejected.
-//! This currently excludes some nested named types and numeric types.
+//! Nested structs and enums are expanded automatically; no `#[schemars(inline)]`
+//! annotation is needed. Recursive types and some numeric types remain unsupported.
 //!
 //! Validation checks tool inputs, tool outputs, and final answers as well as their
 //! Serde conversions. Integer fields reject floating representations such as `3.0`.

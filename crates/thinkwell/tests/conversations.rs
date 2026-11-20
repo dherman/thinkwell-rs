@@ -503,13 +503,13 @@ async fn drop_cleanup_reports_errors_and_closes_listener() {
 #[tokio::test]
 async fn unsupported_contracts_and_options_fail_before_prompt() {
     #[derive(Deserialize, JsonSchema)]
-    struct Referenced {
-        _child: Summary,
+    struct Recursive {
+        _children: Vec<Recursive>,
     }
     let dir = tempfile::tempdir().unwrap();
     let agent = connect("missing", dir.path()).await;
     let mut session = agent.session().open().await.unwrap();
-    let r = Plan::<Referenced>::new().run_in(&mut session).await;
+    let r = Plan::<Recursive>::new().run_in(&mut session).await;
     assert!(matches!(
         r,
         Err(Error {

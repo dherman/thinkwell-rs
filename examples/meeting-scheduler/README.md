@@ -78,7 +78,6 @@ From [model.rs](src/model.rs):
 ```rust
 #[derive(Debug, Deserialize, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-#[schemars(inline)]
 pub struct TimeWindow {
     /// Weekday in the shared timezone.
     pub day: Day,
@@ -90,9 +89,8 @@ pub struct TimeWindow {
 ```
 
 `Day` is a lowercase weekday enum. The enclosing records also derive these
-traits; `Serialize` is useful for inspecting the extracted data. Inline schemas
-keep nested types within Thinkwell's current supported subset. They avoid schema
-references; they do not add new validation features to the library.
+traits; `Serialize` is useful for inspecting the extracted data. Thinkwell handles
+these nested types automatically; no extra schema annotations are needed.
 
 The field descriptions guide the agent, but do not enforce hour ranges. The Rust
 validation step below enforces them.
