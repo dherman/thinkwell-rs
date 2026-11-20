@@ -46,6 +46,22 @@ The proposed application rules below are not new library guarantees.
       review the code and learning flow, and record ergonomic findings and limits.
 - [ ] Deliver through owner review, passing CI, and authorized integration.
 
+### Migration references
+
+Use these references for the original example's intent and teaching flow during
+implementation:
+
+- [TypeScript scheduler source at the inspected revision](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/examples/src/schedule.ts).
+- [Published Meeting Scheduler tutorial](https://thinkwell.sh/examples/meeting-scheduler).
+- [Tutorial source at the inspected revision](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/website/examples/meeting-scheduler.mdx).
+
+The pinned source links preserve the research snapshot even if the published
+tutorial changes. These are temporary migration references, not permanent
+Thinkwell authority or a requirement for behavioral parity. The approved Rust
+scope and application rules in this roadmap govern where behavior differs.
+Follow the source-provenance requirements below before adapting substantive
+material; remove these migration references at the end of the Porting Phase.
+
 ### Proposed caller flow
 
 1. Load a small JSON roster containing stable attendee IDs, display names, and
