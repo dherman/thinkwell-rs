@@ -490,3 +490,22 @@ rustdoc artifact using a SHA-pinned actions/upload-artifact v4, retained for
 14 days; CONTRIBUTING.md explains downloading and opening thinkwell/index.html.
 The generated files include sibling assets and source pages. No external service
 or hosted-site deployment is configured. Upload execution awaits GitHub CI.
+
+
+### Public API Rustdoc coverage
+
+The owner requested thorough documentation for all public APIs and concrete
+examples for major APIs. Crate-level guidance now introduces the ownership model,
+a quick start, supported schemas, and initial limits. Public types, enum variants,
+fields, traits, and methods document their behavior; the major workflows include
+examples for presets/configuration, custom preset conversion, session reuse,
+borrowed tools, changing result types, budgets, errors, diagnostics, and shutdown.
+
+The crate now denies missing public API documentation. Agent-dependent examples
+use no_run: they are compiled by doctests without starting processes or inference.
+Local examples execute, and both existing ownership compile-fail examples remain.
+This follow-up changes documentation and its enforcement, not runtime behavior;
+the earlier product source digest is historical. Contributor guidance records
+the policy. Local Rustdoc with warnings denied and all 23 doctests passed
+(12 compile-only examples, nine runnable examples, two compile-fail probes).
+Final workspace and Book checks are run before updating the draft PR.
