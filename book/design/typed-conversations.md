@@ -42,7 +42,7 @@ Normal session drop releases its reservation and revokes its endpoint; another
 session uses fresh history and credentials. Failed/abandoned started turns close
 the connection. Recovery is explicit reconnection.
 
-Expose typed command configuration, one Claude preset, fixed typed Tool
+Expose typed command configuration, the `thinkwell::agent::Claude` preset, fixed typed Tool
 descriptors, cloneable unbound Plans, borrowed per-turn bindings and run_in.
 Use HTTP MCP 2025-11-25 with a loopback listener, bearer credential, Origin and
 body-size checks, and permission restriction to declared tools. Turn/input and

@@ -1,7 +1,7 @@
 //! Opt-in live inference; cargo test only compiles this example.
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use thinkwell::{Claude, Plan, Tool};
+use thinkwell::{Plan, Tool, agent::Claude};
 
 #[derive(Deserialize, JsonSchema)]
 struct Add {

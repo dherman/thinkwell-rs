@@ -10,7 +10,7 @@
 //! request. Here we ask Claude for a title and receive a `String`:
 //!
 //! ~~~no_run
-//! use thinkwell::{Claude, Plan};
+//! use thinkwell::{agent::Claude, Plan};
 //!
 //! #[tokio::main(flavor = "current_thread")]
 //! async fn main() -> thinkwell::Result<()> {
@@ -35,7 +35,7 @@
 //! To run this example, use Tokio with its macros, runtime, I/O, and time support
 //! (the `full` feature includes these). You also need Node/npx, the Claude ACP
 //! adapter version 0.23.1 in your npm cache, and working Claude authentication.
-//! See [Claude] for the exact command Thinkwell runs. Thinkwell does not install
+//! See [Claude](agent::Claude) for the exact command Thinkwell runs. Thinkwell does not install
 //! or authenticate the agent for you.
 //!
 //! # Build on the first example
@@ -99,6 +99,7 @@
 //! Numeric `const`/`enum` comparisons preserve precision for large integers.
 #![deny(missing_docs)]
 
+pub mod agent;
 mod api;
 mod runtime;
 mod schema;

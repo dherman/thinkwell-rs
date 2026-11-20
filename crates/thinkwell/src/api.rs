@@ -6,7 +6,7 @@ use std::{future::Future, marker::PhantomData, pin::Pin, time::Duration};
 
 /// The command Thinkwell should run to start an agent.
 ///
-/// Use this when you want to connect to an agent other than the built-in [Claude]
+/// Use this when you want to connect to an agent other than the built-in [Claude](crate::agent::Claude)
 /// preset, or choose its command-line arguments. Creating a configuration does not
 /// start anything; pass it to [Agent::connect] when you are ready.
 ///
@@ -91,90 +91,13 @@ impl AgentConfig {
         self
     }
 }
-/// The quickest way to connect to Claude.
-///
-/// Call [Claude::connect] to start a connection, then open a [Session] to begin a
-/// conversation. You can use the agent's default model or select one when
-/// [opening the session](crate::SessionBuilder::model).
-///
-/// ~~~no_run
-/// use thinkwell::{Claude, Plan};
-///
-/// # async fn example() -> thinkwell::Result<()> {
-/// let agent = Claude::connect().await?;
-/// let mut session = agent.session().open().await?;
-/// let greeting = Plan::<String>::new()
-///     .text("Say hello in one sentence.")
-///     .run_in(&mut session).await?;
-/// println!("{greeting}");
-/// # Ok(())
-/// # }
-/// ~~~
-///
-/// # Before connecting
-///
-/// This preset runs `npx --offline --yes @zed-industries/claude-agent-acp@0.23.1`.
-/// You need Node/npx, that adapter version already in your npm cache, and working
-/// Claude authentication. Thinkwell does not install or authenticate it for you.
-///
-/// For a different launch command, use [configured](Self::configured). Import
-/// [Connect] to call `.connect()` on that configured instance.
-#[derive(Clone, Debug)]
-pub struct Claude {
-    config: AgentConfig,
-}
-impl Default for Claude {
-    fn default() -> Self {
-        Self {
-            config: AgentConfig::new("npx").args([
-                "--offline",
-                "--yes",
-                "@zed-industries/claude-agent-acp@0.23.1",
-            ]),
-        }
-    }
-}
-impl Claude {
-    /// Choose a different command for starting Claude.
-    ///
-    /// For example, use an adapter executable already on your PATH:
-    ///
-    /// ~~~no_run
-    /// use thinkwell::{AgentConfig, Claude, Connect};
-    ///
-    /// # async fn example() -> thinkwell::Result<()> {
-    /// let preset = Claude::configured(AgentConfig::new("claude-agent-acp"));
-    /// let agent = preset.connect().await?;
-    /// # Ok(())
-    /// # }
-    /// ~~~
-    ///
-    /// The supplied configuration replaces the default command and all its arguments.
-    /// It is not merged with the npx defaults.
-    pub fn configured(config: AgentConfig) -> Self {
-        Self { config }
-    }
-    /// Start Claude using the default configuration.
-    ///
-    /// See [Claude] for the prerequisites and a first conversation. This is shorthand
-    /// for `Agent::connect(Claude::default()).await`. Connection errors and runtime
-    /// requirements are described on [Agent::connect].
-    pub async fn connect() -> Result<Agent> {
-        Agent::connect(Self::default()).await
-    }
-}
-impl From<Claude> for AgentConfig {
-    fn from(value: Claude) -> Self {
-        value.config
-    }
-}
 /// Adds `.connect().await` to an agent configuration or preset.
 ///
 /// Import this trait when you want to connect an instance. The static
-/// [Claude::connect] convenience method does not need this import.
+/// [Claude::connect](crate::agent::Claude::connect) convenience method does not need this import.
 ///
 /// ~~~no_run
-/// use thinkwell::{Claude, Connect};
+/// use thinkwell::{agent::Claude, Connect};
 ///
 /// # async fn example() -> thinkwell::Result<()> {
 /// let preset = Claude::default();
@@ -314,7 +237,7 @@ pub(crate) struct Descriptor {
 /// # Give an agent a word-counting tool
 ///
 /// ~~~no_run
-/// use thinkwell::{Claude, Plan, Tool};
+/// use thinkwell::{agent::Claude, Plan, Tool};
 ///
 /// # async fn example() -> thinkwell::Result<()> {
 /// let agent = Claude::connect().await?;
@@ -444,7 +367,7 @@ pub(crate) struct Binding<'a> {
 /// # Ask for a string
 ///
 /// ~~~no_run
-/// use thinkwell::{Claude, Plan};
+/// use thinkwell::{agent::Claude, Plan};
 ///
 /// # async fn example() -> thinkwell::Result<()> {
 /// let agent = Claude::connect().await?;
@@ -572,7 +495,7 @@ impl<'a, T, S> Plan<'a, T, S> {
     /// # Let a tool update your application state
     ///
     /// ~~~no_run
-    /// use thinkwell::{Claude, Plan, Tool};
+    /// use thinkwell::{agent::Claude, Plan, Tool};
     ///
     /// # async fn example() -> thinkwell::Result<()> {
     /// let agent = Claude::connect().await?;

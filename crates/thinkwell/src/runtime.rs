@@ -38,7 +38,7 @@ fn transport(e: impl std::fmt::Display) -> Error {
 /// it does not keep the agent running.
 ///
 /// ~~~no_run
-/// use thinkwell::Claude;
+/// use thinkwell::agent::Claude;
 ///
 /// # async fn example() -> thinkwell::Result<()> {
 /// let agent = Claude::connect().await?;
@@ -129,7 +129,7 @@ enum Command {
 }
 /// A connection to an agent program, used to start conversations.
 ///
-/// Begin with [Claude::connect](crate::Claude::connect), or use [Agent::connect]
+/// Begin with [Claude::connect](crate::agent::Claude::connect), or use [Agent::connect]
 /// with your own configuration. Then call [session](Self::session) to open a
 /// conversation. You can reuse a connection for separate conversations; each new
 /// [Session] starts without the previous conversation's history.
@@ -137,7 +137,7 @@ enum Command {
 /// # Start two independent conversations
 ///
 /// ~~~no_run
-/// use thinkwell::{Claude, Plan};
+/// use thinkwell::{agent::Claude, Plan};
 ///
 /// # async fn example() -> thinkwell::Result<()> {
 /// let agent = Claude::connect().await?;
@@ -190,7 +190,7 @@ impl Drop for Agent {
 /// application tools and uses the agent's default model.
 ///
 /// ~~~no_run
-/// use thinkwell::{Claude, Plan};
+/// use thinkwell::{agent::Claude, Plan};
 ///
 /// # async fn example() -> thinkwell::Result<()> {
 /// let agent = Claude::connect().await?;
@@ -222,7 +222,7 @@ pub struct SessionBuilder<'a> {
 /// # Ask a follow-up question
 ///
 /// ~~~no_run
-/// use thinkwell::{Claude, Plan};
+/// use thinkwell::{agent::Claude, Plan};
 ///
 /// # async fn example() -> thinkwell::Result<()> {
 /// let agent = Claude::connect().await?;
@@ -467,7 +467,7 @@ impl Agent {
     /// complete before this call; shutdown does not finish or submit their answers.
     ///
     /// ~~~no_run
-    /// use thinkwell::{Claude, Plan};
+    /// use thinkwell::{agent::Claude, Plan};
     ///
     /// # async fn example() -> thinkwell::Result<()> {
     /// let agent = Claude::connect().await?;
@@ -496,8 +496,8 @@ impl Agent {
     }
     /// Start an agent program and establish a connection to it.
     ///
-    /// Pass an [AgentConfig] or a preset such as [Claude](crate::Claude). For the
-    /// standard Claude configuration, [Claude::connect](crate::Claude::connect) is
+    /// Pass an [AgentConfig] or a preset such as [Claude](crate::agent::Claude). For the
+    /// standard Claude configuration, [Claude::connect](crate::agent::Claude::connect) is
     /// a shorter spelling. Use a custom command when connecting to another agent:
     ///
     /// ~~~no_run
@@ -686,7 +686,7 @@ impl Session<'_> {
     /// but a request that failed after starting closes the session and connection.
     ///
     /// ~~~no_run
-    /// use thinkwell::{Claude, Plan};
+    /// use thinkwell::{agent::Claude, Plan};
     ///
     /// # async fn example() -> thinkwell::Result<()> {
     /// let agent = Claude::connect().await?;

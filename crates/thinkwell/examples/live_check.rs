@@ -1,7 +1,7 @@
 //! Opt-in live acceptance check with explicit shutdown confirmation.
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use thinkwell::{Claude, Plan, Tool};
+use thinkwell::{Plan, Tool, agent::Claude};
 
 #[derive(Deserialize, JsonSchema)]
 struct Add {

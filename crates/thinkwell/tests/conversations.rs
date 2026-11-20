@@ -1,7 +1,9 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::{cell::Cell, path::Path, rc::Rc, time::Duration};
-use thinkwell::{Agent, AgentConfig, Claude, Connect, Error, ErrorKind, Plan, RunOptions, Tool};
+use thinkwell::{
+    Agent, AgentConfig, Connect, Error, ErrorKind, Plan, RunOptions, Tool, agent::Claude,
+};
 
 #[derive(Deserialize, JsonSchema)]
 struct Input {

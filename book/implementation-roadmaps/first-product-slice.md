@@ -56,7 +56,7 @@ ordinary caller flow. Compilation may refine inferred error annotations and
 imports without introducing callback scopes or mandatory cleanup.
 
 ```rust,ignore
-use thinkwell::{Claude, Plan, Tool};
+use thinkwell::{agent::Claude, Plan, Tool};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -533,3 +533,16 @@ passed. All 19 product tests and five launcher/bootstrap tests passed via
 the documented 0.5.4 under ignored target/tools resolved that rendering mismatch.
 GitHub CI for this revision has not yet been verified.
 No product behavior, API decision, or milestone status changes in this revision.
+
+### Built-in agent namespace
+
+The owner approved moving Claude to `thinkwell::agent::Claude` and updating the
+draft PR. The public `agent` module now contains the preset; it is no longer
+exported at the crate root. `Agent`, `AgentConfig`, and `Connect` keep their root
+paths. Launch configuration and connection behavior are unchanged. Rustdoc links,
+examples, integration-test imports, and the Book example use the new path.
+
+Local all-target compilation, Clippy with warnings denied, strict Rustdoc, and
+workspace tests passed, including all 28 doctests, 19 product tests, and five
+launcher/bootstrap tests. Formatting, Book structure/rendering, and whitespace
+checks are required before delivery. GitHub CI for this revision remains unverified.
