@@ -8,7 +8,7 @@ API: connect an ACP agent, declare tools, bind borrowed callbacks per turn, and
 return different typed results in one conversation. See the
 [compiled conversation example](crates/thinkwell/examples/conversation.rs) and
 [implementation evidence and limits](book/implementation-roadmaps/first-product-slice.md).
-This is an initial local implementation, not a published release.
+The first product slice is integrated; this is not a published release.
 
 Use Tokio with I/O/time enabled. Agent installation and authentication are external.
 The Claude preset uses the locally cached ACP adapter 0.23.1 via offline npx.
@@ -22,7 +22,13 @@ cargo run -p thinkwell --locked --example live_check
 The default path uses RAII. Cancellation of a started turn closes its session and
 connection; application effects are not rolled back. Schema support is deliberately
 finite, and Windows/embedding/concurrent sessions are not initial support targets.
-macOS checks passed locally; Linux CI and owner integration remain pending.
+The integrated first product slice passed local macOS checks and Linux CI.
+
+For a practical code/prompt workflow, try the
+[meeting scheduler example and walkthrough](examples/meeting-scheduler/README.md).
+It translates availability into typed data, solves it with Z3 in Rust, then asks
+for an explanation. Its separate Cargo package keeps the solver out of ordinary
+library builds.
 
 Project knowledge, decisions, roadmaps, and evidence live in the
 [Anchor Book](book/SUMMARY.md). Start with its [introduction](book/introduction.md)
