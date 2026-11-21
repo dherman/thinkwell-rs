@@ -13,7 +13,7 @@ time, and ask the agent for a short explanation. The authoritative result comes
 from Rust and the solver. Users can inspect the extracted availability before
 trusting the answer.
 
-**Status:** In progress
+**Status:** Complete
 
 The owner reviewed and merged PR #3, then instructed implementation to continue.
 The closeout prerequisite is satisfied at eecb8ec98424689c4deb3ce526e524421e3faef8.
@@ -417,7 +417,7 @@ does not establish runtime behavior or resource bounds for deeply nested types.
 ## Milestone 2. Automatic schema inlining {#meeting-scheduler-inlining}
 
 **Identifier:** `meeting-scheduler-inlining`
-**Status:** In progress
+**Status:** Complete
 **Approval:** The owner approved the proposed bounded implementation milestone
   with “proceed”; it became Ready and was assigned in this session.
 **Dependencies:** Existing contract generation and scheduler review revision
@@ -462,7 +462,7 @@ with the previously recorded CMAKE and CARGO_TARGET_DIR settings.
 
 **Identifier:** `meeting-scheduler-context`
 
-**Status:** In progress
+**Status:** Complete
 
 **Outcome:** Callers append serializable context with `Plan::json(&value)?`;
 the scheduler demonstrates it instead of manually converting the roster to text.
@@ -504,3 +504,41 @@ No quoting protocol, trust boundary, new content block, or schema requirement is
   the full diff, error behavior, ownership, docs, and unchanged prompt bytes; no
   unresolved findings. This is not independent or owner review. No additional live
   agent run was performed. CI and owner-reviewed integration remain outstanding.
+
+
+## Integrated completion {#integrated-completion}
+
+The owner reviewed and merged PR #4 on 2026-11-21 at 01:19:13 UTC, integrating
+final head `0efc8e45f29d81a2223d104f25e2a3b24d4e1493` as
+`558f3ba6e429a84f1e9630ef6b0fb6ee12b66485`. This completes the scheduler,
+automatic schema inlining, and structured prompt context milestones. Earlier
+pending statements above describe evidence at their implementation stages;
+this record supplies their final review and integration evidence.
+
+Both **Rust and Book checks** and **Meeting scheduler example** passed on the final
+head in [PR CI](https://github.com/dherman/thinkwell-rs/actions/runs/44811985839)
+and [push CI](https://github.com/dherman/thinkwell-rs/actions/runs/44811975060).
+This includes the final native Linux example build and tests. The separate
+[merge-commit run](https://github.com/dherman/thinkwell-rs/actions/runs/44849466252)
+was still running when this closeout was prepared; no pass is claimed for it.
+
+Criterion closeout:
+
+- Learning flow and typed turns: the reviewed tutorial and executable show both
+  Plan calls, typed extraction, ordinary Rust solving, and a String explanation.
+- Validated solver behavior: deterministic domain/solver tests and the recorded
+  live demonstration provide the bounded evidence; model interpretation remains
+  fallible and no calendar booking is performed.
+- Supported contracts and trustworthy presentation: executable tests cover nested
+  answer validation and preservation of the canonical result after prose failure.
+- Reproducible delivery and findings: native macOS evidence, final Linux CI,
+  original source/provenance review, owner review, and merge are recorded.
+- Inlining contracts and delivery: both schema directions, recursion/reference
+  rejection, nested constraints, and the annotation-free scheduler pass tests.
+- Context composition/failures and delivery: JSON ordering/escaping, owned data,
+  bound Plan state, immediate serialization errors, Rustdoc and scheduler tests pass.
+
+The owner's review and merge follow the recorded author self-reviews; no independent
+agent review is claimed. This closeout is a follow-up under the same delivery
+assignment and awaits its own integration. No further implementation milestone,
+package publication, or end of the Porting Phase is authorized by completion.

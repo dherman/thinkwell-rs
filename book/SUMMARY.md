@@ -19,5 +19,6 @@
   - [Runtime and typed-result foundation experiment](implementation-roadmaps/runtime-results-prototype.md)
   - [First product slice: typed conversations](implementation-roadmaps/first-product-slice.md)
   - [Meeting scheduler](implementation-roadmaps/meeting-scheduler.md)
+  - [Sentiment analysis proposal](implementation-roadmaps/sentiment-analysis.md)
 - [Change delivery](change-delivery.md)
 - [Working on the project](working-on-the-project.md)
