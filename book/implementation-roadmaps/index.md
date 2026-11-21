@@ -17,9 +17,8 @@ completion record tracks the separate merge-commit CI and this Book follow-up.
 The owner merged the closeout/proposal in PR #5 at 343f425, then reviewed and
 merged [sentiment analysis and finite f64 support](sentiment-analysis.md#integrated-completion)
 in PR #6 at 0dbb432. Final-head and merge-commit CI passed. These milestones are
-complete; this Book follow-up records their integration. No next implementation
-milestone is assigned. Standalone Plan execution and inline tools remain the next
-design exploration, grounded in the earlier integrated API review.
+complete; this Book follow-up records their integration. The owner merged this closeout in PR #7 at 8e039b1 and approved the
+[one-shot tools milestone](one-shot-tools.md), now In progress.
 
 Use the pinned [roadmap format](../working-on-the-project.md#pinned-method-references):
 stable milestone and criterion fragments, outcome, status, identifier,

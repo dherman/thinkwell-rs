@@ -616,3 +616,206 @@ async fn finite_floats_round_trip_and_nonfinite_tool_outputs_fail() {
     agent.shutdown().await.unwrap();
     reaped(dir.path()).await;
 }
+
+async fn one_shot_reuse() {
+    let dir = tempfile::tempdir().unwrap();
+    let agent = connect("one_shot", dir.path()).await;
+    let counter = Rc::new(Cell::new(0));
+    let mut inputs = Vec::new();
+    let answer = Plan::<Summary>::new()
+        .tool("accumulate", "Add to accumulator", async |v: Input| {
+            inputs.push(v.value);
+            tokio::task::yield_now().await;
+            counter.set(counter.get() + 1);
+            Ok(Output { total: v.value })
+        })
+        .run(&agent)
+        .await
+        .unwrap();
+    assert_eq!(answer.total, 3);
+    assert_eq!(inputs, [3]);
+    assert_eq!(counter.get(), 1);
+    let tool = tool();
+    Plan::<Summary>::new()
+        .bind(&tool, async |v: Input| Ok(Output { total: v.value }))
+        .run(&agent)
+        .await
+        .unwrap();
+    Plan::<Summary>::new().run(&agent).await.unwrap();
+    let tokens = std::fs::read_to_string(dir.path().join("pid.tokens")).unwrap();
+    let tokens: Vec<_> = tokens.lines().collect();
+    assert_eq!(tokens.len(), 3);
+    assert_eq!(
+        tokens
+            .iter()
+            .collect::<std::collections::HashSet<_>>()
+            .len(),
+        3
+    );
+    let url = std::fs::read_to_string(dir.path().join("pid.url")).unwrap();
+    let address = url
+        .strip_prefix("http://")
+        .unwrap()
+        .strip_suffix("/mcp")
+        .unwrap();
+    tokio::time::timeout(Duration::from_secs(3), async {
+        while tokio::net::TcpStream::connect(address).await.is_ok() {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .unwrap();
+    agent.shutdown().await.unwrap();
+    reaped(dir.path()).await;
+}
+
+#[tokio::test]
+async fn one_shot_borrows_and_reuses_agent() {
+    one_shot_reuse().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn one_shot_supports_local_borrows_on_multithread_runtime() {
+    one_shot_reuse().await;
+}
+
+#[tokio::test]
+async fn one_shot_preflight_and_busy_leave_agent_available() {
+    #[derive(Debug, Deserialize, JsonSchema)]
+    struct Recursive {
+        _children: Vec<Recursive>,
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let agent = connect("one_shot", dir.path()).await;
+    drop(Plan::<Summary>::new().run(&agent));
+    assert_eq!(
+        Plan::<Recursive>::new().run(&agent).await.unwrap_err().kind,
+        ErrorKind::Contract
+    );
+    let bad = Tool::<Recursive, String>::new("bad", "Recursive input");
+    assert_eq!(
+        Plan::<Summary>::new()
+            .bind(&bad, async |_: Recursive| Ok(String::new()))
+            .run(&agent)
+            .await
+            .unwrap_err()
+            .kind,
+        ErrorKind::Contract
+    );
+    assert_eq!(
+        Plan::<Summary>::new()
+            .tool("return_result", "reserved", async |_: String| Ok(()))
+            .run(&agent)
+            .await
+            .unwrap_err()
+            .kind,
+        ErrorKind::Binding
+    );
+    assert_eq!(
+        Plan::<Summary>::new()
+            .tool("duplicate", "one", async |_: String| Ok(()))
+            .tool("duplicate", "two", async |_: String| Ok(()))
+            .run(&agent)
+            .await
+            .unwrap_err()
+            .kind,
+        ErrorKind::Binding
+    );
+    assert_eq!(
+        Plan::<Summary>::new()
+            .options(RunOptions {
+                max_tool_calls: 0,
+                ..Default::default()
+            })
+            .run(&agent)
+            .await
+            .unwrap_err()
+            .kind,
+        ErrorKind::Configuration
+    );
+    assert!(!dir.path().join("pid.url").exists());
+    let tool = tool();
+    let mut session = agent.session().tool(&tool).open().await.unwrap();
+    assert_eq!(
+        Plan::<Summary>::new().run(&agent).await.unwrap_err().kind,
+        ErrorKind::Busy
+    );
+    assert_eq!(
+        Plan::<Summary>::new()
+            .tool("extra", "Not registered", async |_: String| Ok(()))
+            .run_in(&mut session)
+            .await
+            .unwrap_err()
+            .kind,
+        ErrorKind::Binding
+    );
+    assert!(!dir.path().join("pid.prompts").exists());
+    Plan::<Summary>::new()
+        .tool("accumulate", "Add to accumulator", async |v: Input| {
+            Ok(Output { total: v.value })
+        })
+        .run_in(&mut session)
+        .await
+        .unwrap();
+    drop(session);
+    Plan::<Summary>::new().run(&agent).await.unwrap();
+    agent.shutdown().await.unwrap();
+    reaped(dir.path()).await;
+}
+
+#[tokio::test]
+async fn one_shot_failure_closes_connection() {
+    for mode in ["missing", "setup_failure"] {
+        let dir = tempfile::tempdir().unwrap();
+        let agent = connect(mode, dir.path()).await;
+        assert!(Plan::<Summary>::new().run(&agent).await.is_err());
+        assert_eq!(
+            Plan::<Summary>::new().run(&agent).await.unwrap_err().kind,
+            ErrorKind::Closed
+        );
+        drop(agent);
+        reaped(dir.path()).await;
+    }
+}
+
+#[tokio::test]
+async fn dropping_one_shot_during_setup_or_callback_cleans_up() {
+    for mode in ["setup_wait", "callback"] {
+        let dir = tempfile::tempdir().unwrap();
+        let agent = connect(mode, dir.path()).await;
+        let started = Rc::new(Cell::new(false));
+        let mut total = 0;
+        {
+            let run = Plan::<Summary>::new()
+                .tool("accumulate", "Add to accumulator", async |v: Input| {
+                    total += v.value;
+                    started.set(true);
+                    std::future::pending::<()>().await;
+                    Ok(Output { total })
+                })
+                .run(&agent);
+            tokio::pin!(run);
+            tokio::time::timeout(Duration::from_secs(5), async {
+                tokio::select! {
+                    r = &mut run => panic!("unexpected completion: {r:?}"),
+                    _ = async {
+                        while !started.get() && !dir.path().join("pid.setup-started").exists() {
+                            tokio::time::sleep(Duration::from_millis(10)).await;
+                        }
+                    } => {},
+                }
+            })
+            .await
+            .unwrap();
+        }
+        assert_eq!(total, if mode == "callback" { 3 } else { 0 });
+        total += 1;
+        assert!(total > 0);
+        assert_eq!(
+            Plan::<Summary>::new().run(&agent).await.unwrap_err().kind,
+            ErrorKind::Closed
+        );
+        drop(agent);
+        reaped(dir.path()).await;
+    }
+}

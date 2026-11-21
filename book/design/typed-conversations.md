@@ -44,6 +44,16 @@ the connection. Recovery is explicit reconnection.
 
 Expose typed command configuration, the `thinkwell::agent::Claude` preset, fixed typed Tool
 descriptors, cloneable unbound Plans, borrowed per-turn bindings and run_in.
+Plan::tool constructs a typed tool descriptor and binds its callback in one step.
+Plan::run validates the plan locally before opening a temporary session whose
+catalog is the plan's bound tools. It executes one turn and drops the session
+before returning. Sequential successful runs on an agent use fresh history;
+run_in retains explicit-session catalog matching and history. Invalid local
+plans send no setup request; occupied agents return Busy. Unpolled runs do
+nothing, and setup/turn cancellation or failure retains existing invalidation
+rules. The temporary session uses the agent's default model; explicit builders
+provide model selection. Both inline tools and bind retain borrowed, non-Send
+callbacks and non-cloneable bound plans.
 Plan::json borrows any Serialize value only while appending its compact JSON plus
 one newline to the prompt, just like text composition. Serialization is immediate
 and fallible, returning InvalidValue on failure; no schema derivation is required.
@@ -75,7 +85,7 @@ installation and authentication remain external.
 The initial interoperability target is Claude ACP 0.23.1 with official Rust ACP
 SDK 5.4.0. Support is initially macOS/Linux and Rust 1.100.0; Windows, embedding,
 dynamic catalogs, concurrent sessions, progress streams, explicit cancellation
-handles, standalone Plan::run, and broader JSON Schema support are deferred.
+handles, and broader JSON Schema support are deferred.
 
 
 ## Wire contracts and validation

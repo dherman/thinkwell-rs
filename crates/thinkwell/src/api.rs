@@ -360,8 +360,8 @@ pub(crate) struct Binding<'a> {
 }
 /// A request you want to send to an agent, together with the type of answer you want.
 ///
-/// Write the prompt with [text](Self::text), then send it to a conversation with
-/// [run_in](Self::run_in). The type parameter `T` tells Thinkwell how to turn the
+/// Write the prompt with [text](Self::text), then use [run](Self::run) for one
+/// fresh conversation or [run_in](Self::run_in) for a follow-up in an existing one. The type parameter `T` tells Thinkwell how to turn the
 /// answer into a Rust value.
 ///
 /// # Ask for a string
@@ -371,10 +371,9 @@ pub(crate) struct Binding<'a> {
 ///
 /// # async fn example() -> thinkwell::Result<()> {
 /// let agent = Claude::connect().await?;
-/// let mut session = agent.session().open().await?;
 /// let title = Plan::<String>::new()
 ///     .text("Suggest a title for a beginner's gardening guide.")
-///     .run_in(&mut session).await?;
+///     .run(&agent).await?;
 /// println!("{title}");
 /// # Ok(())
 /// # }
@@ -606,6 +605,115 @@ impl<'a, T, S> Plan<'a, T, S> {
             types: PhantomData,
         }
     }
+    /// Give this request a tool and the Rust function that implements it.
+    ///
+    /// Use this with [`run`](Self::run) when a tool is needed for a single turn.
+    /// The callback can borrow local state, just like [`bind`](Self::bind):
+    ///
+    /// ~~~no_run
+    /// use thinkwell::{agent::Claude, Plan};
+    /// # async fn example() -> thinkwell::Result<()> {
+    /// let agent = Claude::connect().await?;
+    /// let mut items = Vec::new();
+    /// let answer = Plan::<String>::new()
+    ///     .text("Record tomatoes and basil, then summarize the shopping list.")
+    ///     .tool("record", "Add an item to the shopping list", async |item: String| {
+    ///         items.push(item);
+    ///         Ok(())
+    ///     })
+    ///     .run(&agent).await?;
+    /// println!("{answer}: {items:?}");
+    /// # Ok(())
+    /// # }
+    /// ~~~
+    ///
+    /// Input and output types are inferred from the function. Inputs need
+    /// `Deserialize` and `JsonSchema`; outputs need `Serialize` and `JsonSchema`.
+    /// Invalid names or contracts are reported when executing the plan.
+    /// Return [`Error::tool`] for failures the agent can respond to.
+    ///
+    /// Adding a callback makes the plan non-cloneable. Its captures stay borrowed
+    /// until the plan or execution future is consumed or dropped. With
+    /// [`run_in`](Self::run_in), this does not register a new tool: the description
+    /// must match a tool already registered in the session, as with `bind`.
+    pub fn tool<I, O, F>(
+        self,
+        name: impl Into<String>,
+        description: impl Into<String>,
+        f: F,
+    ) -> Plan<'a, T, Bound>
+    where
+        I: DeserializeOwned + JsonSchema + 'static,
+        O: Serialize + JsonSchema + 'static,
+        F: AsyncFnMut(I) -> Result<O> + 'a,
+    {
+        self.bind(&Tool::<I, O>::new(name, description), f)
+    }
+
+    /// Ask one question in a fresh conversation, then release that conversation.
+    ///
+    /// Use this when you do not need follow-up history or a model override:
+    ///
+    /// ~~~no_run
+    /// use thinkwell::{agent::Claude, Plan};
+    /// # async fn example() -> thinkwell::Result<()> {
+    /// let agent = Claude::connect().await?;
+    /// let title = Plan::<String>::new()
+    ///     .text("Suggest a title for a gardening guide.")
+    ///     .run(&agent).await?;
+    /// println!("{title}");
+    /// // A second run starts a separate conversation on the same connection.
+    /// let greeting = Plan::<String>::new().text("Say hello.").run(&agent).await?;
+    /// # Ok(())
+    /// # }
+    /// ~~~
+    ///
+    /// Tools attached with [`tool`](Self::tool) or [`bind`](Self::bind) form this
+    /// conversation's tool catalog. The temporary session uses the agent's default
+    /// model and is dropped before returning. The agent remains connected after
+    /// success. To retain history or choose a model, open a session explicitly and
+    /// use [`run_in`](Self::run_in).
+    ///
+    /// Invalid contracts, duplicate tools, and invalid options fail before session
+    /// setup. An already open session produces [`ErrorKind::Busy`]. A future that
+    /// is never polled sends nothing. Once remote setup or a turn has started,
+    /// failure or dropping the running future closes the connection, following the
+    /// same rules as explicit sessions. Earlier callback effects are not rolled back.
+    /// Captured state becomes available when the execution future is consumed or
+    /// dropped; drop a retained pinned future before reusing its captures.
+    ///
+    /// Rust prevents using mutable captures before the execution ends:
+    ///
+    /// ```compile_fail,E0503
+    /// use thinkwell::{Agent, Plan};
+    /// async fn example(agent: &Agent) {
+    ///     let mut count = 0;
+    ///     let execution = Plan::<String>::new()
+    ///         .tool("record", "Record a value", async |_: String| {
+    ///             count += 1;
+    ///             Ok(())
+    ///         }).run(agent);
+    ///     count += 1;
+    ///     let _ = execution.await;
+    /// }
+    /// ```
+    pub async fn run(self, agent: &Agent) -> Result<T>
+    where
+        T: DeserializeOwned + JsonSchema,
+    {
+        if let Some(error) = &self.error {
+            return Err(error.clone());
+        }
+        self.options.validate()?;
+        schema::contract::<T>()?;
+        let mut builder = agent.session();
+        for binding in &self.bindings {
+            builder = builder.descriptor(Ok(binding.descriptor.clone()));
+        }
+        let mut session = builder.open().await?;
+        self.run_in(&mut session).await
+    }
+
     /// Send this request to a conversation and wait for a typed answer.
     ///
     /// A request and its answer make up one *turn*. The session remembers earlier

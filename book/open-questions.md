@@ -8,8 +8,8 @@ PR #4; the [completion record](implementation-roadmaps/meeting-scheduler.md#inte
 records final-head CI and integration. Nonrecursive nested schemas now inline
 automatically, and `Plan::json(&value)?` supplies structured prompt context.
 The owner reviewed and merged [sentiment analysis and finite f64 support](implementation-roadmaps/sentiment-analysis.md#integrated-completion)
-in PR #6; final-head and merge-commit CI passed. The next design exploration is
-one-shot Plan execution with inline borrowed tools. No implementation is assigned.
+in PR #6; final-head and merge-commit CI passed. The owner approved [one-shot Plan execution with inline borrowed tools](implementation-roadmaps/one-shot-tools.md)
+after merging PR #7; implementation is In progress.
 The supported product scope remains [typed conversations](design/typed-conversations.md).
 
 Initial choices are settled for Tokio, one session per owned ACP connection,
@@ -21,7 +21,7 @@ from this slice.
 
 | Open area | Remaining question |
 | --- | --- |
-| First-use expansion | When should standalone Plan::run, inline tools, and quoting helpers join the persistent-session API? |
+| First-use expansion | One-shot execution and inline tools are assigned; are further quoting helpers needed? |
 | Runtime and embedding | What additional ownership/runtime contracts support shared host connections and concurrent sessions? |
 | Schemas | Which broader validator/reference-resolution support justifies expanding the deliberately finite subset? |
 | Provider coverage | Which additional agents, capabilities, model discovery, and transport paths should be tested and supported? |
