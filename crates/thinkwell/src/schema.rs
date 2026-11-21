@@ -59,6 +59,7 @@ pub fn supported(s: &Value) -> Result<(), String> {
                 }
             }
             "format" if value == "int64" && s["type"] == "integer" => {}
+            "format" if value == "double" && s["type"] == "number" => {}
             _ => return Err(format!("/{key}: unsupported schema keyword/value")),
         }
     }
@@ -66,6 +67,9 @@ pub fn supported(s: &Value) -> Result<(), String> {
 }
 
 fn validate_inner(s: &Value, v: &Value) -> Result<(), String> {
+    if s["format"] == "double" && !v.as_f64().is_some_and(f64::is_finite) {
+        return Err("expected a finite f64 number".into());
+    }
     if let Some(kind) = s["type"].as_str() {
         let matches = match kind {
             "object" => v.is_object(),
@@ -278,6 +282,40 @@ mod tests {
                 .to_string()
                 .contains("/properties/value/properties/name")
         );
+    }
+
+    #[test]
+    fn finite_double_contracts_accept_boundaries_and_reject_invalid_values() {
+        let input = contract::<f64>().unwrap();
+        let output = output_contract::<f64>().unwrap();
+        for n in [
+            0.0,
+            -0.0,
+            0.5,
+            f64::MIN,
+            f64::MAX,
+            f64::MIN_POSITIVE,
+            f64::from_bits(1),
+        ] {
+            let value = serde_json::to_value(n).unwrap();
+            assert_eq!(decode::<f64>(&input, value.clone()).unwrap(), n);
+            validate(&output, &value).unwrap();
+        }
+        assert_eq!(decode::<f64>(&input, json!(42)).unwrap(), 42.0);
+        for n in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            let value = serde_json::to_value(n).unwrap();
+            assert!(validate(&output, &value).is_err());
+        }
+        for value in [json!(null), json!("0.5"), json!(true)] {
+            assert!(decode::<f64>(&input, value).is_err());
+        }
+        for s in [
+            json!({"format":"double"}),
+            json!({"type":"integer","format":"double"}),
+            json!({"type":"number","format":"float"}),
+        ] {
+            assert!(supported(&s).is_err());
+        }
     }
 
     #[test]

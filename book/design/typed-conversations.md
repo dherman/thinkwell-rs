@@ -54,7 +54,11 @@ body-size checks, and permission restriction to declared tools. Turn/input and
 turn/value envelopes are library protocol details, not callback parameters.
 
 Validate the finite object/array/primitive/const/enum/oneOf/anyOf contract subset,
-including signed int64 representation. Generate nonrecursive nested derived types
+including signed int64 representation and finite f64 values (`format: double`
+with `type: number`). Double values must convert to a finite f64; this does not
+promise exact representation of every JSON decimal. An f64 contract rejects
+serialized nonfinite values, including values encoded as null. Generate
+nonrecursive nested derived types
 inline for both input/result and output contracts, without requiring application
 inline annotations. Recursive types remain unsupported. Unsupported dialects, references,
 definitions, formats and constraints are preflight errors. Local contract

@@ -586,3 +586,33 @@ async fn contracts_follow_serde_direction() {
     assert_eq!(output["required"], serde_json::json!(["total"]));
     assert!(output["properties"].get("received_total").is_none());
 }
+
+#[tokio::test]
+async fn finite_floats_round_trip_and_nonfinite_tool_outputs_fail() {
+    let dir = tempfile::tempdir().unwrap();
+    let agent = connect("floats", dir.path()).await;
+    let tool = Tool::<f64, f64>::new("measure", "Return a measurement");
+    let mut session = agent.session().tool(&tool).open().await.unwrap();
+    let mut calls = 0;
+    let result = Plan::<f64>::new()
+        .bind(&tool, async |value: f64| {
+            calls += 1;
+            Ok(if value == 0.0 {
+                f64::NAN
+            } else if value == -1.0 {
+                f64::INFINITY
+            } else if value == -2.0 {
+                f64::NEG_INFINITY
+            } else {
+                value * 2.0
+            })
+        })
+        .run_in(&mut session)
+        .await
+        .unwrap();
+    assert_eq!(result, 0.5);
+    assert_eq!(calls, 4); // Invalid input never reached the callback.
+    drop(session);
+    agent.shutdown().await.unwrap();
+    reaped(dir.path()).await;
+}

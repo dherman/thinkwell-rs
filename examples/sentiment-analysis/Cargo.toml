@@ -1,0 +1,19 @@
+[package]
+name = "thinkwell-sentiment-analysis"
+version = "0.0.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+publish = false
+
+# Example dependencies do not become library dependencies.
+[workspace]
+
+[dependencies]
+thinkwell = { path = "../../crates/thinkwell" }
+vader_sentiment = "=0.1.1"
+schemars = "=1.2.3"
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["rt", "macros", "time", "net"] }
+
+[dev-dependencies]
+tempfile = "3"

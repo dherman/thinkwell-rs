@@ -102,6 +102,18 @@ for line in sys.stdin:
                 denied = tool("accumulate", arguments)
                 assert denied["isError"]
                 assert turn not in denied["content"][0]["text"]
+        if mode == "floats":
+            assert tool("measure", {"turn": turn, "input": "not a number"})["isError"]
+            for value in [0, -1, -2]:
+                # Callback returns NaN or an infinity, serialized as null.
+                assert tool("measure", {"turn": turn, "input": value})["isError"]
+            result = tool("measure", {"turn": turn, "input": 0.25})
+            assert not result["isError"]
+            assert result["structuredContent"]["value"] == 0.5
+            assert submit(None)["isError"]
+            assert not submit(0.5)["isError"]
+            send(id, {"stopReason": "end_turn"})
+            continue
         if mode == "overlap":
             submit({"total": 3})
             worker = threading.Thread(target=lambda: tool("accumulate", {"turn": turn, "input": {"value": 3}}))

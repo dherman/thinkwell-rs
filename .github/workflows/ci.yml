@@ -89,3 +89,26 @@ jobs:
         run: cargo clippy --manifest-path examples/meeting-scheduler/Cargo.toml --all-targets --locked -- -D warnings
       - name: Deterministic tests (no agent credentials)
         run: cargo test --manifest-path examples/meeting-scheduler/Cargo.toml --locked
+
+  sentiment-analysis:
+    name: Sentiment analysis example
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/sentiment-analysis
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.100.0 --profile minimal --component rustfmt --component clippy
+      - name: Process fixture prerequisites
+        run: python3 --version
+      - name: Formatting
+        run: cargo fmt --manifest-path examples/sentiment-analysis/Cargo.toml -- --check
+      - name: Compilation
+        run: cargo check --manifest-path examples/sentiment-analysis/Cargo.toml --all-targets --locked
+      - name: Clippy
+        run: cargo clippy --manifest-path examples/sentiment-analysis/Cargo.toml --all-targets --locked -- -D warnings
+      - name: Deterministic tests (no agent credentials)
+        run: cargo test --manifest-path examples/sentiment-analysis/Cargo.toml --locked
