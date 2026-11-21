@@ -819,3 +819,23 @@ async fn dropping_one_shot_during_setup_or_callback_cleans_up() {
         reaped(dir.path()).await;
     }
 }
+
+#[tokio::test(flavor = "current_thread")]
+async fn correlated_acp_permissions_preserve_typed_conversations() {
+    conversation("permissions").await;
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn adapter_mcp_startup_failure_is_reported_before_prompting() {
+    let dir = tempfile::tempdir().unwrap();
+    let agent = connect("mcp_startup_failure", dir.path()).await;
+    let error = match agent.session().open().await {
+        Ok(_) => panic!("failed MCP startup accepted"),
+        Err(error) => error,
+    };
+    assert_eq!(error.kind, ErrorKind::Configuration);
+    assert!(error.message.contains("server named thinkwell"));
+    assert!(!dir.path().join("pid.prompts").exists());
+    drop(agent);
+    reaped(dir.path()).await;
+}

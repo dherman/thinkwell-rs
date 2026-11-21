@@ -9,7 +9,13 @@ records final-head CI and integration. Nonrecursive nested schemas now inline
 automatically, and `Plan::json(&value)?` supplies structured prompt context.
 The owner reviewed and merged [sentiment analysis and finite f64 support](implementation-roadmaps/sentiment-analysis.md#integrated-completion)
 in PR #6; final-head and merge-commit CI passed. The owner approved [one-shot Plan execution with inline borrowed tools](implementation-roadmaps/one-shot-tools.md)
-after merging PR #7; implementation is In progress.
+after merging PR #7; it is complete through owner-merged PR #8.
+The owner selected Codex for the next agent-compatibility investigation.
+[Codex research](implementation-roadmaps/codex.md#research-evidence) verifies
+model selection and a diagnostic two-turn workflow, and identifies permission
+correlation as required implementation work. The owner approved the Codex milestone;
+local implementation and direct live example validation now pass, with delivery
+still pending.
 The supported product scope remains [typed conversations](design/typed-conversations.md).
 
 Initial choices are settled for Tokio, one session per owned ACP connection,
@@ -21,7 +27,7 @@ from this slice.
 
 | Open area | Remaining question |
 | --- | --- |
-| First-use expansion | One-shot execution and inline tools are assigned; are further quoting helpers needed? |
+| First-use expansion | One-shot execution and inline tools are integrated; are further quoting helpers needed? |
 | Runtime and embedding | What additional ownership/runtime contracts support shared host connections and concurrent sessions? |
 | Schemas | Which broader validator/reference-resolution support justifies expanding the deliberately finite subset? |
 | Provider coverage | Which additional agents, capabilities, model discovery, and transport paths should be tested and supported? |

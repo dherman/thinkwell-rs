@@ -109,6 +109,7 @@
 
 pub mod agent;
 mod api;
+mod permissions;
 mod runtime;
 mod schema;
 

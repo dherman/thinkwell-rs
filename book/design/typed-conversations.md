@@ -42,7 +42,7 @@ Normal session drop releases its reservation and revokes its endpoint; another
 session uses fresh history and credentials. Failed/abandoned started turns close
 the connection. Recovery is explicit reconnection.
 
-Expose typed command configuration, the `thinkwell::agent::Claude` preset, fixed typed Tool
+Expose typed command configuration, the `thinkwell::agent::{Claude, Codex}` presets, fixed typed Tool
 descriptors, cloneable unbound Plans, borrowed per-turn bindings and run_in.
 Plan::tool constructs a typed tool descriptor and binds its callback in one step.
 Plan::run validates the plan locally before opening a temporary session whose
@@ -60,7 +60,7 @@ and fallible, returning InvalidValue on failure; no schema derivation is require
 It preserves existing Plan state and introduces no special content block, quoting
 protocol, or instruction-trust boundary.
 Use HTTP MCP 2025-11-25 with a loopback listener, bearer credential, Origin and
-body-size checks, and permission restriction to declared tools. Turn/input and
+body-size checks, and client permission grants restricted to declared tools. Turn/input and
 turn/value envelopes are library protocol details, not callback parameters.
 
 Validate the finite object/array/primitive/const/enum/oneOf/anyOf contract subset,
@@ -82,8 +82,22 @@ Expose configurable nonzero bounds. Do not cap the whole agent lifetime.
 Model selection is optional; default selection belongs to the agent. Preset
 installation and authentication remain external.
 
-The initial interoperability target is Claude ACP 0.23.1 with official Rust ACP
-SDK 5.4.0. Support is initially macOS/Linux and Rust 1.100.0; Windows, embedding,
+The interoperability targets are Claude ACP 0.23.1 and Codex ACP 2.8.0 with
+official Rust ACP SDK 5.4.0. Codex defaults to the adapter's read-only mode;
+installation and authentication remain external. The adapter pin does not freeze
+its compatible-range Codex dependency. Agent-owned native reads can occur without
+ACP permission requests, and user MCP configuration still applies. Reserve the
+MCP server name thinkwell for the library. A reported Codex Thinkwell-MCP startup
+failure becomes a Configuration error during session setup.
+
+Permission requests can identify tools directly or refer to an earlier ACP tool
+notification. Correlation is scoped to the active session and prompt, recognizes
+the tested Claude and Codex naming conventions, and grants AllowOnce only for
+declared tools (including the internal result tool). Unknown, conflicting and
+terminal call IDs are denied. At 1024 tracked IDs, further new IDs disable grants
+for that turn rather than evicting old identities. Correlation state is discarded
+at turn completion/connection teardown. This is client permission policy, not
+an operating-system sandbox or authenticated originating-tool identity. Support is initially macOS/Linux and Rust 1.100.0; Windows, embedding,
 dynamic catalogs, concurrent sessions, progress streams, explicit cancellation
 handles, and broader JSON Schema support are deferred.
 

@@ -151,3 +151,8 @@ The Rust code, tutorial, and feedback fixture here are original. The dependency
 including C.J. Hutto's 2016 notice. No lexicon is copied into this repository.
 VADER's research reference is Hutto and Gilbert (2014), *VADER: A Parsimonious
 Rule-based Model for Sentiment Analysis of Social Media Text*, ICWSM-14.
+
+To try this example with Codex, change the `agent::Claude` import to
+`agent::Codex` and the connection to `Codex::connect().await?`. The rest of the
+workflow is unchanged. Follow the repository's [Codex setup instructions](../../README.md)
+first; Thinkwell does not install or authenticate agents during connection.

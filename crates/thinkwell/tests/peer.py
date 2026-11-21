@@ -81,6 +81,10 @@ for line in sys.stdin:
         if mode == "setup_failure":
             send(id, {})
             continue
+        if mode == "mcp_startup_failure":
+            print(json.dumps({"jsonrpc":"2.0","method":"session/update","params":{
+                "sessionId":f"fixture-session-{session_count}","update":{
+                    "sessionUpdate":"tool_call","toolCallId":"startup","title":"mcp__thinkwell__startup","status":"failed"}}}),flush=True)
         send(id, {"sessionId": f"fixture-session-{session_count}"})
     elif method == "session/set_config_option":
         print(json.dumps({"jsonrpc":"2.0","id":id,"error":{"code":-32602,"message":"unsupported model"}}),flush=True)
@@ -91,6 +95,30 @@ for line in sys.stdin:
         prompt = request["params"]["prompt"][0]["text"]
         turn = re.search(r"with turn ([\w-]+) and value", prompt).group(1)
         submit = lambda value, tid=turn: tool("return_result", {"turn": tid, "value": value})
+        if mode == "permissions":
+            sid = request["params"]["sessionId"]
+            def notify(update):
+                print(json.dumps({"jsonrpc":"2.0","method":"session/update", "params":{"sessionId":sid,"update":update}}),flush=True)
+            def permission(call, expected, session=sid, options=None):
+                print(json.dumps({"jsonrpc":"2.0","id":"permission", "method":"session/request_permission", "params":{
+                    "sessionId":session,"toolCall":call,"options":options if options is not None else [
+                        {"optionId":"allow","name":"Allow once","kind":"allow_once"},
+                        {"optionId":"always","name":"Always","kind":"allow_always"}]}}),flush=True)
+                answer=json.loads(sys.stdin.readline())["result"]["outcome"]
+                assert answer == ({"outcome":"selected","optionId":"allow"} if expected else {"outcome":"cancelled"}), answer
+            permission({"toolCallId":"previous"},False)
+            notify({"sessionUpdate":"tool_call","toolCallId":"previous","title":"mcp.thinkwell.accumulate","status":"in_progress"})
+            # An unknown request above creates a tombstone, so it cannot be revived.
+            permission({"toolCallId":"previous"},False)
+            notify({"sessionUpdate":"tool_call","toolCallId":"valid","title":"mcp.thinkwell.accumulate","status":"in_progress"})
+            permission({"toolCallId":"valid"},True)
+            permission({"toolCallId":"valid"},False,session="other-session")
+            permission({"toolCallId":"valid"},False,options=[{"optionId":"always","name":"Always","kind":"allow_always"}])
+            notify({"sessionUpdate":"tool_call_update","toolCallId":"valid","status":"completed"})
+            permission({"toolCallId":"valid"},False)
+            permission({"toolCallId":"native","title":"shell"},False)
+            permission({"toolCallId":"result","title":"mcp__thinkwell__return_result"},True)
+            notify({"sessionUpdate":"tool_call","toolCallId":"previous","title":"mcp.thinkwell.accumulate"})
         if mode == "late" and count == 2:
             assert turn != previous_turn
             assert mcp("tools/list")["result"] == catalog["result"]

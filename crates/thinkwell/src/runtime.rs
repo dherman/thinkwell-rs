@@ -571,20 +571,32 @@ impl Agent {
         tokio::spawn(async move {
             let allowed = Arc::new(Mutex::new(None::<Arc<Http>>));
             let permissions = allowed.clone();
+            let identities = Arc::new(Mutex::new(crate::permissions::Permissions::default()));
+            let observed = identities.clone();
+            let startup_failed = Arc::new(AtomicBool::new(false));
+            let startup_report = startup_failed.clone();
+            let requested = identities.clone();
             let servers = Arc::new(Mutex::new(Vec::<HttpTask>::new()));
             let driver_servers = servers.clone();
             let client=Client.v1()
                 .on_receive_request(async move |request:RequestPermissionRequest,responder,_| {
-                    let name=request.tool_call.fields.name.as_deref().or(request.tool_call.fields.title.as_deref());
                     let allowed=permissions.lock().unwrap().as_ref().is_some_and(|http| {
-                        http.active.load(Ordering::SeqCst) && name.is_some_and(|name| {
-                            name=="mcp__thinkwell__return_result" || http.tools.iter().any(|t|name==format!("mcp__thinkwell__{}",t.name))
-                        })
+                        http.active.load(Ordering::SeqCst) && requested.lock().unwrap().allows(&request)
                     });
                     let option=request.options.iter().find(|o|allowed && o.kind==PermissionOptionKind::AllowOnce);
                     let outcome=option.map_or(RequestPermissionOutcome::Cancelled,|o|RequestPermissionOutcome::Selected(SelectedPermissionOutcome::new(o.option_id.clone())));
                     responder.respond(RequestPermissionResponse::new(outcome))
                 },agent_client_protocol::on_receive_request!())
+                .on_receive_notification(async move |notification: SessionNotification, _| {
+                    if let SessionUpdate::ToolCall(call) = &notification.update
+                        && call.status == ToolCallStatus::Failed
+                        && call.title == "mcp__thinkwell__startup"
+                    {
+                        startup_report.store(true, Ordering::SeqCst);
+                    }
+                    observed.lock().unwrap().observe(notification);
+                    Ok(())
+                }, agent_client_protocol::on_receive_notification!())
                 .connect_with(AcpAgent::new(launch),async move |cx| {
                     let initialize=cx.send_request(InitializeRequest::new(ProtocolVersion::V1)).block_task();
                     let init=tokio::select! {
@@ -602,12 +614,16 @@ impl Agent {
                         };
                         match command {
                             Command::Open(mut open)=>{
+                                startup_failed.store(false, Ordering::SeqCst);
                                 *allowed.lock().unwrap()=Some(open.http.clone());
                                 driver_servers.lock().unwrap().push(open.server);
                                 let operation=async {
                                     let s=cx.send_request(NewSessionRequest::new(directory.path().to_owned()).mcp_servers(vec![
                                         McpServer::Http(McpServerHttp::new("thinkwell",open.url).headers(vec![HttpHeader::new("Authorization",open.http.token.clone())]))
                                     ])).block_task().await.map_err(transport)?;
+                                    if startup_failed.load(Ordering::SeqCst) {
+                                        return Err(err(ErrorKind::Configuration, "Thinkwell MCP server failed to start; check the adapter configuration for an existing server named thinkwell"));
+                                    }
                                     if let Some(model)=open.model {
                                         let config:SetSessionConfigOptionRequest=serde_json::from_value(json!({"sessionId":s.session_id,"configId":"model","value":model})).map_err(transport)?;
                                         cx.send_request(config).block_task().await.map_err(|e|err(ErrorKind::UnsupportedModel,e.to_string()))?;
@@ -623,6 +639,8 @@ impl Agent {
                                 let _=open.reply.send(result);
                             }
                             Command::Prompt{id,text,mut reply}=>{
+                                let tools=allowed.lock().unwrap().as_ref().map(|http| http.tools.iter().map(|tool|tool.name.clone()).collect::<Vec<_>>()).unwrap_or_default();
+                                identities.lock().unwrap().begin(id.clone(), tools.into_iter());
                                 let prompt=cx.send_request(PromptRequest::new(id,vec![ContentBlock::Text(TextContent::new(text))])).block_task();
                                 let result=tokio::select! {
                                     biased;
@@ -634,6 +652,7 @@ impl Agent {
                                         reason=>Err(err(ErrorKind::RemoteStop,format!("{reason:?}"))),
                                     }),
                                 };
+                                identities.lock().unwrap().end();
                                 let _=reply.send(result);
                             }
                         }

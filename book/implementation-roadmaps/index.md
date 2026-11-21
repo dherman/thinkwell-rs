@@ -18,7 +18,10 @@ The owner merged the closeout/proposal in PR #5 at 343f425, then reviewed and
 merged [sentiment analysis and finite f64 support](sentiment-analysis.md#integrated-completion)
 in PR #6 at 0dbb432. Final-head and merge-commit CI passed. These milestones are
 complete; this Book follow-up records their integration. The owner merged this closeout in PR #7 at 8e039b1 and approved the
-[one-shot tools milestone](one-shot-tools.md), now In progress.
+[one-shot tools milestone](one-shot-tools.md#integrated-completion), now complete
+through owner-merged PR #8 at 43c147c. Final-head and merge-commit CI passed.
+The owner-selected [Codex investigation](codex.md) found a permission-message
+compatibility gap; the owner approved its concrete implementation milestone, now In progress.
 
 Use the pinned [roadmap format](../working-on-the-project.md#pinned-method-references):
 stable milestone and criterion fragments, outcome, status, identifier,

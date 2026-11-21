@@ -6,7 +6,7 @@ Roadmap identifier: `one-shot-tools`.
 
 **Identifier:** `one-shot-tools-1`
 
-**Status:** In progress
+**Status:** Complete
 
 **Outcome:** Plan::tool declares and binds a borrowed callback; Plan::run opens a
 fresh temporary session for one turn and drops it before returning.
@@ -68,8 +68,8 @@ continuation, new provider or new shutdown mechanism is introduced.
   and a live one-shot demonstration, CI, review and owner integration are recorded.
 - **Evidence:** Local pass: the updated tutorial, both new API examples and ownership
   Rustdoc compile; all six sentiment and eight scheduler tests pass. A bounded live
-  one-shot sentiment run scored all three passages and returned Mixed tone. CI,
-  owner review and integration remain pending; no durable completion claimed.
+  one-shot sentiment run scored all three passages and returned Mixed tone. Final-head and merge-commit CI passed; the owner reviewed and merged PR #8.
+  See the integrated completion record below.
 
 
 ### Implementation and validation record
@@ -108,3 +108,13 @@ fresh history and the explicit-session path for model selection. No unresolved
 findings; this is not independent or owner review. The retained model-choice and
 one-session restrictions are intentional, not new ergonomic issues to solve here.
 No commit, push, publication or phase transition is implied by local validation.
+
+## Integrated completion
+
+The owner reviewed and merged [PR #8](https://github.com/dherman/thinkwell-rs/pull/8),
+head `da10a45948b9455352c0767d55cda0a36bf5fe52`, as
+`43c147c250efd2c5fb1a1d8db57df0b03991c134`. All three final-head CI jobs passed
+(runs `44915979688` and `44915974137`); merge-commit run `44917077737` also passed.
+The owner reported CI and review passed without issues. Together with the local
+criterion evidence above, this completes the bounded milestone. This Book
+synchronization is a subsequent local change and is not yet integrated.
