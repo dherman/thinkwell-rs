@@ -84,16 +84,19 @@
 //! ## Schema support
 //!
 //! Thinkwell uses JSON Schema to describe the types of answers and tool values it
-//! accepts. Start with strings, booleans, `i64`, lists, or simple structs like the
-//! one in [Plan]. Not every Rust type that derives `JsonSchema` is supported yet.
+//! accepts. Start with strings, booleans, `i64`, finite `f64` values, lists, or simple
+//! structs like the one in [Plan]. Not every Rust type that derives `JsonSchema` is supported yet.
 //! Unsupported schemas produce [ErrorKind::Contract] before a prompt is sent.
 //!
 //! For reference, the validator accepts the 2020-12 dialect and these schema features:
 //! object properties and required fields, boolean `additionalProperties`, homogeneous
-//! arrays, primitive types, `const`/`enum`, `oneOf`/`anyOf`, and the `int64` format.
+//! arrays, primitive types, `const`/`enum`, `oneOf`/`anyOf`, and the `int64` and
+//! `double` formats.
 //! References (`$ref`/`$defs`), other formats, and other constraints are rejected.
 //! Nested structs and enums are expanded automatically; no `#[schemars(inline)]`
 //! annotation is needed. Recursive types and some numeric types remain unsupported.
+//! An `f64` contract rejects NaN and infinities, including values serialized as null;
+//! ordinary decimal-to-f64 rounding still applies.
 //!
 //! Validation checks tool inputs, tool outputs, and final answers as well as their
 //! Serde conversions. Integer fields reject floating representations such as `3.0`.

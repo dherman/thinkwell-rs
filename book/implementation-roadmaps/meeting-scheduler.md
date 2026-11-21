@@ -542,3 +542,22 @@ The owner's review and merge follow the recorded author self-reviews; no indepen
 agent review is claimed. This closeout is a follow-up under the same delivery
 assignment and awaits its own integration. No further implementation milestone,
 package publication, or end of the Porting Phase is authorized by completion.
+
+
+### CI build caching follow-up
+
+The owner approved caching the vendored scheduler build after observing slow CI
+in PR #6. The workflow now uses Swatinem/rust-cache pinned to
+`d1527c8f67ef9af357290475d4af4b0fab8f12e0`, selecting the standalone scheduler
+workspace and its root-level target/meeting-scheduler directory. The action's
+Rust/dependency cache keys are supplemented with Ubuntu 24.04 and a native-tool
+version fingerprint (C, C++, CMake, linker, libc). Cargo binary caching is disabled.
+All existing compilation, Clippy and test commands still run; no solver version,
+source-build policy, or product behavior changes. Cache misses rebuild normally.
+
+This is an approved delivery optimization, not a new product milestone. Local
+workflow inspection, Book structure/rendering, bootstrap consistency and whitespace
+checks validate configuration only. A successful cache save and subsequent restore
+with measured native-build reuse remain CI evidence gaps. The first run may still
+perform the full native build. GitHub cache eviction and branch visibility mean
+warm-cache performance is not guaranteed.

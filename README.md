@@ -30,6 +30,10 @@ It translates availability into typed data, solves it with Z3 in Rust, then asks
 for an explanation. Its separate Cargo package keeps the solver out of ordinary
 library builds.
 
+The [sentiment analysis walkthrough](examples/sentiment-analysis/README.md) shows
+the complementary pattern: lend a local Rust analyzer and mutable score log to
+an agent tool, then read a typed interpretation of its measurements.
+
 Project knowledge, decisions, roadmaps, and evidence live in the
 [Anchor Book](book/SUMMARY.md). Start with its [introduction](book/introduction.md)
 and [boundary](book/boundary.md). See [CONTRIBUTING.md](CONTRIBUTING.md) for

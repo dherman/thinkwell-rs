@@ -14,10 +14,9 @@ The [meeting scheduler](meeting-scheduler.md#integrated-completion), automatic
 schema inlining, and structured prompt context milestones are complete through
 owner-merged PR #4 at 558f3ba. Final-head Linux CI passed for both jobs. The
 completion record tracks the separate merge-commit CI and this Book follow-up.
-No next implementation milestone is assigned. Sentiment analysis is the
-complementary candidate in [migration research](../migration.md#example-selection),
-with a [draft proposal](sentiment-analysis.md) awaiting owner approval, including
-the finite floating-point contract decision.
+The owner merged the closeout/proposal in PR #5 at 343f425 and assigned the
+[sentiment analysis milestone](sentiment-analysis.md), including finite f64
+contracts. It is In progress.
 
 Use the pinned [roadmap format](../working-on-the-project.md#pinned-method-references):
 stable milestone and criterion fragments, outcome, status, identifier,
