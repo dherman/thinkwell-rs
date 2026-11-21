@@ -479,6 +479,51 @@ impl<'a, T, S> Plan<'a, T, S> {
         self.text.push('\n');
         self
     }
+    /// Add a Rust value to the prompt as JSON.
+    ///
+    /// Use this to give the agent structured context, such as a list of attendees
+    /// or a computation's result. Introduce the data with [`text`](Self::text):
+    ///
+    /// ~~~rust
+    /// use serde::Serialize;
+    /// use thinkwell::Plan;
+    ///
+    /// #[derive(Serialize)]
+    /// struct Attendee<'a> {
+    ///     name: &'a str,
+    ///     availability: &'a str,
+    /// }
+    ///
+    /// # fn example() -> thinkwell::Result<()> {
+    /// let attendees = [Attendee {
+    ///     name: "Sam",
+    ///     availability: "Wednesday morning",
+    /// }];
+    /// let plan = Plan::<String>::new()
+    ///     .text("Summarize the availability of these attendees:")
+    ///     .json(&attendees)?;
+    /// # Ok(())
+    /// # }
+    /// # example().unwrap();
+    /// ~~~
+    ///
+    /// Serialization happens now; the plan stores the JSON text, not a borrow of
+    /// the value. Only [`Serialize`] is required, not `JsonSchema`. The compact JSON
+    /// is followed by a newline, with no labels or Markdown fences added.
+    ///
+    /// Returns [`ErrorKind::InvalidValue`] if JSON serialization fails. No request
+    /// is sent by this method. JSON escapes strings but does not prevent an agent
+    /// from treating their contents as instructions; it is not a trust boundary.
+    pub fn json<V: Serialize + ?Sized>(self, value: &V) -> Result<Self> {
+        let text = serde_json::to_string(value).map_err(|error| {
+            Error::new(
+                ErrorKind::InvalidValue,
+                format!("Could not serialize prompt context: {error}"),
+            )
+        })?;
+        Ok(self.text(text))
+    }
+
     /// Choose time and call limits for this request.
     ///
     /// See [RunOptions] for an example. This replaces the plan's previous settings;
@@ -636,5 +681,59 @@ impl<'a, T, S> Plan<'a, T, S> {
         T: DeserializeOwned + JsonSchema,
     {
         session.run(self).await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn json_context_composes_text_and_owns_its_snapshot() {
+        let mut values = vec!["Sam\n\"quoted\"".to_owned()];
+        let plan = Plan::<String>::new()
+            .text("Attendees:")
+            .json(values.as_slice())
+            .unwrap()
+            .text("Summarize them.");
+        values.clear();
+        assert_eq!(
+            plan.text,
+            "Attendees:\n[\"Sam\\n\\\"quoted\\\"\"]\nSummarize them.\n"
+        );
+    }
+
+    #[test]
+    fn json_context_preserves_bound_callbacks_and_plan_settings() {
+        let tool = Tool::<String, String>::new("echo", "Echo input");
+        let mut calls = 0;
+        let mut plan = Plan::<String>::new().bind(&tool, async |value: String| {
+            calls += 1;
+            Ok(value)
+        });
+        plan.options.max_tool_calls = 7;
+        plan.error = Some(Error::new(ErrorKind::Binding, "existing error"));
+        let plan = plan.json("context").unwrap();
+        assert_eq!(plan.bindings.len(), 1);
+        assert_eq!(plan.options.max_tool_calls, 7);
+        assert_eq!(plan.error.unwrap().kind, ErrorKind::Binding);
+    }
+
+    #[test]
+    fn json_context_reports_serialization_failure_immediately() {
+        struct Unserializable;
+        impl Serialize for Unserializable {
+            fn serialize<S: serde::Serializer>(
+                &self,
+                _: S,
+            ) -> std::result::Result<S::Ok, S::Error> {
+                Err(serde::ser::Error::custom("context unavailable"))
+            }
+        }
+        let Err(error) = Plan::<String>::new().json(&Unserializable) else {
+            panic!("serialization must fail before execution");
+        };
+        assert_eq!(error.kind, ErrorKind::InvalidValue);
+        assert!(error.message.contains("context unavailable"));
     }
 }

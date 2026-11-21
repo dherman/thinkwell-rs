@@ -44,12 +44,19 @@ the connection. Recovery is explicit reconnection.
 
 Expose typed command configuration, the `thinkwell::agent::Claude` preset, fixed typed Tool
 descriptors, cloneable unbound Plans, borrowed per-turn bindings and run_in.
+Plan::json borrows any Serialize value only while appending its compact JSON plus
+one newline to the prompt, just like text composition. Serialization is immediate
+and fallible, returning InvalidValue on failure; no schema derivation is required.
+It preserves existing Plan state and introduces no special content block, quoting
+protocol, or instruction-trust boundary.
 Use HTTP MCP 2025-11-25 with a loopback listener, bearer credential, Origin and
 body-size checks, and permission restriction to declared tools. Turn/input and
 turn/value envelopes are library protocol details, not callback parameters.
 
 Validate the finite object/array/primitive/const/enum/oneOf/anyOf contract subset,
-including signed int64 representation. Unsupported dialects, references,
+including signed int64 representation. Generate nonrecursive nested derived types
+inline for both input/result and output contracts, without requiring application
+inline annotations. Recursive types remain unsupported. Unsupported dialects, references,
 definitions, formats and constraints are preflight errors. Local contract
 validation precedes conversion and follows output serialization. Tool inputs and
 final answers use deserialization schemas; tool outputs use serialization schemas

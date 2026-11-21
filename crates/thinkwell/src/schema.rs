@@ -12,7 +12,8 @@ pub fn output_contract<T: JsonSchema>() -> crate::Result<Value> {
     contract_with::<T>(SchemaSettings::default().for_serialize())
 }
 
-fn contract_with<T: JsonSchema>(settings: SchemaSettings) -> crate::Result<Value> {
+fn contract_with<T: JsonSchema>(mut settings: SchemaSettings) -> crate::Result<Value> {
+    settings.inline_subschemas = true;
     let schema = serde_json::to_value(settings.into_generator().into_root_schema_for::<T>())
         .map_err(|e| crate::Error::new(crate::ErrorKind::Contract, e.to_string()))?;
     supported(&schema).map_err(|e| crate::Error::new(crate::ErrorKind::Contract, e))?;
@@ -178,6 +179,106 @@ fn equal(a: &Value, b: &Value) -> bool {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[derive(Debug, serde::Deserialize, serde::Serialize, JsonSchema)]
+    #[serde(deny_unknown_fields)]
+    struct Window {
+        #[serde(rename(serialize = "start", deserialize = "start_hour"))]
+        hour: i64,
+    }
+
+    #[derive(Debug, serde::Deserialize, serde::Serialize, JsonSchema)]
+    #[serde(deny_unknown_fields)]
+    struct Availability {
+        windows: Vec<Window>,
+        fallback: Window,
+    }
+
+    #[test]
+    fn nested_contracts_preserve_direction_and_validate_reused_types() {
+        // The same entry points supply final answers/tool inputs and tool outputs.
+        let input = contract::<Availability>().unwrap();
+        let output = output_contract::<Availability>().unwrap();
+        let value = json!({"windows":[{"start_hour":9}],"fallback":{"start_hour":10}});
+        let parsed: Availability = decode(&input, value).unwrap();
+        let serialized = serde_json::to_value(parsed).unwrap();
+        assert_eq!(
+            serialized,
+            json!({"windows":[{"start":9}],"fallback":{"start":10}})
+        );
+        validate(&output, &serialized).unwrap();
+        assert!(validate(&input, &serialized).is_err());
+        for bad in [
+            json!({"windows":[{"start_hour":"nine"}],"fallback":{"start_hour":10}}),
+            json!({"windows":[],"fallback":{"start_hour":10,"extra":true}}),
+            json!({"windows":[],"fallback":{}}),
+        ] {
+            assert!(decode::<Availability>(&input, bad).is_err());
+        }
+        assert!(
+            validate(
+                &output,
+                &json!({"windows":[{"start":3.0}],"fallback":{"start":10}})
+            )
+            .is_err()
+        );
+    }
+
+    #[allow(dead_code)]
+    #[derive(JsonSchema)]
+    struct Recursive {
+        children: Vec<Recursive>,
+    }
+    #[allow(dead_code)]
+    #[derive(JsonSchema)]
+    struct Left {
+        right: Vec<Right>,
+    }
+    #[allow(dead_code)]
+    #[derive(JsonSchema)]
+    struct Right {
+        left: Vec<Left>,
+    }
+    #[allow(dead_code)]
+    #[derive(JsonSchema)]
+    struct Constrained {
+        #[schemars(length(min = 1))]
+        name: String,
+    }
+    #[allow(dead_code)]
+    #[derive(JsonSchema)]
+    struct NestedConstraint {
+        value: Constrained,
+    }
+    struct ManualReference;
+    impl JsonSchema for ManualReference {
+        fn schema_name() -> std::borrow::Cow<'static, str> {
+            "ManualReference".into()
+        }
+        fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+            schemars::json_schema!({"$ref":"https://example.invalid/schema"})
+        }
+    }
+
+    fn rejected_in_both_directions<T: JsonSchema>() {
+        for result in [contract::<T>(), output_contract::<T>()] {
+            assert_eq!(result.unwrap_err().kind, crate::ErrorKind::Contract);
+        }
+    }
+
+    #[test]
+    fn inlining_does_not_accept_recursion_references_or_unsupported_constraints() {
+        rejected_in_both_directions::<Recursive>();
+        rejected_in_both_directions::<Left>();
+        rejected_in_both_directions::<NestedConstraint>();
+        rejected_in_both_directions::<ManualReference>();
+        let error = contract::<NestedConstraint>().unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("/properties/value/properties/name")
+        );
+    }
 
     #[test]
     fn keyword_contracts_are_checked_without_serde() {

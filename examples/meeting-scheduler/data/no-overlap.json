@@ -1,0 +1,4 @@
+[
+  {"id":"sam", "name":"Sam", "availability":"Only Monday from 9am to 10am."},
+  {"id":"lee", "name":"Lee", "availability":"Only Tuesday from 9am to 10am."}
+]

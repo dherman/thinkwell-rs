@@ -88,6 +88,27 @@ It installs exact tool versions and uses a SHA-pinned checkout action. Runner im
 can change; this is not a hermetic or bit-for-bit reproducibility guarantee.
 Local results do not establish that GitHub CI has run.
 
+## Meeting scheduler example
+
+The standalone [meeting scheduler](examples/meeting-scheduler/README.md) has its
+own workspace and lockfile; root workspace tests do not build its native solver.
+Its separate CI job and local checks explicitly run:
+
+```sh
+export CARGO_TARGET_DIR="$PWD/target/meeting-scheduler"
+cargo fmt --manifest-path examples/meeting-scheduler/Cargo.toml -- --check
+cargo check --manifest-path examples/meeting-scheduler/Cargo.toml --all-targets --locked
+cargo clippy --manifest-path examples/meeting-scheduler/Cargo.toml --all-targets --locked -- -D warnings
+cargo test --manifest-path examples/meeting-scheduler/Cargo.toml --locked
+```
+
+Install CMake 3.26+ (CI uses 3.31.10), a C++ compiler suitable for Z3, and Python 3.
+The vendored native build uses the example lockfile; it does not require system
+Z3. Tests use a scripted agent and never require authentication. Live execution
+is opt-in; see the walkthrough for commands and caveats. Native solver debug
+traces and build products are ignored. The example's dependencies are not library
+runtime dependencies.
+
 ## Updating tools
 
 Inspect the candidate engine's CLI, configuration reader, compiled contract,

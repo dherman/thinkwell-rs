@@ -2,9 +2,12 @@
 
 The first product slice and preceding approved experiments were integrated in
 owner-merged PR #2. The [closeout record](implementation-roadmaps/first-product-slice.md#integrated-completion)
-records review and final-head/merge-commit CI. The next review entry point is the
-[approved meeting scheduler scope](implementation-roadmaps/meeting-scheduler.md):
-implementation awaits integration of the Book closeout, not another scope approval.
+records review and final-head/merge-commit CI. The Book closeout was reviewed and
+merged in PR #3. The current review entry point is the
+[meeting scheduler implementation](implementation-roadmaps/meeting-scheduler.md):
+the initial implementation passed native Linux CI; a learning-focused revision
+and its recorded API ergonomic questions are now under review. Final revision CI
+and delivery remain.
 The supported product scope remains [typed conversations](design/typed-conversations.md).
 
 Initial choices are settled for Tokio, one session per owned ACP connection,
