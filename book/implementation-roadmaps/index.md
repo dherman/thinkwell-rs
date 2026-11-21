@@ -16,7 +16,8 @@ owner-merged PR #4 at 558f3ba. Final-head Linux CI passed for both jobs. The
 completion record tracks the separate merge-commit CI and this Book follow-up.
 No next implementation milestone is assigned. Sentiment analysis is the
 complementary candidate in [migration research](../migration.md#example-selection),
-subject to a bounded proposal and owner approval.
+with a [draft proposal](sentiment-analysis.md) awaiting owner approval, including
+the finite floating-point contract decision.
 
 Use the pinned [roadmap format](../working-on-the-project.md#pinned-method-references):
 stable milestone and criterion fragments, outcome, status, identifier,
