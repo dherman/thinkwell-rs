@@ -7,9 +7,9 @@ merged in PR #3. The scheduler and its two approved API adaptations were reviewe
 PR #4; the [completion record](implementation-roadmaps/meeting-scheduler.md#integrated-completion)
 records final-head CI and integration. Nonrecursive nested schemas now inline
 automatically, and `Plan::json(&value)?` supplies structured prompt context.
-The owner approved the [sentiment-analysis milestone](implementation-roadmaps/sentiment-analysis.md)
-and finite f64 support by merging PR #5 and assigning implementation. It is now
-In progress; remaining evidence and delivery gaps belong in that roadmap.
+The owner reviewed and merged [sentiment analysis and finite f64 support](implementation-roadmaps/sentiment-analysis.md#integrated-completion)
+in PR #6; final-head and merge-commit CI passed. The next design exploration is
+one-shot Plan execution with inline borrowed tools. No implementation is assigned.
 The supported product scope remains [typed conversations](design/typed-conversations.md).
 
 Initial choices are settled for Tokio, one session per owned ACP connection,
