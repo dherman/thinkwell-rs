@@ -561,3 +561,16 @@ checks validate configuration only. A successful cache save and subsequent resto
 with measured native-build reuse remain CI evidence gaps. The first run may still
 perform the full native build. GitHub cache eviction and branch visibility mean
 warm-cache performance is not guaranteed.
+
+
+Cache reuse was verified on 82bfebba05af175d8603bd3b002a3f4e4b7e4760 in
+[run 44876447906, attempt 2](https://github.com/dherman/thinkwell-rs/actions/runs/44876447906/attempts/2).
+The original push job took 25m59s overall and reported 24m36s Cargo compilation,
+saving 1,766,027,313 bytes. The scheduler-only rerun on the same commit restored
+an exact matching cache in approximately 48 seconds. Cargo compilation took
+2.08 seconds, Clippy 0.28 seconds, and test compilation 4.81 seconds; all eight
+scheduler tests passed. Total job time was 1m14s, about 21 times faster overall.
+The warm log contains no Z3 compilation, confirming native artifact reuse for
+this run. These results establish one warm-cache success, not guaranteed timing
+under toolchain changes, cache eviction, or different runners. Earlier evidence
+gaps above describe the pre-run state.

@@ -14,9 +14,12 @@ The [meeting scheduler](meeting-scheduler.md#integrated-completion), automatic
 schema inlining, and structured prompt context milestones are complete through
 owner-merged PR #4 at 558f3ba. Final-head Linux CI passed for both jobs. The
 completion record tracks the separate merge-commit CI and this Book follow-up.
-The owner merged the closeout/proposal in PR #5 at 343f425 and assigned the
-[sentiment analysis milestone](sentiment-analysis.md), including finite f64
-contracts. It is In progress.
+The owner merged the closeout/proposal in PR #5 at 343f425, then reviewed and
+merged [sentiment analysis and finite f64 support](sentiment-analysis.md#integrated-completion)
+in PR #6 at 0dbb432. Final-head and merge-commit CI passed. These milestones are
+complete; this Book follow-up records their integration. No next implementation
+milestone is assigned. Standalone Plan execution and inline tools remain the next
+design exploration, grounded in the earlier integrated API review.
 
 Use the pinned [roadmap format](../working-on-the-project.md#pinned-method-references):
 stable milestone and criterion fragments, outcome, status, identifier,

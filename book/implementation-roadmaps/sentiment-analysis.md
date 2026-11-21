@@ -9,7 +9,7 @@ application tool, then interprets the results in a typed response.
 
 **Identifier:** `sentiment-analysis-1`
 
-**Status:** In progress
+**Status:** Complete
 
 **Outcome:** A small runnable example and tutorial show a local analyzer and
 mutable call log borrowed by a tool callback, followed by a typed agent report.
@@ -32,7 +32,7 @@ callback concurrency, or tool registration abstraction is proposed.
       and binding directly in main, without CLI parsing or helper frameworks.
 - [x] Add meaningful deterministic/tool integration tests and a learning-focused tutorial.
 - [x] Run a bounded live demonstration and separate author review.
-- [ ] Obtain Linux CI, owner review, and integration.
+- [x] Obtain Linux CI, owner review, and integration.
 
 ### Example flow
 
@@ -206,3 +206,31 @@ repository test-harness patterns were reused under this repository's license;
 VADER source and lexicons remain in the dependency with their original notices.
 CI and owner-reviewed delivery remain outstanding. No commit, push, publication,
 or end-of-Porting-Phase transition is implied by local implementation evidence.
+
+
+### Integrated completion {#integrated-completion}
+
+The owner reviewed and merged PR #6, integrating final head
+82bfebba05af175d8603bd3b002a3f4e4b7e4760 as
+0dbb432ea4372e29e1323e0bba94ce5fd286d4bf. All three jobs (Rust and Book checks,
+Meeting scheduler example, Sentiment analysis example) passed on the final head
+in [PR CI](https://github.com/dherman/thinkwell-rs/actions/runs/44876451294) and
+[push CI](https://github.com/dherman/thinkwell-rs/actions/runs/44876447906).
+[Merge-commit CI](https://github.com/dherman/thinkwell-rs/actions/runs/44879106860)
+also passed. The scheduler-only rerun demonstrated cache reuse; its measurements
+are recorded in the [scheduler roadmap](meeting-scheduler.md).
+
+This completes the milestone's tool-flow, numeric-contract, and learning/delivery
+criteria: the recorded local tests and live run, final Linux CI, author review,
+owner review, and integration now all hold. Earlier pending statements describe
+implementation-stage evidence and are superseded by this closeout. The source and
+accuracy limitations remain unchanged. This Book synchronization is delivered as
+a follow-up under the same assignment and awaits its own integration.
+
+The example validates borrowed analyzer/mutable-log callbacks and immediate JSON
+context serialization. The remaining ergonomic question is the separate tool
+registration and binding for one-turn use. The earlier approved integrated API
+review already sketched inline Plan tools plus standalone run; exploring that
+convenience does not authorize implementation. Tool-use verification and faithful
+interpretation remain application concerns; no provenance guarantee is added.
+No next product milestone, publication, or end-of-Porting-Phase transition is assigned.
