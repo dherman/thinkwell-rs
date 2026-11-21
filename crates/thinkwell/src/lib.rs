@@ -32,6 +32,10 @@
 //! including its prompt and the Rust type you want back. Creating a plan sends
 //! nothing; `run_in(...).await` sends it and waits for the answer.
 //!
+//! For a single question, you can skip opening a session and use
+//! `plan.run(&agent).await?`. [Plan::run] creates a fresh conversation and releases
+//! it after that turn. Use an explicit session when you want follow-up history.
+//!
 //! To run this example, use Tokio with its macros, runtime, I/O, and time support
 //! (the `full` feature includes these). You also need Node/npx, the Claude ACP
 //! adapter version 0.23.1 in your npm cache, and working Claude authentication.
@@ -44,9 +48,9 @@
 //!   example shows a follow-up question that uses the earlier answer.
 //! - **Ask for a struct.** Derive `Deserialize` and `JsonSchema` for your answer type.
 //!   [Plan] shows how to ask for a suggestion with a title and a reason.
-//! - **Let the agent use your code.** Describe an operation with [Tool], then provide
-//!   its Rust function with [Plan::bind]. The examples count words and update a
-//!   shopping list borrowed from your application.
+//! - **Let the agent use your code.** For one turn, [Plan::tool] supplies a tool's
+//!   name, description and function together. For a persistent conversation, use
+//!   [Tool] and [Plan::bind]. Both forms can borrow your application's shopping list.
 //! - **Adjust the defaults.** Choose a model with [SessionBuilder::model], set time
 //!   and tool-call limits with [RunOptions], or launch another agent with [AgentConfig].
 //!

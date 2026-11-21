@@ -29,63 +29,60 @@ default model and the small included [feedback document](data/feedback.txt), wit
 no command-line options. No separate native library is needed. This unpublished
 package has its own workspace and lockfile; VADER is not a Thinkwell dependency.
 
-## 1. Describe the tool
-
-The tool accepts an exact excerpt and returns four measurements:
-
-```rust
-let sentiment = Tool::<TextPassage, SentimentScores>::new(
-    "analyze_sentiment",
-    "Measure an exact feedback excerpt with VADER. Returns a compound score
-     from -1 to 1 and positive, negative, and neutral proportions from 0 to 1.",
-);
-```
-
-`TextPassage` derives `Deserialize` and `JsonSchema`; Thinkwell checks the agent's
-arguments before calling Rust. `SentimentScores` derives `Serialize` and
-`JsonSchema`; Thinkwell checks the value returned by Rust before sending it back.
-Its fields are ordinary `f64` values. Nonfinite numbers are not valid scores.
-
-Register the description when opening the conversation:
+## 1. Connect and prepare ordinary Rust state
 
 ```rust
 let agent = Claude::connect().await?;
-let mut session = agent.session().tool(&sentiment).open().await?;
-```
-
-This tells the agent which tool exists. The next step supplies its function.
-
-## 2. Lend local state to the callback
-
-The analyzer and score log are ordinary local variables:
-
-```rust
 let analyzer = SentimentIntensityAnalyzer::new();
 let mut scored_passages = Vec::new();
 ```
 
-The plan includes the feedback as JSON and binds a callback for this request.
-The following excerpt abbreviates only the prompt; the full instructions are in
-[main.rs](src/main.rs).
+The analyzer scores passages; the vector records what the tool actually measured.
+Both are local variables. The callback will borrow them for one request.
+
+## 2. Add the tool to the request
+
+For one turn, `.tool(...)` supplies the tool's name, description, and function
+in one place. `.run(&agent)` opens a fresh conversation, runs the request, and
+releases that conversation before returning. The following excerpt abbreviates
+only the instructions; the full prompt is in [main.rs](src/main.rs).
 
 ```rust
 let report = Plan::<Analysis>::new()
     .text("Use analyze_sentiment on passages from this feedback, then interpret its tone.")
     .json(&feedback)?
-    .bind(&sentiment, async |passage: TextPassage| {
-        let scores = score_passage(&analyzer, feedback, &passage.text)?;
-        scored_passages.push((passage.text, scores.clone()));
-        Ok(scores)
-    })
-    .run_in(&mut session)
+    .tool(
+        "analyze_sentiment",
+        "Measure an exact feedback excerpt with VADER. Returns a compound score
+         from -1 to 1 and positive, negative, and neutral proportions from 0 to 1.",
+        async |passage: TextPassage| {
+            let scores = score_passage(&analyzer, feedback, &passage.text)?;
+            scored_passages.push((passage.text, scores.clone()));
+            Ok(scores)
+        },
+    )
+    .run(&agent)
     .await;
 ```
+
+`TextPassage` derives `Deserialize` and `JsonSchema`; Thinkwell checks the agent's
+arguments before calling Rust. The inferred output, `SentimentScores`, derives
+`Serialize` and `JsonSchema`; Thinkwell checks it before sending it back.
+Its fields are ordinary finite `f64` values.
 
 The callback borrows the analyzer and mutably borrows the log. It needs no shared
 ownership wrapper or lock. While the request runs, Rust prevents us from using
 the mutably borrowed log elsewhere. After `.await`, that borrow ends and we can
-print the measurements with a normal loop. Dropping the session and agent handles
-cleanup; the example needs no explicit shutdown sequence.
+print the measurements with a normal loop. The agent remains connected after
+success, and dropping it handles cleanup without an explicit shutdown sequence.
+A second `.run(&agent)` would start fresh history.
+
+For follow-up questions in the same conversation, or to choose a model, use an
+explicit session and `.run_in(&mut session)`. In that form, register a `Tool` when
+opening the session and bind its function on each turn. The
+[meeting scheduler](../meeting-scheduler/README.md) demonstrates retained history;
+Thinkwell's `Tool` Rustdocs demonstrate registration and binding. An inline tool
+does not add new tools to a session that is already open.
 
 `score_passage` accepts only nonempty, exact excerpts of the feedback. The agent
 gets a tool error if it invents a passage or changes its wording, and can retry.

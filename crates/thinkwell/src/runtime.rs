@@ -310,12 +310,16 @@ impl SessionBuilder<'_> {
     /// function. Duplicate names and unsupported tool types are reported when you
     /// call [open](Self::open).
     pub fn tool<I, O>(mut self, tool: &Tool<I, O>) -> Self {
-        match &tool.descriptor {
+        self = self.descriptor(tool.descriptor.clone());
+        self
+    }
+    pub(crate) fn descriptor(mut self, descriptor: Result<Descriptor>) -> Self {
+        match descriptor {
             Ok(d) if self.tools.iter().any(|t| t.name == d.name) => {
                 self.error = Some(err(ErrorKind::Binding, "duplicate tool name"))
             }
-            Ok(d) => self.tools.push(d.clone()),
-            Err(e) => self.error = Some(e.clone()),
+            Ok(d) => self.tools.push(d),
+            Err(e) => self.error = Some(e),
         }
         self
     }

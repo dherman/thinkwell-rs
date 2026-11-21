@@ -58,7 +58,7 @@ for line in sys.stdin:
         url = server["url"]
         record.with_suffix(".url").write_text(url)
         token = server["headers"][0]["value"]
-        if mode == "sessions":
+        if mode in ("sessions", "one_shot"):
             with record.with_suffix(".tokens").open("a") as out:
                 out.write(token + "\n")
         if previous_token is not None:
@@ -75,6 +75,9 @@ for line in sys.stdin:
             if descriptor["name"] == "accumulate":
                 assert descriptor["outputSchema"]["properties"]["value"]["type"] == "object"
         record.with_suffix(".catalog").write_text(json.dumps(catalog))
+        if mode == "setup_wait":
+            record.with_suffix(".setup-started").write_text("started")
+            time.sleep(30)
         if mode == "setup_failure":
             send(id, {})
             continue
@@ -102,6 +105,15 @@ for line in sys.stdin:
                 denied = tool("accumulate", arguments)
                 assert denied["isError"]
                 assert turn not in denied["content"][0]["text"]
+        if mode == "one_shot":
+            application_tools = [t for t in catalog["result"]["tools"] if t["name"] != "return_result"]
+            if application_tools:
+                result = tool("accumulate", {"turn": turn, "input": {"value": 3}})
+                assert not result["isError"]
+                assert result["structuredContent"]["value"]["total"] == 3
+            assert not submit({"total": 3})["isError"]
+            send(id, {"stopReason": "end_turn"})
+            continue
         if mode == "floats":
             assert tool("measure", {"turn": turn, "input": "not a number"})["isError"]
             for value in [0, -1, -2]:
