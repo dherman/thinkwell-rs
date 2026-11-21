@@ -3,11 +3,12 @@
 The first product slice and preceding approved experiments were integrated in
 owner-merged PR #2. The [closeout record](implementation-roadmaps/first-product-slice.md#integrated-completion)
 records review and final-head/merge-commit CI. The Book closeout was reviewed and
-merged in PR #3. The current review entry point is the
-[meeting scheduler implementation](implementation-roadmaps/meeting-scheduler.md):
-the initial implementation passed native Linux CI; a learning-focused revision
-and its recorded API ergonomic questions are now under review. Final revision CI
-and delivery remain.
+merged in PR #3. The scheduler and its two approved API adaptations were reviewed and merged in
+PR #4; the [completion record](implementation-roadmaps/meeting-scheduler.md#integrated-completion)
+records final-head CI and integration. Nonrecursive nested schemas now inline
+automatically, and `Plan::json(&value)?` supplies structured prompt context.
+The next candidate is a sentiment-analysis example exercising borrowed application
+tools; its scope and dependency choice need a proposal before implementation.
 The supported product scope remains [typed conversations](design/typed-conversations.md).
 
 Initial choices are settled for Tokio, one session per owned ACP connection,

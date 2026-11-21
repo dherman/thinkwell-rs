@@ -10,17 +10,13 @@
 PR #2; its [integration record](first-product-slice.md#integrated-completion)
 connects the reviewed revision and CI evidence to their bounded criteria.
 
-The [meeting scheduler](meeting-scheduler.md) and its owner-approved
-[automatic schema inlining adaptation](meeting-scheduler.md#meeting-scheduler-inlining)
-are In progress. The owner also assigned the
-[structured prompt context convenience](meeting-scheduler.md#meeting-scheduler-context).
-Its approved scope became Ready after the owner reviewed and merged the Book
-closeout in PR #3 at eecb8ec, then assigned continuation. Local implementation,
-deterministic tests, and a live demonstration are recorded in its roadmap;
-the initial implementation passed native Linux CI. The owner's learning-focused
-review changes, final revision CI, and owner-reviewed delivery remain outstanding. Durable
-completion requires criterion evidence and the integration conditions in
-[change delivery](../change-delivery.md).
+The [meeting scheduler](meeting-scheduler.md#integrated-completion), automatic
+schema inlining, and structured prompt context milestones are complete through
+owner-merged PR #4 at 558f3ba. Final-head Linux CI passed for both jobs. The
+completion record tracks the separate merge-commit CI and this Book follow-up.
+No next implementation milestone is assigned. Sentiment analysis is the
+complementary candidate in [migration research](../migration.md#example-selection),
+subject to a bounded proposal and owner approval.
 
 Use the pinned [roadmap format](../working-on-the-project.md#pinned-method-references):
 stable milestone and criterion fragments, outcome, status, identifier,
