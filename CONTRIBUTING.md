@@ -109,6 +109,17 @@ is opt-in; see the walkthrough for commands and caveats. Native solver debug
 traces and build products are ignored. The example's dependencies are not library
 runtime dependencies.
 
+The scheduler CI job caches Cargo dependencies and their build artifacts,
+including native Z3, using a commit-pinned `Swatinem/rust-cache` action. Its
+workspace mapping explicitly selects `target/meeting-scheduler`. The action's
+Rust/toolchain and dependency keys are supplemented with Ubuntu 24.04 and a hash
+of C/C++ compiler, CMake, linker, and libc version output. Changes to native tools
+therefore invalidate the cache. Cache misses still perform the locked vendored
+build and all checks; hits never skip compilation commands or tests. A first run
+populates the cache, and eviction or branch visibility can cause later misses.
+Confirm speedup from a subsequent run's restore log and compilation timing;
+configuration alone is not evidence that Z3 was reused.
+
 ## Sentiment analysis example
 
 The standalone [sentiment example](examples/sentiment-analysis/README.md) has its
