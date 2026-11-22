@@ -10,10 +10,20 @@ For the supplied fixture, the agent might turn `a` into `sum`:
 
 ```javascript
 function a(xs) { return xs.reduce((total, x) => total + x, 0); }
-export function average(xs) { return xs.length ? a(xs) / xs.length : 0; }
+function b(xs) { return xs.length; }
+export function average(xs) { return b(xs) ? a(xs) / b(xs) : 0; }
 ```
 
-Rust changes the declaration and its call inside `average`. It leaves the public
+A representative answer might suggest `sum` for `function-0` (`a`) and `count`
+for `function-1` (`b`). The resulting source is:
+
+```javascript
+function sum(xs) { return xs.reduce((total, x) => total + x, 0); }
+function count(xs) { return xs.length; }
+export function average(xs) { return count(xs) ? sum(xs) / count(xs) : 0; }
+```
+
+Rust changes the declarations and their calls inside `average`. It leaves the public
 name `average` alone. The model suggests names; it never rewrites the program.
 
 ## Run it
@@ -60,7 +70,16 @@ struct Suggestion {
 The IDs let us associate suggestions with functions even if the agent responds in
 a different order. Named exports are skipped, including aliases.
 
-The core workflow is a loop around a reusable plan:
+Start with [main.rs](src/main.rs): it reads the source, calls `javascript::discover`,
+awaits `suggest_names`, then calls `javascript::rename` and writes the result.
+Discovery happens once. The prompt workflow lives in [lib.rs](src/lib.rs); readers
+can leave [javascript.rs](src/javascript.rs) until they want the AST details.
+
+First consider one group of functions. `Plan<Vec<Suggestion>>` says that the awaited
+answer should be a Rust list of suggestions. `.json(...)` supplies context and
+`.run(&agent).await?` returns that typed list.
+
+For larger files, the same operation fits inside an ordinary loop:
 
 ```rust,ignore
 let base = Plan::<Vec<Suggestion>>::new()
@@ -76,6 +95,9 @@ for batch in candidates.chunks(8) {
 }
 ```
 
+`clone()` gives each batch its own plan derived from the common instructions.
+Adding context to the clone does not accumulate earlier batches in the base plan.
+
 `Context` is a small struct with `#[derive(Serialize)]`. `json` adds source text and
 candidate information to the prompt. Each `run` returns typed Rust values using a
 fresh conversation on the same agent connection. Batches run sequentially; there's
@@ -83,7 +105,7 @@ no orchestration framework or application tool to set up.
 
 The executable reads a file, connects with `Claude::connect()`, awaits this workflow,
 and writes a new file. If there are no candidates, it skips the connection.
-See [main.rs](src/main.rs) and [the workflow and rename helper](src/lib.rs).
+See [the prompt workflow](src/lib.rs) and [the JavaScript helpers](src/javascript.rs).
 
 ## The deterministic part
 

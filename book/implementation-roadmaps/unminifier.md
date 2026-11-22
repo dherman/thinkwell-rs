@@ -125,7 +125,7 @@ CI and owner integration remain outstanding.
 - **Anchor coverage:** None — application CLI and walkthrough.
 - **Criterion:** Keep the code/prompt workflow visible; read input, produce a separate
   new file, and document teaching assumptions without production guarantees.
-- **Evidence:** The 23-line main uses ordinary file I/O, Claude::connect and the async
+- **Evidence:** The main uses ordinary file I/O, Claude::connect and the async
   workflow. Three CLI tests demonstrate the happy path, existing-file protection,
   no connection for an empty candidate set and basic failure behavior. The rewritten
   walkthrough explains typed suggestions, plan reuse and byte-range edits. Assertions
@@ -196,3 +196,14 @@ all ten example tests (five unit, two workflow, three CLI), strict all-target Cl
 formatting, Book structure/rendering and whitespace checks pass. Author review checked
 the special case against decoded symbol identity and unchanged ordinary shorthand
 handling. CI for the correction and owner integration remain pending.
+
+
+## Presentation follow-up
+
+The owner requested two commits on PR #11: improve the teaching presentation first,
+then add Plan::code and use it in the example. The first change separates JavaScript
+mechanics into javascript.rs, exposes discovery → suggest_names → rename in main,
+and passes the discovered candidates into the prompt workflow. The walkthrough now
+explains typed answers, plan cloning and fresh history, with a two-function fixture
+and a complete representative before/after result. Library APIs are unchanged in
+this presentation commit. Existing deterministic checks cover the reorganized code.

@@ -1,5 +1,5 @@
 use thinkwell::{Agent, AgentConfig};
-use thinkwell_javascript_unminifier::propose_and_rename;
+use thinkwell_javascript_unminifier::{javascript, suggest_names};
 
 async fn run(mode: &str) -> Result<String, Box<dyn std::error::Error>> {
     let source: String = (0..9)
@@ -11,7 +11,9 @@ async fn run(mode: &str) -> Result<String, Box<dyn std::error::Error>> {
             mode.into(),
         ]))
         .await?;
-        Ok(propose_and_rename(&source, &agent).await?)
+        let candidates = javascript::discover(&source);
+        let names = suggest_names(&source, &candidates, &agent).await?;
+        Ok(javascript::rename(&source, &candidates, &names))
     })
     .await?
 }
