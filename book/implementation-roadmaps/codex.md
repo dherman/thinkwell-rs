@@ -236,3 +236,35 @@ explicit setup error and deterministic/live coverage. No unresolved implementati
 findings were identified. This is author review, not independent or owner review;
 Linux CI and durable integration remain pending. No phase transition or publication
 is implied.
+
+
+## PR review follow-up
+
+Copilot's review of [PR #9](https://github.com/dherman/thinkwell-rs/pull/9) at
+`b9c176418f0ea1ae6421a946393904acce1d0cda` identified two valid timing gaps:
+the connection-wide startup flag could attribute a dropped session's report to
+its replacement, and the one-time setup check missed asynchronous reports.
+The adapter's v2.8.0 startup documentation confirms reports may follow session/new.
+
+Replaced the flag with session-ID correlation and a watch notification path.
+Pre-response reports are limited to 64 distinct IDs and cleared once the returned
+session ID is selected; overflow fails setup closed. Subsequently only that
+session's failures are retained. Setup/model requests and prompt requests race
+against failure notification under the existing deadlines and cleanup rules.
+An idle failure is checked before polling the next prompt. No new public API,
+startup wait extension, retries or recovery guarantee was introduced.
+
+Regression fixtures exercise an old report before the replacement response,
+during model configuration and during its successful turn; current-session
+reports during pending model configuration and prompting; and an idle report
+confirmed by a protocol round trip before the next turn. The latter sends no
+prompt. Error tests require Configuration within three seconds, session
+invalidation when applicable and child reaping. The existing immediate failure
+case remains covered. A unit test checks bounded pending state and reset.
+
+Validation on the reviewed base plus these local fixes: focused startup tests,
+workspace tests/check/strict Clippy, Rustdocs, formatting, whitespace, Book
+structure and rendering. Live model runs were not repeated: these deterministic
+fixtures force the timing paths the earlier live runs did not cover. Author
+follow-up review checked correlation, notification races, bounds and cleanup;
+CI and owner review of the revised head remain pending.

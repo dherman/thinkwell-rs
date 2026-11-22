@@ -28,6 +28,12 @@ use tokio::sync::{mpsc, oneshot};
 fn err(kind: ErrorKind, message: impl Into<String>) -> Error {
     Error::new(kind, message)
 }
+fn startup_error() -> Error {
+    err(
+        ErrorKind::Configuration,
+        "Thinkwell MCP server failed to start; check the adapter configuration for an existing server named thinkwell",
+    )
+}
 fn transport(e: impl std::fmt::Display) -> Error {
     err(ErrorKind::Transport, e.to_string())
 }
@@ -573,8 +579,9 @@ impl Agent {
             let permissions = allowed.clone();
             let identities = Arc::new(Mutex::new(crate::permissions::Permissions::default()));
             let observed = identities.clone();
-            let startup_failed = Arc::new(AtomicBool::new(false));
-            let startup_report = startup_failed.clone();
+            let (startup, mut startup_updates) =
+                tokio::sync::watch::channel(crate::startup::Startup::default());
+            let startup_report = startup.clone();
             let requested = identities.clone();
             let servers = Arc::new(Mutex::new(Vec::<HttpTask>::new()));
             let driver_servers = servers.clone();
@@ -592,7 +599,7 @@ impl Agent {
                         && call.status == ToolCallStatus::Failed
                         && call.title == "mcp__thinkwell__startup"
                     {
-                        startup_report.store(true, Ordering::SeqCst);
+                        startup_report.send_modify(|state| state.report(notification.session_id.clone()));
                     }
                     observed.lock().unwrap().observe(notification);
                     Ok(())
@@ -614,15 +621,16 @@ impl Agent {
                         };
                         match command {
                             Command::Open(mut open)=>{
-                                startup_failed.store(false, Ordering::SeqCst);
+                                startup.send_modify(|state| state.begin());
                                 *allowed.lock().unwrap()=Some(open.http.clone());
                                 driver_servers.lock().unwrap().push(open.server);
                                 let operation=async {
                                     let s=cx.send_request(NewSessionRequest::new(directory.path().to_owned()).mcp_servers(vec![
                                         McpServer::Http(McpServerHttp::new("thinkwell",open.url).headers(vec![HttpHeader::new("Authorization",open.http.token.clone())]))
                                     ])).block_task().await.map_err(transport)?;
-                                    if startup_failed.load(Ordering::SeqCst) {
-                                        return Err(err(ErrorKind::Configuration, "Thinkwell MCP server failed to start; check the adapter configuration for an existing server named thinkwell"));
+                                    startup.send_modify(|state| state.select(s.session_id.clone()));
+                                    if startup.borrow().failed() {
+                                        return Err(startup_error());
                                     }
                                     if let Some(model)=open.model {
                                         let config:SetSessionConfigOptionRequest=serde_json::from_value(json!({"sessionId":s.session_id,"configId":"model","value":model})).map_err(transport)?;
@@ -634,6 +642,7 @@ impl Agent {
                                     biased;
                                     _=&mut stopping=>break,
                                     _=open.reply.closed()=>break,
+                                    _=startup_updates.wait_for(|state| state.failed())=>Err(startup_error()),
                                     result=tokio::time::timeout(setup_timeout,operation)=>result.map_err(|_|err(ErrorKind::Deadline,"session setup deadline")).and_then(|r|r),
                                 };
                                 let _=open.reply.send(result);
@@ -646,6 +655,7 @@ impl Agent {
                                     biased;
                                     _=&mut stopping=>break,
                                     _=reply.closed()=>break,
+                                    _=startup_updates.wait_for(|state| state.failed())=>Err(startup_error()),
                                     r=prompt=>r.map_err(transport).and_then(|r| match r.stop_reason {
                                         StopReason::EndTurn=>Ok(()),
                                         StopReason::Cancelled=>Err(err(ErrorKind::Cancelled,"agent cancelled turn")),

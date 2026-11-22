@@ -88,7 +88,12 @@ installation and authentication remain external. The adapter pin does not freeze
 its compatible-range Codex dependency. Agent-owned native reads can occur without
 ACP permission requests, and user MCP configuration still applies. Reserve the
 MCP server name thinkwell for the library. A reported Codex Thinkwell-MCP startup
-failure becomes a Configuration error during session setup.
+failure becomes a Configuration error during session setup or a subsequent turn,
+including while an ACP request is pending. Reports are matched by session ID;
+old-session reports cannot fail a replacement session. Before the new session ID
+is known, retain at most 64 distinct reported IDs; excess reports fail setup
+closed. Selecting the new session clears that temporary set and retains only
+its failure state until replacement or connection teardown.
 
 Permission requests can identify tools directly or refer to an earlier ACP tool
 notification. Correlation is scoped to the active session and prompt, recognizes

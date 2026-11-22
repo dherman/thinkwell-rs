@@ -839,3 +839,59 @@ async fn adapter_mcp_startup_failure_is_reported_before_prompting() {
     drop(agent);
     reaped(dir.path()).await;
 }
+
+#[tokio::test(flavor = "current_thread")]
+async fn old_startup_reports_do_not_poison_replacement_session() {
+    let dir = tempfile::tempdir().unwrap();
+    let agent = connect("startup_old", dir.path()).await;
+    drop(agent.session().open().await.unwrap());
+    let mut session = agent.session().model("fixture").open().await.unwrap();
+    let answer = Plan::<Summary>::new().run_in(&mut session).await.unwrap();
+    assert_eq!(answer.total, 3);
+    drop(session);
+    agent.shutdown().await.unwrap();
+    reaped(dir.path()).await;
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn delayed_startup_reports_interrupt_setup_and_turns() {
+    for mode in [
+        "startup_during_model",
+        "startup_during_prompt",
+        "startup_idle",
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let agent = connect(mode, dir.path()).await;
+        let error = tokio::time::timeout(Duration::from_secs(3), async {
+            if mode == "startup_during_model" {
+                match agent.session().model("fixture").open().await {
+                    Ok(_) => panic!("startup failure ignored"),
+                    Err(error) => error,
+                }
+            } else {
+                let mut session = agent.session().open().await.unwrap();
+                if mode == "startup_idle" {
+                    std::fs::write(dir.path().join("pid.release-startup"), "release").unwrap();
+                    while !dir.path().join("pid.startup-reported").exists() {
+                        tokio::time::sleep(Duration::from_millis(10)).await;
+                    }
+                }
+                let error = Plan::<Summary>::new()
+                    .run_in(&mut session)
+                    .await
+                    .unwrap_err();
+                assert!(!session.usable());
+                error
+            }
+        })
+        .await
+        .expect("startup error did not interrupt the pending request");
+        assert_eq!(error.kind, ErrorKind::Configuration);
+        assert!(error.message.contains("server named thinkwell"));
+        if mode == "startup_idle" {
+            assert!(!dir.path().join("pid.prompts").exists());
+        }
+        drop(agent);
+        reaped(dir.path()).await;
+    }
+}

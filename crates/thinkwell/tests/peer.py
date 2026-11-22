@@ -42,6 +42,11 @@ def tool(name, args):
         out.write(json.dumps(result) + "\n")
     return result
 
+def startup_failure(session):
+    print(json.dumps({"jsonrpc":"2.0","method":"session/update","params":{
+        "sessionId":session,"update":{
+            "sessionUpdate":"tool_call","toolCallId":"startup","title":"mcp__thinkwell__startup","status":"failed"}}}),flush=True)
+
 previous_turn = None
 previous_token = None
 session_count = 0
@@ -82,11 +87,30 @@ for line in sys.stdin:
             send(id, {})
             continue
         if mode == "mcp_startup_failure":
-            print(json.dumps({"jsonrpc":"2.0","method":"session/update","params":{
-                "sessionId":f"fixture-session-{session_count}","update":{
-                    "sessionUpdate":"tool_call","toolCallId":"startup","title":"mcp__thinkwell__startup","status":"failed"}}}),flush=True)
+            startup_failure(f"fixture-session-{session_count}")
+        if mode == "startup_old" and session_count == 2:
+            startup_failure("fixture-session-1")
         send(id, {"sessionId": f"fixture-session-{session_count}"})
+        if mode == "startup_idle":
+            deadline = time.monotonic() + 5
+            while not record.with_suffix(".release-startup").exists():
+                assert time.monotonic() < deadline
+                time.sleep(0.01)
+            sid = f"fixture-session-{session_count}"
+            startup_failure(sid)
+            # Round-trip a denied request to ensure the earlier report was handled.
+            print(json.dumps({"jsonrpc":"2.0","id":"barrier","method":"session/request_permission",
+                "params":{"sessionId":sid,"toolCall":{"toolCallId":"barrier"},"options":[]}}),flush=True)
+            assert json.loads(sys.stdin.readline())["result"]["outcome"]["outcome"] == "cancelled"
+            record.with_suffix(".startup-reported").write_text("handled")
     elif method == "session/set_config_option":
+        if mode == "startup_during_model":
+            startup_failure(request["params"]["sessionId"])
+            continue  # Deliberately leave configuration pending until host cleanup.
+        if mode == "startup_old":
+            startup_failure("fixture-session-1")
+            send(id, {"configOptions":[]})
+            continue
         print(json.dumps({"jsonrpc":"2.0","id":id,"error":{"code":-32602,"message":"unsupported model"}}),flush=True)
     elif method == "session/prompt":
         assert request["params"]["sessionId"] == f"fixture-session-{session_count}"
@@ -95,6 +119,14 @@ for line in sys.stdin:
         prompt = request["params"]["prompt"][0]["text"]
         turn = re.search(r"with turn ([\w-]+) and value", prompt).group(1)
         submit = lambda value, tid=turn: tool("return_result", {"turn": tid, "value": value})
+        if mode == "startup_during_prompt":
+            startup_failure(request["params"]["sessionId"])
+            continue  # No terminal prompt response: failure must wake the driver.
+        if mode == "startup_old":
+            startup_failure("fixture-session-1")
+            assert not submit({"total":3})["isError"]
+            send(id, {"stopReason":"end_turn"})
+            continue
         if mode == "permissions":
             sid = request["params"]["sessionId"]
             def notify(update):
