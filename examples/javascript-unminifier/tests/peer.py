@@ -37,11 +37,10 @@ for line in sys.stdin:
         turns += 1
         prompt = request["params"]["prompt"][0]["text"]
         turn = re.search(r"with turn ([\w-]+) and value", prompt).group(1)
-        context = next(json.loads(line) for line in prompt.splitlines() if line.startswith('{"language":'))
-        assert context["language"] == "javascript"
-        candidates = context["candidates"]
+        source = re.search(r"^(`{3,})javascript\n(.*?)^\1\n", prompt, re.M | re.S).group(2)
+        candidates = next(json.loads(line) for line in prompt.splitlines() if line.startswith('[{"id":'))
         assert 1 <= len(candidates) <= 8
-        assert all(c["source"] in context["source"] for c in candidates)
+        assert all(c["source"] in source for c in candidates)
         result = [{"id": c["id"], "name": "work", "reason": "Fixture suggestion"} for c in reversed(candidates)]
         if mode == "unknown":
             result[0]["id"] = "unknown"

@@ -516,6 +516,59 @@ impl<'a, T, S> Plan<'a, T, S> {
         self.text.push('\n');
         self
     }
+    /// Add source code to the prompt in a Markdown code block.
+    ///
+    /// Pass the source first, then a language label such as `"rust"` or `"javascript"`.
+    /// Use an empty label when the language is unknown. Introduce what you want the
+    /// agent to do with [`text`](Self::text):
+    ///
+    /// ~~~no_run
+    /// use thinkwell::{agent::Claude, Plan};
+    ///
+    /// # async fn example() -> thinkwell::Result<()> {
+    /// let agent = Claude::connect().await?;
+    /// let explanation = Plan::<String>::new()
+    ///     .text("Explain what this function computes.")
+    ///     .code("fn double(x: i64) -> i64 { x * 2 }", "rust")?
+    ///     .run(&agent)
+    ///     .await?;
+    /// println!("{explanation}");
+    /// # Ok(())
+    /// # }
+    /// ~~~
+    ///
+    /// The plan copies the source now, so it does not borrow your string. Source
+    /// text is unchanged; a newline is added before the closing fence if needed,
+    /// and the block ends with a newline. The backtick fence is longer than any
+    /// backtick run in the source, including embedded Markdown fences.
+    ///
+    /// Returns [`ErrorKind::InvalidValue`] immediately if the language label contains
+    /// backticks or control characters (including newlines). No request is sent.
+    /// This method formats context; it does not validate code or prevent an agent
+    /// from treating source text as instructions.
+    pub fn code(mut self, source: impl AsRef<str>, language: impl AsRef<str>) -> Result<Self> {
+        let source = source.as_ref();
+        let language = language.as_ref();
+        if language.chars().any(|c| c == '`' || c.is_control()) {
+            return Err(Error::new(
+                ErrorKind::InvalidValue,
+                "Code language label must not contain backticks or control characters",
+            ));
+        }
+        let longest_run = source.split(|c| c != '`').map(str::len).max().unwrap_or(0);
+        let fence = "`".repeat(3.max(longest_run + 1));
+        self.text.push_str(&fence);
+        self.text.push_str(language);
+        self.text.push('\n');
+        self.text.push_str(source);
+        if !source.ends_with('\n') {
+            self.text.push('\n');
+        }
+        self.text.push_str(&fence);
+        self.text.push('\n');
+        Ok(self)
+    }
+
     /// Add a Rust value to the prompt as JSON.
     ///
     /// Use this to give the agent structured context, such as a list of attendees
@@ -837,6 +890,53 @@ mod tests {
     use super::*;
 
     #[test]
+    fn code_context_owns_source_and_composes_on_cloned_plans() {
+        let mut source = "const café = `hello`;".to_owned();
+        let base = Plan::<String>::new()
+            .text("Explain:")
+            .code(&source, "javascript")
+            .unwrap();
+        source.clear();
+        let first = base.clone().json(&["names"]).unwrap().text("Be brief.");
+        let second = base.clone().text("Give details.");
+        assert_eq!(
+            base.text,
+            "Explain:\n```javascript\nconst café = `hello`;\n```\n"
+        );
+        assert_eq!(first.text, format!("{}[\"names\"]\nBe brief.\n", base.text));
+        assert_eq!(second.text, format!("{}Give details.\n", base.text));
+    }
+
+    #[test]
+    fn code_fences_contain_embedded_fences_and_preserve_line_endings() {
+        for (source, expected) in [
+            ("", "```\n\n```\n"),
+            ("a\n", "```\na\n```\n"),
+            ("a\r\n", "```\na\r\n```\n"),
+            ("```\ninner\n```", "````\n```\ninner\n```\n````\n"),
+            ("x`````y", "``````\nx`````y\n``````\n"),
+        ] {
+            assert_eq!(
+                Plan::<String>::new().code(source, "").unwrap().text,
+                expected
+            );
+        }
+    }
+
+    #[test]
+    fn code_rejects_labels_that_could_break_the_opening_fence() {
+        for language in ["rust\ntext", "js\rtext", "`js", "js\0", "js\t"] {
+            let Err(error) = Plan::<String>::new().code("source", language) else {
+                panic!("invalid label accepted");
+            };
+            assert_eq!(error.kind, ErrorKind::InvalidValue);
+        }
+        for language in ["", "rust", "c++", "c#", "objective-c"] {
+            assert!(Plan::<String>::new().code("source", language).is_ok());
+        }
+    }
+
+    #[test]
     fn json_context_composes_text_and_owns_its_snapshot() {
         let mut values = vec!["Sam\n\"quoted\"".to_owned()];
         let plan = Plan::<String>::new()
@@ -861,7 +961,11 @@ mod tests {
         });
         plan.options.max_tool_calls = 7;
         plan.error = Some(Error::new(ErrorKind::Binding, "existing error"));
-        let plan = plan.json("context").unwrap();
+        let plan = plan
+            .json("context")
+            .unwrap()
+            .code("source", "rust")
+            .unwrap();
         assert_eq!(plan.bindings.len(), 1);
         assert_eq!(plan.options.max_tool_calls, 7);
         assert_eq!(plan.error.unwrap().kind, ErrorKind::Binding);

@@ -84,11 +84,13 @@ For larger files, the same operation fits inside an ordinary loop:
 ```rust,ignore
 let base = Plan::<Vec<Suggestion>>::new()
     .text("Suggest descriptive JavaScript names for these functions. \
-           Return exactly one suggestion per candidate ID, with a brief reason.");
+           Return exactly one suggestion per candidate ID, with a brief reason.")
+    .code(source, "javascript")?;
 
 for batch in candidates.chunks(8) {
     let suggestions = base.clone()
-        .json(&Context { language: "javascript", source, candidates: batch })?
+        .text("Functions to name:")
+        .json(batch)?
         .run(agent)
         .await?;
     // Collect suggestions by ID, then apply them in source order.
@@ -98,8 +100,11 @@ for batch in candidates.chunks(8) {
 `clone()` gives each batch its own plan derived from the common instructions.
 Adding context to the clone does not accumulate earlier batches in the base plan.
 
-`Context` is a small struct with `#[derive(Serialize)]`. `json` adds source text and
-candidate information to the prompt. Each `run` returns typed Rust values using a
+`code(source, "javascript")` adds the common source as a fenced code block.
+`json(batch)` adds each batch of candidate records as structured context. Source
+comes first in `code`; the language label comes second. Embedded backtick fences
+are handled automatically. Both helpers copy their content into the plan immediately;
+`?` propagates context-construction errors before any request is sent. Each `run` returns typed Rust values using a
 fresh conversation on the same agent connection. Batches run sequentially; there's
 no orchestration framework or application tool to set up.
 

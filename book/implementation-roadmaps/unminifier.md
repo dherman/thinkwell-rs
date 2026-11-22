@@ -12,7 +12,8 @@ This revises the example's scope, not Thinkwell's library guarantees.
 
 The example reads a JavaScript module, discovers private top-level function
 declarations, asks for typed naming suggestions in sequential batches, and applies
-renames. Existing Plan clone/json/run APIs suffice; no library changes are needed.
+renames. Plan clone/json/run provides the workflow; the owner-assigned Plan::code
+follow-up makes source context easier to read without changing execution semantics.
 The implementation and beginner walkthrough live at `examples/javascript-unminifier/`.
 
 Oxc 0.159.0 supplies parser and semantic information. Instead of printing a new AST,
@@ -99,7 +100,8 @@ experiment and recommendation to make a standalone example. The milestone became
 Ready and was assigned In progress. The subsequent simplicity instruction replaces
 the earlier production-style rejection, output-publication and equivalence-checking
 scope. The owner subsequently requested a draft PR, authorizing commit/push and draft
-delivery. No library API change or lifecycle transition is assigned.
+delivery. No execution API or lifecycle transition is assigned; the later Plan::code
+formatting convenience is separately assigned in milestone 3.
 
 **Design basis:** The same requirements and accepted typed-conversation baseline as
 milestone 1. The example is application code, not a new supported library contract.
@@ -207,3 +209,73 @@ and passes the discovered candidates into the prompt workflow. The walkthrough n
 explains typed answers, plan cloning and fresh history, with a two-function fixture
 and a complete representative before/after result. Library APIs are unchanged in
 this presentation commit. Existing deterministic checks cover the reorganized code.
+
+## Milestone 3. Add code prompt context {#unminifier-3}
+
+**Identifier:** `unminifier-3`
+
+**Status:** In progress
+
+**Outcome:** Plan::code(source, language) adds readable code context and simplifies
+this example's reusable prompt.
+
+**Assignment and basis:** The owner explicitly assigned this follow-up commit on
+PR #11 after presentation improvements. It became Ready and is now In progress.
+Basis: `R-code-prompt-ergonomics`, `R-progressive-control`, `D-reviewed-api-baseline`
+and the typed-conversation design. Commit/push to the same PR is authorized.
+
+**Tasks:** Add a documented convenience, delimiter/ownership/composition tests,
+update the example, run workspace and example checks, and record review/evidence.
+
+### Completion criteria
+
+#### Code context and teaching {#unminifier-3-context}
+
+- **Anchor coverage:** None — formatting convenience over existing text composition.
+- **Criterion:** Preserve source text in a fenced block, handle embedded fences,
+  reject invalid language labels immediately, retain Plan state and snapshot semantics;
+  document source-first ordering and use in the example.
+- **Evidence:** Unit and scripted-agent tests pass locally. A Result return parallels json's
+  immediate context-construction errors. The fence uses at least three backticks
+  and exceeds every backtick run in source. Labels containing backticks or control
+  characters are InvalidValue; an empty label is allowed. This is formatting, not
+  syntax validation or an instruction-trust boundary.
+
+#### Validation and delivery {#unminifier-3-delivery}
+
+- **Anchor coverage:** None — API documentation and delivery.
+- **Criterion:** Unit/Rustdoc/workspace/example checks and author review pass;
+  CI and owner integration recorded before completion.
+- **Evidence:** Workspace, Rustdoc and example checks pass locally; see follow-up
+  validation below. CI and owner integration remain pending.
+
+
+### Code-context follow-up validation
+
+The presentation commit is `f15f9bc`. The subsequent working tree adds Plan::code,
+Rustdocs with a compiled agent example, and unit coverage for embedded backtick runs,
+empty input/labels, LF/CRLF, invalid labels, Unicode source, immediate snapshots,
+clone composition, and preservation of bound callbacks/settings/existing errors.
+The example uses code on the base plan and JSON only for each candidate batch;
+the scripted peer confirms both source and candidates reach each prompt.
+
+Passed locally: `cargo test --workspace --locked` (23 library unit tests, 32
+conversation tests, 40 Rustdoc cases and launcher/bootstrap tests), workspace
+all-target check and strict Clippy, warning-free workspace Rustdocs, and all ten
+unminifier tests plus its strict all-target Clippy. Formatting, Book structure/rendering
+and whitespace checks also pass. Unchanged scheduler/sentiment suites are left to
+existing CI jobs. No runtime, transport or dependency changes were needed.
+
+A separate author review checked source-first argument order, delimiter sizing,
+label rejection, snapshot/clone semantics, state preservation and the teaching flow.
+The Result return makes invalid labels immediate, consistent with json. No new
+instruction-trust or JavaScript-validity claim is introduced. This is author review,
+not independent/owner review. Commit/push to PR #11 is authorized; CI and owner
+integration remain pending.
+
+
+A bounded live Claude run of the two-function fixture with code context suggested
+`sum` and `count`. Exact comparison verified that only the selected names changed,
+including preserved inline comments/formatting. Node v24.12.0 checked three expected
+averages, all passing. The run used a 150-second outer process-group guard and existing
+authentication; it is not part of ordinary CI and establishes only this configuration.

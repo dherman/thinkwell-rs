@@ -64,6 +64,13 @@ one newline to the prompt, just like text composition. Serialization is immediat
 and fallible, returning InvalidValue on failure; no schema derivation is required.
 It preserves existing Plan state and introduces no special content block, quoting
 protocol, or instruction-trust boundary.
+Plan::code(source, language) copies source into a Markdown code block immediately,
+returning `Result<Self>`. Its fence uses at least three backticks and is longer than
+any backtick run in source. Source bytes are preserved; add a newline before the
+closing fence if missing and one after it. An empty label is allowed. Backticks or
+control characters in the label return InvalidValue immediately. Like json and text,
+this preserves other Plan state, introduces no agent work, and is formatting rather
+than syntax validation or an instruction-trust boundary.
 Use HTTP MCP 2025-11-25 with a loopback listener, bearer credential, Origin and
 body-size checks, and client permission grants restricted to declared tools. Turn/input and
 turn/value envelopes are library protocol details, not callback parameters.

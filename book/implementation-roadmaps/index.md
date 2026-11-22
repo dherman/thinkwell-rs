@@ -26,7 +26,8 @@ compatibility gap, resolved in owner-merged PR #9 at d1becc9. Its
 review. The owner merged [progress observation](progress-observation.md#integrated-completion)
 in PR #10 at ab1e821; both bounded milestones are complete with final-head CI passing.
 The [unminifier investigation](unminifier.md) passed local AST and live-agent
-experiments. The owner assigned its standalone example milestone, now In progress.
+experiments. Its standalone example and the owner-assigned Plan::code follow-up
+are In progress; local validation passes and integration remains pending.
 
 Use the pinned [roadmap format](../working-on-the-project.md#pinned-method-references):
 stable milestone and criterion fragments, outcome, status, identifier,

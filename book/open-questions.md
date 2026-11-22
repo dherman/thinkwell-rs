@@ -17,7 +17,8 @@ correlation as required implementation work. The owner approved the Codex milest
 it is complete through owner-merged PR #9, with passing final-head CI.
 The owner merged [progress observation](implementation-roadmaps/progress-observation.md#integrated-completion)
 in PR #10. The unminifier investigation passed local tests; the owner assigned its standalone
-example milestone. No new Thinkwell API is needed for the sequential workflow.
+example milestone and a Plan::code formatting convenience. Execution remains sequential
+with the existing run API; the code-context follow-up is locally validated, not integrated.
 The supported product scope remains [typed conversations](design/typed-conversations.md).
 
 Initial choices are settled for Tokio, one session per owned ACP connection,
@@ -29,7 +30,7 @@ from this slice.
 
 | Open area | Remaining question |
 | --- | --- |
-| First-use expansion | One-shot execution and inline tools are integrated; are further quoting helpers needed? |
+| First-use expansion | Code context is assigned alongside the unminifier; are other quoting helpers needed? |
 | Runtime and embedding | What additional ownership/runtime contracts support shared host connections and concurrent sessions? |
 | Schemas | Which broader validator/reference-resolution support justifies expanding the deliberately finite subset? |
 | Provider coverage | Which additional agents, capabilities, model discovery, and transport paths should be tested and supported? |
