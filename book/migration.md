@@ -234,3 +234,37 @@ These are source observations, not Rust requirements or newly verified TS runtim
 behavior. No source was copied or adapted. The Rust proposal keeps typed results
 separate from progress but recommends lazy execution and a borrowed synchronous
 observer initially. Migration links stay here; the Rust design stands independently.
+
+
+## Unminifier refresh {#unminifier-refresh}
+
+The assigned investigation re-read the pinned
+[TypeScript source](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/examples/src/unminify.ts)
+and [tutorial source](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/website/examples/javascript-unminifier.mdx).
+The published tutorial entry is
+[JavaScript Unminifier](https://thinkwell.sh/examples/javascript-unminifier);
+this refresh read the repository MDX, not the live page. The source formats with
+Prettier, uses ast-grep for a particular UMD wrapper, asks the model to discover
+functions, analyzes batches of 30 with concurrency limited to five, deduplicates
+suggested names, then invokes Babel program-scope renaming. The tutorial omits
+the source's later duplicate-name suffix pass. These are source observations;
+neither the TypeScript example nor its rename safety was tested here.
+
+The Rust proposal deliberately uses parser-discovered identities, sequential
+batches and fresh names reserved against existing bindings and unresolved names.
+It omits UMD conversion and uses original fixtures. The proposal lives in the
+[unminifier investigation](implementation-roadmaps/unminifier.md); these migration
+references are not permanent Rust requirements.
+
+Cargo-published source inspection covered oxc, oxc_semantic and oxc_codegen
+0.159.0 (MIT, Rust 1.98.0), and swc_ecma_transforms_base 52.0.0 (Apache-2.0,
+no declared rust-version). Package VCS revisions are respectively
+`d9483516f84068f867e0a3949ac0ec53ef82aa63` for oxc and
+`fa67ecc2e89b2d89e6c30b31d4adb11e0dfa5b08` for SWC transforms.
+Inspected Oxc Scoping::rename_symbol and Codegen::with_scoping, including object
+shorthand printing; inspected SWC resolver documentation and rename/renamer APIs.
+Oxc's rename preconditions require collision checks by the caller. Package metadata
+and source mechanisms establish candidacy, not a compiled or verified pipeline.
+No source, prompts, tutorial text or third-party fixtures were adapted, and no
+repository dependency was added. The existing upstream file-license uncertainty
+still applies before any future copying.

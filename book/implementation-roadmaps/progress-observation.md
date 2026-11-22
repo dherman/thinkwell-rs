@@ -6,14 +6,14 @@ Roadmap identifier: `progress-observation`.
 
 **Identifier:** `progress-observation-1`
 
-**Status:** In progress
+**Status:** Complete
 
 **Outcome:** Review a small optional observation API through console, borrowed-tool,
 error and cancellation examples, with event meanings and delivery limits explicit.
 
 **Assignment:** After owner-merged PR #9, the owner approved synchronizing Codex
 completion and preparing example-driven progress/diagnostic sketches with “Agreed,
-proceed”. This design assignment became Ready and is now In progress. It does not
+proceed”. This design assignment became Ready, was completed and owner-reviewed, and is integrated in PR #10. It does not
 authorize product implementation, a public streaming contract, commit or push.
 
 **Design basis:** `R-progressive-control`, `R-easy-agent-programming`,
@@ -293,14 +293,14 @@ implementation and the live design chapter owns the accepted anchor.
 
 **Identifier:** `progress-observation-2`
 
-**Status:** In progress
+**Status:** Complete
 
 **Outcome:** Applications observe bounded progress through borrowed callbacks while
 retaining typed results and existing run/run_in ownership and failure behavior.
 
 **Assignment and basis:** The owner approved this proposal and instructed “let's
 proceed”, including non_exhaustive event kinds and private payloads with accessors.
-This bounded milestone became Ready and is now assigned. Governing basis is the
+This bounded milestone became Ready, was assigned, and is integrated in PR #10. Governing basis is the
 same requirements and reviewed API baseline as milestone 1. Implement the proposed
 ObservedPlan wrapper, initial event set, bounded queue and independent control path;
 no stream receiver, cancellation handle or agent-level observer is assigned.
@@ -318,7 +318,7 @@ accepted design and evidence. Commit/push and delivery require separate authoriz
   tools, preflight/unpolled behavior, callback capture release, panic/drop cleanup,
   session isolation and no background observer execution.
 - **Evidence:** Local compiler/runtime validation passed; see the implementation
-  record below. CI and integration remain pending.
+  record below. Final-head CI passed and the owner merged PR #10; see integrated completion below.
 
 #### Events and typed completion {#progress-observation-2-events}
 
@@ -335,7 +335,7 @@ accepted design and evidence. Commit/push and delivery require separate authoriz
 - **Criterion:** Newcomer Rustdocs compile; both supported agents demonstrate console
   observation; regression/Book checks, author review, CI and owner integration recorded.
 - **Evidence:** Rustdocs and both live-agent demonstrations passed locally. Author
-  self-review and exact checks are recorded below; CI and owner integration remain pending.
+  self-review and exact checks are recorded below; final-head CI and owner integration are recorded in integrated completion.
 
 
 ## Local implementation and validation
@@ -405,5 +405,17 @@ panic/drop handling and the complete code/Book diff. It identified and corrected
 the distinction between actual callback timeout and application-supplied Deadline
 errors, and verified tail-delivery panic cleanup explicitly. No unresolved local
 implementation findings remain. This is author review, not independent or owner
-review; CI, publication authorization and owner integration remain pending. The
-milestone remains In progress until its delivery criteria hold.
+review. Subsequent final-head CI and owner integration complete the delivery criteria, as recorded below.
+
+
+## Integrated completion
+
+The owner merged [PR #10](https://github.com/dherman/thinkwell-rs/pull/10), head
+`2ec41594ed680475b8e14f16c061b2cbfea6aac4`, as
+`ab1e8212455c25837f1b9805ad0f666b1ba18300`. Both final-head CI runs
+`44998763714` and `44998759870` passed all three jobs: Rust and Book checks,
+Meeting scheduler example, and Sentiment analysis example. The owner reported
+merge and authorized the subsequent closeout and unminifier investigation.
+Together with the design approval and criterion evidence above, this completes
+both bounded milestones. Merge-commit CI has not been assessed here. This Book
+synchronization is a subsequent local change and is not yet integrated.

@@ -49,6 +49,11 @@ The [sentiment analysis walkthrough](examples/sentiment-analysis/README.md) show
 the complementary pattern: lend a local Rust analyzer and mutable score log to
 an agent tool, then read a typed interpretation of its measurements.
 
+The [JavaScript unminifier walkthrough](examples/javascript-unminifier/README.md)
+uses Rust to discover functions, typed prompts to suggest names, and scope-aware
+renaming to produce a separate output file. It includes deliberate JavaScript
+limitations and does not promise semantic equivalence.
+
 Add optional progress without changing the answer type:
 
 ```rust,ignore

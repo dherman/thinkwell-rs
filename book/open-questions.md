@@ -15,8 +15,9 @@ The owner selected Codex for the next agent-compatibility investigation.
 model selection and a diagnostic two-turn workflow, and identifies permission
 correlation as required implementation work. The owner approved the Codex milestone;
 it is complete through owner-merged PR #9, with passing final-head CI.
-The owner approved [progress observation](implementation-roadmaps/progress-observation.md)
-and assigned its bounded implementation milestone, now In progress.
+The owner merged [progress observation](implementation-roadmaps/progress-observation.md#integrated-completion)
+in PR #10. The unminifier investigation passed local tests; the owner assigned its standalone
+example milestone. No new Thinkwell API is needed for the sequential workflow.
 The supported product scope remains [typed conversations](design/typed-conversations.md).
 
 Initial choices are settled for Tokio, one session per owned ACP connection,

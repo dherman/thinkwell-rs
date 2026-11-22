@@ -137,6 +137,24 @@ Python 3 is needed for the scripted agent; no native solver library or model
 credentials are required for tests. Live execution is opt-in. VADER and its
 lexicons remain dependency-owned and are not library runtime dependencies.
 
+## JavaScript unminifier example
+
+The standalone [unminifier](examples/javascript-unminifier/README.md) isolates Oxc
+and its lockfile from the library workspace. Its separate CI job runs:
+
+```sh
+export CARGO_TARGET_DIR="$PWD/target/unminifier"
+cargo fmt --manifest-path examples/javascript-unminifier/Cargo.toml -- --check
+cargo check --manifest-path examples/javascript-unminifier/Cargo.toml --all-targets --locked
+cargo clippy --manifest-path examples/javascript-unminifier/Cargo.toml --all-targets --locked -- -D warnings
+cargo test --manifest-path examples/javascript-unminifier/Cargo.toml --locked
+```
+
+Tests require Python 3 and Unix process support, but no credentials or model calls.
+Live inference is opt-in; the walkthrough documents installation, command arguments,
+new-file output and teaching-example assumptions. No JavaScript runtime is required by
+ordinary checks; locally recorded behavior checks used Node only on original fixtures.
+
 ## Updating tools
 
 Inspect the candidate engine's CLI, configuration reader, compiled contract,
