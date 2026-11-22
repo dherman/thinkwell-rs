@@ -151,10 +151,15 @@ fn rename(source: &str, suggestions: &[(&str, &str)]) -> String {
             let span = semantic.nodes().get_node(reference.node_id()).span();
             let replacement = match semantic.nodes().parent_kind(reference.node_id()) {
                 AstKind::ObjectProperty(property) if property.shorthand => {
-                    format!(
-                        "{}: {name}",
-                        &source[span.start as usize..span.end as usize]
-                    )
+                    // A literal __proto__ key is a prototype setter, unlike shorthand.
+                    if old == "__proto__" {
+                        format!("[\"__proto__\"]: {name}")
+                    } else {
+                        format!(
+                            "{}: {name}",
+                            &source[span.start as usize..span.end as usize]
+                        )
+                    }
                 }
                 _ => name.clone(),
             };
@@ -195,6 +200,17 @@ mod tests {
             "function a(n){return n ? a(n-1) : 0;} function b(a,sum){return a(sum);} a(3);";
         let expected = "function sum2(n){return n ? sum2(n-1) : 0;} function b(a,sum){return a(sum);} sum2(3);";
         assert_eq!(rename(source, &[("a", "sum")]), expected);
+    }
+
+    #[test]
+    fn proto_shorthand_stays_a_data_property() {
+        for spelling in ["__proto__", r"\u005f_proto__"] {
+            let source = format!("function {spelling}(){{}} const obj = {{{spelling}}};");
+            assert_eq!(
+                rename(&source, &[("__proto__", "readable")]),
+                "function readable(){} const obj = {[\"__proto__\"]: readable};"
+            );
+        }
     }
 
     #[test]

@@ -179,3 +179,20 @@ file protection and removed guarantees. No new library policy or API was introdu
 All nine focused tests, all-target check, strict Clippy, formatting, Book structure,
 rendering and whitespace checks pass. This is author review, not independent or
 owner review; draft PR delivery is now authorized; CI and integration remain pending.
+
+## PR review correction
+
+Copilot's review of PR #11 at `e777f72` found that expanding `__proto__` shorthand
+into a literal property changed a data property into JavaScript's prototype setter.
+The correction uses a computed `["__proto__"]` key for that decoded binding name,
+including escaped source spellings. This is a small fix to the demonstrated shorthand
+behavior, not a broader production-validation policy.
+
+The new exact-output regression failed before the fix and passes afterward for
+plain and escaped spellings. Node additionally confirmed that the original shorthand
+and computed-key output retain an own enumerable property and Object.prototype,
+while the former expansion changes the prototype. On `e777f72` plus this correction,
+all ten example tests (five unit, two workflow, three CLI), strict all-target Clippy,
+formatting, Book structure/rendering and whitespace checks pass. Author review checked
+the special case against decoded symbol identity and unchanged ordinary shorthand
+handling. CI for the correction and owner integration remain pending.
