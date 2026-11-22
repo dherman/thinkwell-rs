@@ -650,7 +650,11 @@ impl Agent {
                             Command::Prompt{id,text,mut reply}=>{
                                 let tools=allowed.lock().unwrap().as_ref().map(|http| http.tools.iter().map(|tool|tool.name.clone()).collect::<Vec<_>>()).unwrap_or_default();
                                 identities.lock().unwrap().begin(id.clone(), tools.into_iter());
-                                let prompt=cx.send_request(PromptRequest::new(id,vec![ContentBlock::Text(TextContent::new(text))])).block_task();
+                                // send_request publishes eagerly. Defer it until this branch is
+                                // polled, after the biased startup-failure check below.
+                                let prompt=async {
+                                    cx.send_request(PromptRequest::new(id,vec![ContentBlock::Text(TextContent::new(text))])).block_task().await
+                                };
                                 let result=tokio::select! {
                                     biased;
                                     _=&mut stopping=>break,

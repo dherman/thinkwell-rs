@@ -268,3 +268,23 @@ structure and rendering. Live model runs were not repeated: these deterministic
 fixtures force the timing paths the earlier live runs did not cover. Author
 follow-up review checked correlation, notification races, bounds and cleanup;
 CI and owner review of the revised head remain pending.
+
+### CI prompt-publication race
+
+On head `1bf2577`, Linux run `44968585435` failed the idle-startup test's
+no-prompt assertion, while run `44968590047` passed. The failed step was workspace
+Rust tests in the combined Rust and Book job, not Book structural validation.
+The SDK's send_request publishes immediately; constructing its response future
+before the biased select had already queued a prompt, even when the startup
+failure branch won. Whether the peer recorded it before cleanup was timing-dependent.
+
+Deferred send_request into an async block polled only by the prompt branch.
+The existing failure branch now runs before request publication for an already
+reported failure. A failure that arrives after publication still interrupts the
+pending turn as designed. The original no-prompt assertion is retained.
+
+Validation on `1bf2577` plus this fix: the delayed-startup regression passed 30
+consecutive local runs; workspace tests, strict all-target Clippy, warning-free
+Rustdocs, formatting, whitespace, Book structural check and rendering passed.
+This is local macOS evidence; revised-head Linux CI remains pending. No live model
+run is needed to exercise this deterministic request-publication boundary.
