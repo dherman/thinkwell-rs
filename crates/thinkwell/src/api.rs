@@ -414,6 +414,7 @@ pub struct Plan<'a, T, S = Unbound> {
     pub(crate) bindings: Vec<Binding<'a>>,
     pub(crate) error: Option<Error>,
     pub(crate) options: RunOptions,
+    pub(crate) progress: Option<crate::progress::Sink>,
     types: PhantomData<fn() -> (T, S)>,
 }
 impl<T> Plan<'_, T> {
@@ -436,6 +437,7 @@ impl<T> Plan<'_, T> {
             bindings: vec![],
             error: None,
             options: RunOptions::default(),
+            progress: None,
             types: PhantomData,
         }
     }
@@ -452,11 +454,47 @@ impl<T> Clone for Plan<'_, T> {
             bindings: vec![],
             error: self.error.clone(),
             options: self.options.clone(),
+            progress: None,
             types: PhantomData,
         }
     }
 }
 impl<'a, T, S> Plan<'a, T, S> {
+    /// Show optional progress while retaining the normal typed result.
+    ///
+    /// Finish building the plan, attach a synchronous callback, then call
+    /// [run](crate::ObservedPlan::run) or [run_in](crate::ObservedPlan::run_in).
+    /// The callback can borrow local state; it need not be Send or static.
+    ///
+    /// ```no_run
+    /// use thinkwell::{Plan, ProgressEvent, Agent};
+    /// # async fn example(agent: &Agent) -> thinkwell::Result<()> {
+    /// let answer = Plan::<String>::new().text("Suggest a recipe.")
+    ///     .observe(|event| {
+    ///         if let ProgressEvent::Message(message) = event {
+    ///             eprint!("{}", message.text());
+    ///         }
+    ///     }).run(agent).await?;
+    /// println!("{answer}");
+    /// # Ok(())
+    /// # }
+    /// ```
+    ///
+    /// Delivery is best-effort, with at most 128 queued events and 64 KiB of
+    /// retained event data. Oversized or overflowing events are counted in
+    /// [ProgressEvent::EventsDropped](crate::ProgressEvent::EventsDropped).
+    /// Keep callbacks short; blocking one delays execution. See [ObservedPlan](crate::ObservedPlan)
+    /// for panic, borrowing and cleanup behavior. No observer runs in the background.
+    pub fn observe<F: FnMut(&crate::ProgressEvent)>(
+        self,
+        observer: F,
+    ) -> crate::ObservedPlan<'a, T, S, F> {
+        crate::ObservedPlan {
+            plan: self,
+            observer,
+        }
+    }
+
     /// Add instructions or context to the prompt.
     ///
     /// Call this more than once to build a prompt from separate pieces. Each call adds
@@ -602,6 +640,7 @@ impl<'a, T, S> Plan<'a, T, S> {
             bindings: self.bindings,
             error: self.error,
             options: self.options,
+            progress: self.progress,
             types: PhantomData,
         }
     }
@@ -707,6 +746,7 @@ impl<'a, T, S> Plan<'a, T, S> {
         self.options.validate()?;
         schema::contract::<T>()?;
         let mut builder = agent.session();
+        builder.progress = self.progress.clone();
         for binding in &self.bindings {
             builder = builder.descriptor(Ok(binding.descriptor.clone()));
         }

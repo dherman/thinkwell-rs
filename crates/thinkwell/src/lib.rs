@@ -110,11 +110,13 @@
 pub mod agent;
 mod api;
 mod permissions;
+mod progress;
 mod runtime;
 mod schema;
 mod startup;
 
 pub use api::*;
+pub use progress::*;
 pub use runtime::{Agent, Diagnostics, Session, SessionBuilder};
 
 /// The kind of problem that caused an operation to fail.

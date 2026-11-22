@@ -895,3 +895,267 @@ async fn delayed_startup_reports_interrupt_setup_and_turns() {
         reaped(dir.path()).await;
     }
 }
+
+#[tokio::test(flavor = "current_thread")]
+async fn observed_turn_borrows_and_preserves_typed_result() {
+    use thinkwell::{AgentToolStatus, ProgressEvent, ToolOutcome};
+    let dir = tempfile::tempdir().unwrap();
+    let agent = connect("progress", dir.path()).await;
+    let mut events = Vec::new();
+    let local = Rc::new(Cell::new(0));
+    let thread = std::thread::current().id();
+    for _ in 0..2 {
+        let mut total = 0;
+        let answer = Plan::<Summary>::new()
+            .tool("accumulate", "Add", async |input: Input| {
+                total += input.value;
+                Ok(Output { total })
+            })
+            .observe(|event| {
+                assert_eq!(std::thread::current().id(), thread);
+                local.set(local.get() + 1);
+                events.push(event.clone());
+            })
+            .run(&agent)
+            .await
+            .unwrap();
+        assert_eq!(answer.total, 3);
+        assert_eq!(total, 3);
+    }
+    assert_eq!(local.get(), events.len());
+    assert_eq!(
+        events
+            .iter()
+            .filter(|e| matches!(e, ProgressEvent::Message(m) if m.text()=="Working on it"))
+            .count(),
+        2
+    );
+    assert!(
+        events
+            .iter()
+            .any(|e| matches!(e,ProgressEvent::EventsDropped(d) if d.count()>=1))
+    );
+    assert!(events.iter().any(|e| matches!(e,ProgressEvent::AgentTool(t) if t.id()=="native" && t.title().is_none() && t.status()==Some(AgentToolStatus::Completed))));
+    assert!(
+        events
+            .iter()
+            .any(|e| matches!(e,ProgressEvent::ToolStarted(t) if t.name()=="accumulate"))
+    );
+    assert!(events.iter().any(|e| matches!(e,ProgressEvent::ToolFinished(t) if t.name()=="accumulate" && t.outcome()==ToolOutcome::Succeeded)));
+    assert!(
+        events
+            .iter()
+            .any(|e| matches!(e,ProgressEvent::ResultRejected(r) if r.attempt()==1))
+    );
+    assert_eq!(
+        events
+            .iter()
+            .filter(|e| matches!(e, ProgressEvent::ResultAccepted(_)))
+            .count(),
+        2
+    );
+    let debug = format!("{events:?}");
+    assert!(!debug.contains("result-internal"));
+    assert!(!debug.contains("do-not-expose"));
+    assert!(!debug.contains("ignored old session"));
+    agent.shutdown().await.unwrap();
+    reaped(dir.path()).await;
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn unpolled_and_invalid_observed_plans_send_nothing() {
+    let dir = tempfile::tempdir().unwrap();
+    let agent = connect("correct", dir.path()).await;
+    let mut events = 0;
+    drop(Plan::<Summary>::new().observe(|_| events += 1).run(&agent));
+    assert!(!dir.path().join("pid.url").exists());
+    let error = Plan::<std::collections::HashMap<String, String>>::new()
+        .observe(|_| events += 1)
+        .run(&agent)
+        .await
+        .unwrap_err();
+    assert_eq!(error.kind, ErrorKind::Contract);
+    assert_eq!(events, 0);
+    assert!(!dir.path().join("pid.url").exists());
+    assert_eq!(
+        Plan::<Summary>::new()
+            .observe(|_| events += 1)
+            .run(&agent)
+            .await
+            .unwrap()
+            .total,
+        3
+    );
+    assert!(events > 0);
+    agent.shutdown().await.unwrap();
+}
+
+#[test]
+fn observer_panic_releases_borrows_and_closes_connection() {
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let agent = rt.block_on(connect("callback", dir.path()));
+    let mut callbacks = 0;
+    let mut observations = 0;
+    let caught = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        rt.block_on(
+            Plan::<Summary>::new()
+                .tool("accumulate", "Add", async |_: Input| {
+                    callbacks += 1;
+                    std::future::pending::<thinkwell::Result<Output>>().await
+                })
+                .observe(|_| {
+                    observations += 1;
+                    panic!("observer panic");
+                })
+                .run(&agent),
+        )
+    }));
+    assert!(caught.is_err());
+    assert_eq!(observations, 1);
+    assert_eq!(callbacks, 1);
+    assert_eq!(
+        rt.block_on(Plan::<Summary>::new().run(&agent))
+            .unwrap_err()
+            .kind,
+        ErrorKind::Closed
+    );
+    drop(agent);
+    rt.block_on(reaped(dir.path()));
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn dropping_observed_turn_discards_pending_events_and_releases_capture() {
+    let dir = tempfile::tempdir().unwrap();
+    let agent = connect("hold", dir.path()).await;
+    let mut session = agent.session().open().await.unwrap();
+    let mut updates = 0;
+    {
+        let work = Plan::<Summary>::new()
+            .observe(|_| updates += 1)
+            .run_in(&mut session);
+        tokio::pin!(work);
+        tokio::time::timeout(Duration::from_secs(3), async {
+            tokio::select! {
+                result=&mut work=>panic!("unexpected result {result:?}"),
+                _=async {
+                    while !dir.path().join("pid.candidate").exists() {
+                        tokio::time::sleep(Duration::from_millis(10)).await;
+                    }
+                }=>{}
+            }
+        })
+        .await
+        .unwrap();
+    }
+    let saved = updates;
+    tokio::time::sleep(Duration::from_millis(30)).await;
+    assert_eq!(updates, saved);
+    assert!(!session.usable());
+    drop(session);
+    drop(agent);
+    reaped(dir.path()).await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn observed_errors_and_candidates_do_not_change_completion() {
+    use thinkwell::{ProgressEvent, ToolOutcome};
+    for mode in [
+        "correct",
+        "duplicate",
+        "cancelled",
+        "missing",
+        "input_error",
+        "callback_error",
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        let agent = connect(mode, dir.path()).await;
+        let local = Rc::new(Cell::new(0));
+        let descriptor = tool();
+        let mut session = agent.session().tool(&descriptor).open().await.unwrap();
+        let mut events = Vec::new();
+        let result = Plan::<Summary>::new()
+            .bind(&descriptor, async |_: Input| {
+                local.set(local.get() + 1);
+                Err(Error::tool("private callback error"))
+            })
+            .observe(|e| events.push(e.clone()))
+            .run_in(&mut session)
+            .await;
+        match mode {
+            "cancelled" => assert_eq!(result.unwrap_err().kind, ErrorKind::Cancelled),
+            "missing" => assert_eq!(result.unwrap_err().kind, ErrorKind::MissingResult),
+            _ => assert_eq!(result.unwrap().total, 3),
+        }
+        if mode == "cancelled" {
+            assert!(
+                events
+                    .iter()
+                    .any(|e| matches!(e, ProgressEvent::ResultAccepted(_)))
+            );
+            assert!(!session.usable());
+        }
+        if mode == "correct" || mode == "duplicate" {
+            assert!(
+                events
+                    .iter()
+                    .any(|e| matches!(e, ProgressEvent::ResultRejected(_)))
+            );
+        }
+        if mode == "input_error" || mode == "callback_error" {
+            assert!(events.iter().any(
+                |e| matches!(e,ProgressEvent::ToolFinished(t) if t.outcome()==ToolOutcome::Failed)
+            ));
+            assert_eq!(local.get(), usize::from(mode == "callback_error"));
+        }
+        assert!(!format!("{events:?}").contains("private callback error"));
+        drop(session);
+        drop(agent);
+        reaped(dir.path()).await;
+    }
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn observed_deadlines_distinguish_timeout_from_callback_error() {
+    use thinkwell::{ProgressEvent, ToolOutcome};
+    for timeout in [false, true] {
+        let dir = tempfile::tempdir().unwrap();
+        let agent = connect("callback_error", dir.path()).await;
+        let mut outcomes = Vec::new();
+        let answer = Plan::<Summary>::new()
+            .options(RunOptions {
+                callback_timeout: Duration::from_millis(30),
+                ..RunOptions::default()
+            })
+            .tool("accumulate", "Add", async |_: Input| {
+                if timeout {
+                    std::future::pending::<()>().await;
+                }
+                Err::<Output, _>(Error::new(
+                    ErrorKind::Deadline,
+                    "application-supplied deadline error",
+                ))
+            })
+            .observe(|e| {
+                if let ProgressEvent::ToolFinished(t) = e {
+                    outcomes.push(t.outcome());
+                }
+            })
+            .run(&agent)
+            .await
+            .unwrap();
+        assert_eq!(answer.total, 3);
+        assert_eq!(
+            outcomes,
+            [if timeout {
+                ToolOutcome::Deadline
+            } else {
+                ToolOutcome::Failed
+            }]
+        );
+        agent.shutdown().await.unwrap();
+    }
+}

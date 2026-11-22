@@ -14,8 +14,9 @@ The owner selected Codex for the next agent-compatibility investigation.
 [Codex research](implementation-roadmaps/codex.md#research-evidence) verifies
 model selection and a diagnostic two-turn workflow, and identifies permission
 correlation as required implementation work. The owner approved the Codex milestone;
-local implementation and direct live example validation now pass, with delivery
-still pending.
+it is complete through owner-merged PR #9, with passing final-head CI.
+The owner approved [progress observation](implementation-roadmaps/progress-observation.md)
+and assigned its bounded implementation milestone, now In progress.
 The supported product scope remains [typed conversations](design/typed-conversations.md).
 
 Initial choices are settled for Tokio, one session per owned ACP connection,

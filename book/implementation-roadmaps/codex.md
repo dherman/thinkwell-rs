@@ -3,15 +3,16 @@
 Roadmap identifier: `codex`.
 
 The owner selected Codex as the next agent investigation after merging PR #8.
-The initial research below used the custom AgentConfig API. The local
-implementation now includes the typed Codex preset; integration remains pending. The owner approved the concrete implementation milestone after reviewing these
+The initial research below used the custom AgentConfig API. The implementation includes the typed Codex preset, integrated through owner-merged
+PR #9. Earlier pending-delivery statements below describe historical tested states;
+the integrated completion record is current. The owner approved the concrete implementation milestone after reviewing these
 findings.
 
 ## Milestone 1. Codex preset and permission interoperability {#codex-1}
 
 **Identifier:** `codex-1`
 
-**Status:** In progress
+**Status:** Complete
 
 **Outcome:** A newcomer can connect with thinkwell::agent::Codex and run the
 existing typed conversation and borrowed-tool workflows without a diagnostic
@@ -288,3 +289,14 @@ consecutive local runs; workspace tests, strict all-target Clippy, warning-free
 Rustdocs, formatting, whitespace, Book structural check and rendering passed.
 This is local macOS evidence; revised-head Linux CI remains pending. No live model
 run is needed to exercise this deterministic request-publication boundary.
+
+## Integrated completion
+
+The owner reviewed and merged [PR #9](https://github.com/dherman/thinkwell-rs/pull/9),
+head `094239b760231849a912c775081fb51a842b0fba`, as
+`d1becc9aabd6058bc5cb1de8e5f87fdcbe2b196e`. All three jobs passed in both final-head
+CI runs `44970723008` and `44970724580`. Copilot's two findings and the subsequent
+CI race were addressed with the fixes and evidence above. The milestone's bounded
+criteria are complete through owner integration. Merge-commit CI run `44972456939`
+also passed, confirmed during the progress-observation follow-up. This Book closeout is
+a subsequent local change, not yet integrated.

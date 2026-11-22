@@ -49,6 +49,25 @@ The [sentiment analysis walkthrough](examples/sentiment-analysis/README.md) show
 the complementary pattern: lend a local Rust analyzer and mutable score log to
 an agent tool, then read a typed interpretation of its measurements.
 
+Add optional progress without changing the answer type:
+
+```rust,ignore
+let answer = Plan::<String>::new()
+    .text("Suggest a garden name.")
+    .observe(|event| {
+        if let thinkwell::ProgressEvent::Message(message) = event {
+            eprint!("{}", message.text());
+        }
+    })
+    .run(&agent)
+    .await?;
+```
+
+Observers can borrow local state. Progress is bounded and best-effort; the awaited
+result determines success. The opt-in `cargo run -p thinkwell --locked --example progress`
+shows console messages and a borrowed tool with Claude (its source explains the
+Codex substitution). It requires an installed, authenticated agent and uses inference.
+
 Project knowledge, decisions, roadmaps, and evidence live in the
 [Anchor Book](book/SUMMARY.md). Start with its [introduction](book/introduction.md)
 and [boundary](book/boundary.md). See [CONTRIBUTING.md](CONTRIBUTING.md) for
