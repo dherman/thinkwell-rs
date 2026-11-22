@@ -22,5 +22,6 @@
   - [Sentiment analysis](implementation-roadmaps/sentiment-analysis.md)
   - [One-shot tools](implementation-roadmaps/one-shot-tools.md)
   - [Codex agent compatibility](implementation-roadmaps/codex.md)
+  - [Progress observation design](implementation-roadmaps/progress-observation.md)
 - [Change delivery](change-delivery.md)
 - [Working on the project](working-on-the-project.md)

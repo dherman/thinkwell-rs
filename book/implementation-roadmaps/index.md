@@ -21,7 +21,10 @@ complete; this Book follow-up records their integration. The owner merged this c
 [one-shot tools milestone](one-shot-tools.md#integrated-completion), now complete
 through owner-merged PR #8 at 43c147c. Final-head and merge-commit CI passed.
 The owner-selected [Codex investigation](codex.md) found a permission-message
-compatibility gap; the owner approved its concrete implementation milestone, now In progress.
+compatibility gap, resolved in owner-merged PR #9 at d1becc9. Its
+[integrated completion](codex.md#integrated-completion) records final-head CI and
+review. The owner approved [progress observation](progress-observation.md) and assigned
+its bounded implementation milestone, now In progress.
 
 Use the pinned [roadmap format](../working-on-the-project.md#pinned-method-references):
 stable milestone and criterion fragments, outcome, status, identifier,

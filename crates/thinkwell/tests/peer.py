@@ -119,6 +119,23 @@ for line in sys.stdin:
         prompt = request["params"]["prompt"][0]["text"]
         turn = re.search(r"with turn ([\w-]+) and value", prompt).group(1)
         submit = lambda value, tid=turn: tool("return_result", {"turn": tid, "value": value})
+        if mode == "progress":
+            sid = request["params"]["sessionId"]
+            def update(value, session=sid):
+                print(json.dumps({"jsonrpc":"2.0","method":"session/update","params":{"sessionId":session,"update":value}}),flush=True)
+            update({"sessionUpdate":"agent_message_chunk","content":{"type":"text","text":"ignored old session"}}, "old-session")
+            update({"sessionUpdate":"agent_message_chunk","content":{"type":"text","text":"Working on it"}})
+            update({"sessionUpdate":"agent_message_chunk","content":{"type":"text","text":"x" * 70000}})
+            update({"sessionUpdate":"tool_call","toolCallId":"native","title":"Read notes","status":"in_progress","rawInput":{"secret":"do-not-expose"}})
+            update({"sessionUpdate":"tool_call_update","toolCallId":"native","status":"completed"})
+            update({"sessionUpdate":"tool_call","toolCallId":"result-internal","title":"mcp.thinkwell.return_result","status":"in_progress"})
+            update({"sessionUpdate":"tool_call_update","toolCallId":"result-internal","status":"completed"})
+            assert submit({"total":"invalid"})["isError"]
+            answer=tool("accumulate", {"turn":turn,"input":{"value":3}})
+            assert not answer["isError"]
+            assert not submit({"total":3})["isError"]
+            send(id, {"stopReason":"end_turn"})
+            continue
         if mode == "startup_during_prompt":
             startup_failure(request["params"]["sessionId"])
             continue  # No terminal prompt response: failure must wake the driver.

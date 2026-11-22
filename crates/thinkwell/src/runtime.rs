@@ -1,6 +1,10 @@
 use crate::{
     AgentConfig, Error, ErrorKind, Result, Tool,
     api::{Descriptor, Plan},
+    progress::{
+        ProgressEvent, ResultAcceptance, ResultRejection, Sink, ToolCompletion, ToolOutcome,
+        ToolProgress,
+    },
     schema,
 };
 use agent_client_protocol::{
@@ -124,12 +128,14 @@ struct Open {
     model: Option<String>,
     reply: oneshot::Sender<Result<SessionId>>,
     server: HttpTask,
+    progress: Option<Sink>,
 }
 enum Command {
     Open(Open),
     Prompt {
         id: SessionId,
         text: String,
+        progress: Option<Sink>,
         reply: oneshot::Sender<Result<()>>,
     },
 }
@@ -218,6 +224,7 @@ pub struct SessionBuilder<'a> {
     tools: Vec<Descriptor>,
     error: Option<Error>,
     model: Option<String>,
+    pub(crate) progress: Option<Sink>,
 }
 /// One conversation with an agent, including its earlier questions and answers.
 ///
@@ -431,6 +438,7 @@ impl<'a> SessionBuilder<'a> {
                 model: self.model,
                 reply,
                 server,
+                progress: self.progress,
             }))
             .await
             .map_err(|_| err(ErrorKind::Closed, "driver unavailable"))?;
@@ -460,6 +468,7 @@ impl Agent {
             tools: vec![],
             error: None,
             model: None,
+            progress: None,
         }
     }
     /// Get a handle for checking the result of automatic cleanup.
@@ -579,6 +588,8 @@ impl Agent {
             let permissions = allowed.clone();
             let identities = Arc::new(Mutex::new(crate::permissions::Permissions::default()));
             let observed = identities.clone();
+            let progress_route = Arc::new(Mutex::new(None::<(SessionId, Sink)>));
+            let updates = progress_route.clone();
             let (startup, mut startup_updates) =
                 tokio::sync::watch::channel(crate::startup::Startup::default());
             let startup_report = startup.clone();
@@ -601,6 +612,11 @@ impl Agent {
                     {
                         startup_report.send_modify(|state| state.report(notification.session_id.clone()));
                     }
+                    if let Some((id, sink)) = updates.lock().unwrap().as_ref()
+                        && id == &notification.session_id
+                    {
+                        sink.agent_update(&notification.update);
+                    }
                     observed.lock().unwrap().observe(notification);
                     Ok(())
                 }, agent_client_protocol::on_receive_notification!())
@@ -621,6 +637,7 @@ impl Agent {
                         };
                         match command {
                             Command::Open(mut open)=>{
+                                progress_route.lock().unwrap().take();
                                 startup.send_modify(|state| state.begin());
                                 *allowed.lock().unwrap()=Some(open.http.clone());
                                 driver_servers.lock().unwrap().push(open.server);
@@ -628,6 +645,9 @@ impl Agent {
                                     let s=cx.send_request(NewSessionRequest::new(directory.path().to_owned()).mcp_servers(vec![
                                         McpServer::Http(McpServerHttp::new("thinkwell",open.url).headers(vec![HttpHeader::new("Authorization",open.http.token.clone())]))
                                     ])).block_task().await.map_err(transport)?;
+                                    if let Some(sink) = open.progress.clone() {
+                                        *progress_route.lock().unwrap() = Some((s.session_id.clone(), sink));
+                                    }
                                     startup.send_modify(|state| state.select(s.session_id.clone()));
                                     if startup.borrow().failed() {
                                         return Err(startup_error());
@@ -645,9 +665,11 @@ impl Agent {
                                     _=startup_updates.wait_for(|state| state.failed())=>Err(startup_error()),
                                     result=tokio::time::timeout(setup_timeout,operation)=>result.map_err(|_|err(ErrorKind::Deadline,"session setup deadline")).and_then(|r|r),
                                 };
+                                progress_route.lock().unwrap().take();
                                 let _=open.reply.send(result);
                             }
-                            Command::Prompt{id,text,mut reply}=>{
+                            Command::Prompt{id,text,progress,mut reply}=>{
+                                *progress_route.lock().unwrap() = progress.map(|sink| (id.clone(), sink));
                                 let tools=allowed.lock().unwrap().as_ref().map(|http| http.tools.iter().map(|tool|tool.name.clone()).collect::<Vec<_>>()).unwrap_or_default();
                                 identities.lock().unwrap().begin(id.clone(), tools.into_iter());
                                 // send_request publishes eagerly. Defer it until this branch is
@@ -666,6 +688,7 @@ impl Agent {
                                         reason=>Err(err(ErrorKind::RemoteStop,format!("{reason:?}"))),
                                     }),
                                 };
+                                progress_route.lock().unwrap().take();
                                 identities.lock().unwrap().end();
                                 let _=reply.send(result);
                             }
@@ -799,12 +822,14 @@ impl Session<'_> {
             .send(Command::Prompt {
                 id: self.id.clone(),
                 text,
+                progress: plan.progress.clone(),
                 reply,
             })
             .await
             .map_err(|_| err(ErrorKind::Closed, "driver unavailable"))?;
         let mut candidate = None;
         let mut invalid = 0;
+        let mut submissions = 0;
         let mut count = 0;
         let work = async {
             loop {
@@ -816,12 +841,16 @@ impl Session<'_> {
                     }
                     Some(call)=calls.recv()=>{
                         let response=if call.name=="return_result" {
+                            submissions+=1;
                             if candidate.is_some() {Err(err(ErrorKind::InvalidValue,"duplicate result"))}
                             else {
                                 let result=call.args.get("value").ok_or_else(||err(ErrorKind::InvalidValue,"missing value"))
                                     .and_then(|value|schema::decode::<T>(&schema,value.clone()));
                                 match result {
-                                    Ok(value)=>{candidate=Some(value);Ok(json!({"accepted":true}))}
+                                    Ok(value)=>{
+                                        if let Some(sink)=&plan.progress {sink.push(ProgressEvent::ResultAccepted(ResultAcceptance {attempt:submissions}));}
+                                        candidate=Some(value);Ok(json!({"accepted":true}))
+                                    }
                                     Err(e)=>{invalid+=1;Err(e)}
                                 }
                             }
@@ -831,17 +860,35 @@ impl Session<'_> {
                                 let e=err(ErrorKind::CallBudget,"application call budget exhausted");
                                 let _=call.reply.send(Err(e.clone()));return Err(e);
                             }
+                            let activity=plan.progress.as_ref().map(|sink| {
+                                let activity=ToolProgress { id:count.to_string(), name:call.name.clone() };
+                                sink.push(ProgressEvent::ToolStarted(activity.clone()));
+                                activity
+                            });
                             let binding=plan.bindings.iter_mut().find(|b|b.descriptor.name==call.name).expect("route validates catalog");
                             let invocation=async {
                                 let input=call.args.get("input").ok_or_else(||err(ErrorKind::InvalidValue,"missing input"))?;
                                 binding.callback.call(input.clone()).await
                             };
-                            tokio::select! {
+                            let mut timed_out=false;
+                            let result=tokio::select! {
                                 biased;
                                 _=&mut terminal=>return Err(err(ErrorKind::CallbackOverlap,"terminal arrived during callback")),
-                                r=tokio::time::timeout(plan.options.callback_timeout,invocation)=>r.map_err(|_|err(ErrorKind::Deadline,"callback deadline")).and_then(|r|r),
+                                r=tokio::time::timeout(plan.options.callback_timeout,invocation)=>match r {
+                                    Ok(result)=>result,
+                                    Err(_)=>{timed_out=true;Err(err(ErrorKind::Deadline,"callback deadline"))},
+                                },
+                            };
+                            if let (Some(sink),Some(tool))=(&plan.progress,activity) {
+                                let outcome=match &result {Ok(_)=>ToolOutcome::Succeeded,Err(_) if timed_out=>ToolOutcome::Deadline,Err(_)=>ToolOutcome::Failed};
+                                sink.push(ProgressEvent::ToolFinished(ToolCompletion {tool,outcome}));
                             }
+                            result
                         };
+                        if call.name=="return_result" && response.is_err()
+                            && let Some(sink)=&plan.progress {
+                                sink.push(ProgressEvent::ResultRejected(ResultRejection {attempt:submissions,reason:if candidate.is_some(){"duplicate result"}else{"result did not match its contract"}}));
+                        }
                         let _=call.reply.send(response);
                         if invalid>=plan.options.max_invalid_results{return Err(err(ErrorKind::ResultBudget,"invalid result budget exhausted"));}
                     }
@@ -951,6 +998,32 @@ async fn handle(
         }
     };
     Json(json!({"jsonrpc":"2.0","id":id,"result":result})).into_response()
+}
+
+pub(crate) struct ObserverGuard {
+    control: Arc<Control>,
+    sink: Sink,
+}
+impl Drop for ObserverGuard {
+    fn drop(&mut self) {
+        self.sink.close();
+        if std::thread::panicking() {
+            self.control.close();
+        }
+    }
+}
+impl Agent {
+    pub(crate) fn observer_guard(&self, sink: Sink) -> ObserverGuard {
+        ObserverGuard {
+            control: self.control.clone(),
+            sink,
+        }
+    }
+}
+impl Session<'_> {
+    pub(crate) fn observer_guard(&self, sink: Sink) -> ObserverGuard {
+        self.agent.observer_guard(sink)
+    }
 }
 
 #[cfg(test)]

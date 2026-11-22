@@ -220,3 +220,17 @@ incoming migration links. First retain any legally required notices and provenan
 in durable records alongside adapted material. No substantive implementation has
 been adapted so far. Migration research must not be necessary to interpret the
 remaining requirements, designs, tests, or delivery records.
+
+
+## Progress API refresh
+
+For the owner-assigned progress design, re-read the pinned upstream
+[greeting example](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/examples/src/greeting.ts)
+and [Plan API documentation](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/website/api/plan.mdx).
+Greeting displays message chunks from stream(), then separately awaits result.
+The docs describe eager execution, independent event iteration/result lifecycles,
+message/thought/tool/plan events and continued execution after early iterator exit.
+These are source observations, not Rust requirements or newly verified TS runtime
+behavior. No source was copied or adapted. The Rust proposal keeps typed results
+separate from progress but recommends lazy execution and a borrowed synchronous
+observer initially. Migration links stay here; the Rust design stands independently.
