@@ -234,3 +234,8 @@ behavioral-parity promise or a runtime dependency on the TypeScript project.
 Original material uses the repository's MIT OR Apache-2.0 license. The z3 wrapper,
 z3-sys bindings, and native Z3 dependency carry their own MIT notices; preserve
 the applicable dependency notices when distributing a linked executable.
+
+To try this example with Codex, change the `agent::Claude` import to
+`agent::Codex` and the connection to `Codex::connect().await?`. The rest of the
+workflow is unchanged. Follow the repository's [Codex setup instructions](../../README.md)
+first; Thinkwell does not install or authenticate agents during connection.

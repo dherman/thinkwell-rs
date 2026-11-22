@@ -6,8 +6,8 @@ use std::{future::Future, marker::PhantomData, pin::Pin, time::Duration};
 
 /// The command Thinkwell should run to start an agent.
 ///
-/// Use this when you want to connect to an agent other than the built-in [Claude](crate::agent::Claude)
-/// preset, or choose its command-line arguments. Creating a configuration does not
+/// Use this to connect to an agent other than the [built-in presets](crate::agent),
+/// or choose its command-line arguments. Creating a configuration does not
 /// start anything; pass it to [Agent::connect] when you are ready.
 ///
 /// ~~~no_run

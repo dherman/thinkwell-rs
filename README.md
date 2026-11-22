@@ -24,6 +24,21 @@ connection; application effects are not rolled back. Schema support is deliberat
 finite, and Windows/embedding/concurrent sessions are not initial support targets.
 The integrated first product slice passed local macOS checks and Linux CI.
 
+Codex is also available through `thinkwell::agent::Codex`: use
+`Codex::connect().await?` with the same plans, tools and sessions. Cache its adapter
+before first use:
+
+```sh
+npm exec --yes --package=@agentclientprotocol/codex-acp@2.8.0 -- node --version
+```
+
+Authenticate Codex separately. The preset uses offline npx and the adapter's
+read-only mode. Codex can still perform native reads without asking Thinkwell;
+Thinkwell's declared-tool permission policy is not an operating-system sandbox.
+Existing Codex configuration applies; reserve the MCP server name `thinkwell`
+for this library. See the [Codex compatibility record](book/implementation-roadmaps/codex.md)
+for tested versions and limitations.
+
 For a practical code/prompt workflow, try the
 [meeting scheduler example and walkthrough](examples/meeting-scheduler/README.md).
 It translates availability into typed data, solves it with Z3 in Rust, then asks

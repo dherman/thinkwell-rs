@@ -109,8 +109,10 @@
 
 pub mod agent;
 mod api;
+mod permissions;
 mod runtime;
 mod schema;
+mod startup;
 
 pub use api::*;
 pub use runtime::{Agent, Diagnostics, Session, SessionBuilder};
