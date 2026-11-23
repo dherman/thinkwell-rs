@@ -1,0 +1,83 @@
+---
+title: "Working with structs and enums"
+description: "Choose an answer type that makes the next step in your program easy."
+---
+
+The [first tutorial](/get-started/first-answer) used an enum to classify feedback.
+An enum can also describe different kinds of answer, each with its own fields.
+
+Suppose your program turns customer messages into product ideas. Some messages
+contain a concrete request; others need clarification. Model those outcomes
+directly instead of returning a handful of optional fields.
+
+## Give each outcome its own data
+
+Use the project and agent setup from the first tutorial. Replace `src/main.rs` with:
+
+```rust
+use schemars::JsonSchema;
+use serde::Deserialize;
+use thinkwell::{Plan, agent::Claude};
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+enum NextStep {
+    SuggestFeature {
+        /// A short name for the requested feature.
+        title: String,
+        /// What the customer would be able to do.
+        benefit: String,
+    },
+    AskQuestion {
+        /// One question that would clarify the customer's need.
+        question: String,
+    },
+}
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> thinkwell::Result<()> {
+    let agent = Claude::connect().await?;
+    let next = Plan::<NextStep>::new()
+        .text("Read this customer message. Suggest a feature if the need is clear; otherwise ask a clarifying question.")
+        .text("I wish I could keep my weekly checklist where I can always find it.")
+        .run(&agent)
+        .await?;
+
+    match next {
+        NextStep::SuggestFeature { title, benefit } => {
+            println!("Idea: {title}\nBenefit: {benefit}");
+        }
+        NextStep::AskQuestion { question } => println!("Ask: {question}"),
+    }
+    Ok(())
+}
+```
+
+Run it with `cargo run`. The agent chooses an outcome; Rust makes you handle both.
+If the agent suggests a feature, `title` and `benefit` are available together. If
+it asks a question, your program receives the `question` field instead.
+
+The `serde` attribute gives the data a `kind` field identifying the variant.
+`JsonSchema` understands that representation too. You don't need to build the
+corresponding JSON by hand.
+
+## Start with the type your caller needs
+
+Use a `String` for free-form text and `Vec<String>` for a list. Use a struct when
+the answer has several pieces that belong together. Use an enum when the next
+step depends on which kind of answer you get.
+
+Nested structs and enums work without extra inlining annotations. For numbers,
+start with `i64` for integers and `f64` for finite decimal values. Not every type
+that derives `JsonSchema` is supported yet: recursive types, some numeric types,
+and schema constraints such as string patterns are outside the current subset.
+Unsupported schemas produce a contract error before the prompt is sent.
+
+## Types don't decide whether an idea is good
+
+This example guarantees that a successful result can be handled by the `match`.
+It doesn't guarantee the proposed feature is useful or the clarifying question
+is necessary. That distinction is useful when designing your application:
+represent the answer clearly, then apply any business rules in your own code.
+
+Next, [give the agent more context](/learn/context).

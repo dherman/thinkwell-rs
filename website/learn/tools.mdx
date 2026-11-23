@@ -1,0 +1,80 @@
+---
+title: "Giving the agent a tool"
+description: "Let an agent call a Rust function and keep using your local state afterward."
+---
+
+Sometimes the agent needs information that your program has. A tool lets it ask
+for that information while working on a request.
+
+Imagine a small shop assistant. Rust owns the stock counts; the agent recommends
+something to buy. The tool bridges those two parts.
+
+## Lend a lookup function
+
+Using the [first tutorial's setup](/get-started/first-answer), replace `src/main.rs` with:
+
+```rust
+use thinkwell::{Error, Plan, agent::Claude};
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> thinkwell::Result<()> {
+    let agent = Claude::connect().await?;
+    let stock = [("notebook", 3_i64), ("pencil", 12_i64)];
+    let mut looked_up = Vec::new();
+
+    let recommendation = Plan::<String>::new()
+        .text("Recommend a notebook or pencil for someone starting a journal. Use stock_count to check availability before recommending an item.")
+        .tool(
+            "stock_count",
+            "Look up available stock by exact item name: notebook or pencil.",
+            async |name: String| {
+                let (_, count) = stock
+                    .iter()
+                    .find(|(item, _)| *item == name)
+                    .ok_or_else(|| Error::tool("Unknown item; use notebook or pencil"))?;
+                looked_up.push(name);
+                Ok(*count)
+            },
+        )
+        .run(&agent)
+        .await?;
+
+    println!("Recommendation: {recommendation}");
+    println!("Items checked: {looked_up:?}");
+    Ok(())
+}
+```
+
+The tool has a name, a description, and an async function. The description tells
+the agent when to use it. The function's `String` input and `i64` output describe
+the values Thinkwell should accept; you don't write a separate tool schema.
+
+`Error::tool` reports a failed lookup to the agent, giving it a chance to correct
+the name. Successful calls return the count from your collection.
+
+## Borrow ordinary Rust values
+
+The callback reads `stock` and appends to `looked_up`. Both belong to your function;
+you don't need to move them into a global service or wrap them in shared-state
+containers. After `.await`, the callback is finished and you can inspect the log.
+
+You can use your own structs for tool values too. Inputs need `Deserialize` and
+`JsonSchema`; outputs need `Serialize` and `JsonSchema`, within the supported
+schema subset. For a tool with no input, use an explicit unit argument such as
+`async |(): ()| { Ok("ready".to_owned()) }`.
+
+## Decide what the caller must check
+
+The agent decides which tools to call. A successful typed answer doesn't prove
+that it performed a requested lookup. If checking stock is a requirement for your
+application, inspect the log or validate the recommendation against the inventory
+in Rust. This example prints the log so you can see what happened.
+
+Start with read-only tools like this lookup. If a tool changes application state,
+those changes aren't rolled back when a later step fails or a request is cancelled.
+
+This inline `.tool()` form is for a fresh, single-turn conversation. For tools in
+an ongoing conversation, declare them when opening the session and supply their
+functions on each turn. The next guide shows that pattern.
+
+Next, [continue a conversation](/learn/conversations).

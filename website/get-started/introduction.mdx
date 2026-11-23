@@ -1,0 +1,48 @@
+---
+title: "What is Thinkwell?"
+description: "Write Rust programs that use AI agents where they help."
+---
+
+Some parts of a program need exact rules. Others need an interpretation of what
+someone meant: summarizing feedback, translating availability into time windows,
+or suggesting a meaningful name for a function.
+
+Thinkwell lets you put those steps together. Ask an agent for an answer with a
+Rust type, await it, then carry on with your code.
+
+## An answer you can use
+
+You decide what you want back: a string, a list, or your own struct or enum. For
+example, a feedback reader can ask for a summary and a sentiment, then match on
+the sentiment to decide what to show the user. You don't have to extract data
+from a chat transcript.
+
+The type describes the shape of the answer. Your prompt explains the task. A
+successful request gives you a value of that type, but it doesn't prove the
+agent's interpretation is correct. Ordinary Rust checks still have a role.
+
+[Write your first typed-answer program →](/get-started/first-answer)
+
+## Your code controls the flow
+
+Start with a single request. Add capabilities as you need them:
+
+- [Add context](/learn/context) from data your program already has.
+- [Provide a tool](/learn/tools) so the agent can call a Rust function.
+- [Keep a conversation](/learn/conversations) when a follow-up depends on an earlier answer.
+- [Show progress](/learn/progress) while waiting for the typed result.
+
+You can use loops, conditionals, helper functions and libraries as you normally
+would. For example, a meeting scheduler can ask an agent to interpret availability,
+use a Rust solver to find a time, and ask for a friendly explanation of the result.
+
+## Choose an agent
+
+Thinkwell connects to an external agent through the Agent Client Protocol (ACP).
+The Rust library includes presets for Claude and Codex. The agent handles access
+to its models; Thinkwell handles requests and typed answers from your program.
+You install and authenticate the agent separately; see [Agent setup](/reference/agents).
+
+The Rust library is under development and is not yet published on crates.io.
+The tutorials use a repository checkout on macOS or Linux. If you're looking for
+the TypeScript version, visit [thinkwell.sh](https://thinkwell.sh).

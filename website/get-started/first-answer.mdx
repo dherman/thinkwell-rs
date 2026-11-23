@@ -1,0 +1,179 @@
+---
+title: "Your first typed answer"
+description: "Ask an agent to interpret feedback, then use its answer in ordinary Rust code."
+---
+
+Thinkwell lets a Rust program ask an AI agent for an answer and receive it as a
+Rust value. You choose the shape of that answer with a type, write a prompt, and
+continue with ordinary code.
+
+In this tutorial, you'll turn a sentence of customer feedback into a short summary
+and a sentiment: positive, negative, or neutral.
+
+## Set up a project
+
+The Rust library is still under development and isn't published on crates.io.
+For now, use a local checkout. These instructions target macOS or Linux and assume
+you have Git and [rustup](https://rustup.rs/) installed.
+
+Run these commands in a directory where you keep projects. They create two sibling
+directories: the Thinkwell checkout and your new application.
+
+```sh
+git clone https://github.com/dherman/thinkwell-rs.git
+rustup toolchain install 1.100.0 --profile minimal
+cargo +1.100.0 new feedback-reader --edition 2024
+cd feedback-reader
+rustup override set 1.100.0
+```
+
+Rust 1.100.0 is the project's current development toolchain. Replace your new
+application's `Cargo.toml` with:
+
+```toml
+[package]
+name = "feedback-reader"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+thinkwell = { path = "../thinkwell-rs/crates/thinkwell" }
+schemars = "=1.2.3"
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["rt", "macros", "net", "time"] }
+```
+
+## Prepare an agent
+
+Thinkwell connects to an agent running on your computer. This example uses Claude.
+You'll need [Node.js](https://nodejs.org/) with npm/npx and working Claude
+Code authentication. Follow the [Claude Code setup instructions](https://code.claude.com/docs/en/setup)
+to install it and sign in before continuing.
+
+Download the adapter version that Thinkwell's Claude preset uses:
+
+```sh
+npm exec --yes --package=@zed-industries/claude-agent-acp@0.23.1 -- node --version
+```
+
+This caches the adapter and prints the Node version. The adapter translates between
+Thinkwell and Claude using the Agent Client Protocol (ACP). Thinkwell starts it
+from the local cache when you connect; it doesn't install it or sign you in.
+Running the example makes a real model request using your Claude account.
+
+## Write the program
+
+Replace `src/main.rs` with:
+
+```rust
+use schemars::JsonSchema;
+use serde::Deserialize;
+use thinkwell::{Plan, agent::Claude};
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+enum Sentiment {
+    Positive,
+    Negative,
+    Neutral,
+}
+
+#[derive(Deserialize, JsonSchema)]
+struct Feedback {
+    /// A one-sentence summary of what the customer said.
+    summary: String,
+    /// The customer's overall attitude toward the product.
+    sentiment: Sentiment,
+}
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> thinkwell::Result<()> {
+    let agent = Claude::connect().await?;
+    let customer_feedback = "I love the new search, but exporting my notes is confusing.";
+
+    let feedback = Plan::<Feedback>::new()
+        .text("Summarize this customer feedback and classify its overall sentiment.")
+        .text(customer_feedback)
+        .run(&agent)
+        .await?;
+
+    println!("Summary: {}", feedback.summary);
+    match feedback.sentiment {
+        Sentiment::Positive => println!("The customer sounds happy."),
+        Sentiment::Negative => println!("The customer sounds unhappy."),
+        Sentiment::Neutral => println!("The customer's feedback is neutral or mixed."),
+    }
+    Ok(())
+}
+```
+
+## Run it
+
+First check that the program compiles. This doesn't contact Claude:
+
+```sh
+cargo check
+```
+
+Then ask Claude to interpret the feedback:
+
+```sh
+cargo run
+```
+
+You might see something like this (the wording and classification can vary):
+
+```text
+Summary: The customer likes the new search but finds exporting notes confusing.
+The customer's feedback is neutral or mixed.
+```
+
+## Understand the pieces
+
+**`Feedback` describes the answer you want.** Its `summary` field holds text, and
+its `sentiment` field holds one of three enum variants. `JsonSchema` gives Thinkwell
+a description of that shape to share with the agent; `Deserialize` lets it turn
+the returned data into a Rust value. Field comments help explain what to put in
+each field. You don't need a separate schema file or a Thinkwell build command.
+
+**`Claude::connect()` starts the connection.** Keep the returned agent around for
+more work. The program uses Claude's default model.
+
+**A `Plan` describes one request.** `Plan::<Feedback>` chooses its answer type.
+The two `.text()` calls add instructions and the customer's words. Building the
+plan doesn't run the agent; `.run(&agent).await` sends the request and waits for
+the result. Each call to `run` starts a fresh conversation.
+
+**After the await, you're back in ordinary Rust.** Thinkwell checks the returned
+data against the supported schema before returning a `Feedback`. You can read its
+fields and match on the enum without parsing an assistant message yourself. That
+checks the answer's structure; the model can still misunderstand the customer's
+meaning. Use your own checks where accuracy matters.
+
+**`?` passes an error back to the caller.** Connection or request failures stop this
+small program and report an error. There is no explicit close step: dropping the
+agent starts cleanup, including when the function returns early.
+
+The Tokio attribute lets `main` await the agent. The dependency features above
+provide the runtime, networking and timers Thinkwell needs.
+
+## Try another input
+
+Change `customer_feedback` to a clearly positive or negative sentence and run the
+program again. The prompt and Rust type stay the same; your `match` chooses what
+the program does with each answer.
+
+As your program grows, you can add structured context, give the agent Rust functions
+to call as tools, or keep a conversation open for follow-up questions. Those build
+on the same pattern: describe the answer, await it, then use it in your code.
+
+Continue with [Working with structs and enums](/learn/answer-types).
+
+## If setup fails
+
+- If Cargo can't find Thinkwell, check that `feedback-reader` and `thinkwell-rs`
+  are siblings and the dependency path points to `crates/thinkwell`.
+- If connecting reports a missing command or package, check that `npx` is on your
+  PATH and rerun the adapter-cache command with the exact version above.
+- If Claude reports an authentication error, verify that Claude Code works with
+  your account outside this program, then retry.

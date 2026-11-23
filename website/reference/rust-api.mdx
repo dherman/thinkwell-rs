@@ -1,0 +1,55 @@
+---
+title: "Rust API reference"
+description: "Find exact signatures and examples in the generated Rust documentation."
+---
+
+This site teaches workflows. Rustdoc is the detailed reference for methods, types,
+errors and their code examples.
+
+The crate is unpublished, so there isn't a public docs.rs reference yet. You can
+build Rustdoc locally or download it from a repository CI run.
+
+## Build locally
+
+From your Thinkwell repository checkout:
+
+```sh
+cargo doc --workspace --no-deps --locked
+```
+
+Open `target/doc/thinkwell/index.html` in a browser. If you set `CARGO_TARGET_DIR`,
+the generated `doc/` directory is under that target directory instead.
+
+Building docs doesn't connect to an agent or require model credentials. Cargo may
+need to download dependencies on the first build.
+
+## Download from GitHub Actions
+
+Open a successful [CI run](https://github.com/dherman/thinkwell-rs/actions) and
+download its `rustdoc` artifact. Extract the archive and open
+`thinkwell/index.html`. Keep the extracted directory together so styles, search
+and source links work. Artifacts are retained for 14 days, and downloading may
+require signing in to GitHub.
+
+This is a downloadable documentation bundle, not a hosted public reference URL.
+
+## Where to look
+
+| You want to… | Start with |
+| --- | --- |
+| Connect a built-in agent | `agent::Claude`, `agent::Codex` |
+| Configure a custom command | `AgentConfig`, `Agent::connect` |
+| Ask a fresh question | `Plan::new`, `Plan::run` |
+| Supply text, data or code | `Plan::text`, `Plan::json`, `Plan::code` |
+| Expose a function for one turn | `Plan::tool` |
+| Keep history and choose a model | `Agent::session`, `SessionBuilder`, `Plan::run_in` |
+| Use tools in an ongoing session | `Tool`, `SessionBuilder::tool`, `Plan::bind` |
+| Show activity | `Plan::observe`, `ProgressEvent` |
+| Set time and call limits | `RunOptions`, `Plan::options` |
+| Handle failures or await cleanup | `ErrorKind`, `Agent::shutdown` |
+
+For contributions, follow the repository's
+[contribution guide](https://github.com/dherman/thinkwell-rs/blob/main/CONTRIBUTING.md).
+The [project Book](https://github.com/dherman/thinkwell-rs/blob/main/book/SUMMARY.md)
+contains design decisions and implementation evidence; it serves a different
+purpose from these user-facing tutorials.

@@ -1,0 +1,105 @@
+---
+title: "Continuing a conversation"
+description: "Ask follow-up questions while choosing a new answer type for each turn."
+---
+
+Use `run` when each request stands on its own. When a question depends on an
+earlier answer, open a session and use `run_in` instead. A session keeps the
+conversation history.
+
+## Change the answer type between turns
+
+This program asks for names, then asks for an explanation of one. Use the
+[first tutorial's project setup](/get-started/first-answer).
+
+```rust
+use thinkwell::{Plan, agent::Claude};
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> thinkwell::Result<()> {
+    let agent = Claude::connect().await?;
+    let mut session = agent.session().open().await?;
+
+    let names = Plan::<Vec<String>>::new()
+        .text("Suggest three names for a neighborhood seed library.")
+        .run_in(&mut session)
+        .await?;
+    println!("Candidates: {names:?}");
+
+    let explanation = Plan::<String>::new()
+        .text("Choose your favorite of those names and explain why in one sentence.")
+        .run_in(&mut session)
+        .await?;
+    println!("{explanation}");
+    Ok(())
+}
+```
+
+The first answer is a `Vec<String>`; the second is a `String`. The session remembers
+the earlier exchange, but it doesn't fix the answer type. Each plan chooses its own.
+The prompt asks for three names; `Vec<String>` itself doesn't enforce that length.
+
+You can process an answer in Rust between turns. If your code changes something
+the agent needs to know, include that information in the next prompt. Conversation
+history doesn't give the agent access to local variables.
+
+## Keep a tool available across turns
+
+An ongoing conversation chooses its tools when it opens. A `Tool` describes the
+name and input/output types. Each plan then binds the Rust function to call during
+that turn.
+
+```rust
+use thinkwell::{Plan, Tool, agent::Claude};
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> thinkwell::Result<()> {
+    let agent = Claude::connect().await?;
+    let stock_count = Tool::<String, i64>::new(
+        "stock_count",
+        "Return the current notebook stock; pass notebook as the item name.",
+    );
+    let mut session = agent.session().tool(&stock_count).open().await?;
+    let mut notebooks = 3_i64;
+
+    let first = Plan::<String>::new()
+        .text("Use stock_count to check how many notebooks are available and tell me.")
+        .bind(&stock_count, async |_name: String| Ok(notebooks))
+        .run_in(&mut session)
+        .await?;
+    println!("{first}");
+
+    // A sale occurs in the application between requests.
+    notebooks -= 1;
+
+    let second = Plan::<i64>::new()
+        .text("A sale occurred. Check notebook stock again and return the current count.")
+        .bind(&stock_count, async |_name: String| Ok(notebooks))
+        .run_in(&mut session)
+        .await?;
+    println!("Agent reported {second}; Rust holds {notebooks}");
+    Ok(())
+}
+```
+
+This deliberately small tool always returns the notebook count. The second
+binding borrows the updated value. Binding on each turn lets your code work with
+its state between requests, while keeping the same tool description in the
+conversation.
+
+Bind every declared tool on every turn, even if you don't expect the agent to
+use it. You can't add tools to an already open session; open a new session when
+you need a different tool catalog. Use inline `.tool()` with `run` for the simpler
+single-turn case.
+
+## Let the session end naturally
+
+The session borrows the agent. Let both go out of scope when you're done; no
+explicit finish or close step is needed. One agent supports one open session at
+a time. Drop that session before starting a fresh `run` on the same agent.
+
+If a request fails after it starts, or you cancel it by dropping its future, the
+session and its connection become unusable. Connect again for subsequent work.
+Tool effects that already happened remain in your application.
+
+Next, [show progress while waiting](/learn/progress).

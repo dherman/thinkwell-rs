@@ -1,0 +1,71 @@
+---
+title: "Showing progress"
+description: "Display activity while keeping the final answer as an ordinary Rust value."
+---
+
+A request can take a while. Attach an observer to show activity while you wait,
+without changing the type of answer your program receives.
+
+## Print messages as they arrive
+
+Use the [first tutorial's setup](/get-started/first-answer) and replace `src/main.rs` with:
+
+```rust
+use thinkwell::{Plan, ProgressEvent, agent::Claude};
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> thinkwell::Result<()> {
+    let agent = Claude::connect().await?;
+    let mut message_updates = 0;
+    let names = Plan::<Vec<String>>::new()
+        .text("Suggest three welcoming names for a neighborhood seed library.")
+        .observe(|event| {
+            if let ProgressEvent::Message(message) = event {
+                message_updates += 1;
+                eprint!("{}", message.text());
+            }
+        })
+        .run(&agent)
+        .await?;
+
+    println!("\nNames: {names:?}");
+    println!("Received {message_updates} message updates.");
+    Ok(())
+}
+```
+
+Finish building the plan before calling `.observe()`, then call `run` or `run_in`.
+The callback receives progress events as the request runs. It can borrow local
+state: here the counter is available again after the await.
+
+The example prints message fragments to stderr and the final list to stdout.
+What messages appear depends on the agent; a successful turn may produce no
+message updates. Don't assemble the typed answer from these fragments. Use the
+value returned by the awaited request.
+
+## Listen for the events you need
+
+Other events describe tool starts and finishes, agent-reported tool activity,
+and attempts to return a typed answer. You can add arms to a `match` when those
+are useful for your interface. The event enum is non-exhaustive, so keep a fallback
+arm for kinds you don't handle; the `if let` above naturally ignores them.
+
+Progress delivery is best-effort and bounded. If updates overflow the buffer,
+Thinkwell can report `EventsDropped`. A progress log isn't an audit trail and a
+result-accepted event isn't a substitute for awaiting the request's final outcome.
+
+Keep the callback short: printing a fragment or updating a small counter is a
+good fit. It is synchronous, and blocking it delays the request. There is no
+separate progress task for your application to join or shut down.
+
+## Put the pieces together
+
+You now have the core pattern: choose an answer type, add context, provide tools
+when needed, and await a value. Use a session for history and an observer for
+optional display. Your loops, data and decisions stay in ordinary Rust.
+
+For larger worked programs, try [sentiment analysis](/examples/sentiment-analysis),
+[a meeting scheduler](/examples/meeting-scheduler), or a
+[JavaScript unminifier](/examples/javascript-unminifier). See
+[Agent setup](/reference/agents) to switch agents or select a model, and
+[Errors and cleanup](/reference/errors) when you need more control over failures.

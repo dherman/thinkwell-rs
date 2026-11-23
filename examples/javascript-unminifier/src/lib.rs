@@ -1,7 +1,7 @@
 //! The Thinkwell workflow: ask for typed naming suggestions in ordinary Rust.
 pub mod javascript;
 
-use javascript::Candidate;
+use crate::javascript::Candidate;
 use schemars::JsonSchema;
 use serde::Deserialize;
 use std::collections::HashMap;

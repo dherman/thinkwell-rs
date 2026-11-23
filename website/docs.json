@@ -1,0 +1,57 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "maple",
+  "name": "Thinkwell for Rust",
+  "description": "Combine Rust code with typed answers from AI agents.",
+  "colors": {
+    "primary": "#0084d1",
+    "light": "#00bcff",
+    "dark": "#0084d1"
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get started",
+        "pages": [
+          "get-started/introduction",
+          "get-started/first-answer"
+        ]
+      },
+      {
+        "group": "Build with Thinkwell",
+        "pages": [
+          "learn/answer-types",
+          "learn/context",
+          "learn/tools",
+          "learn/conversations",
+          "learn/progress"
+        ]
+      },
+      {
+        "group": "Examples",
+        "pages": [
+          "examples/sentiment-analysis",
+          "examples/meeting-scheduler",
+          "examples/javascript-unminifier"
+        ]
+      },
+      {
+        "group": "Reference",
+        "pages": [
+          "reference/agents",
+          "reference/answer-types",
+          "reference/errors",
+          "reference/rust-api"
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/dherman/thinkwell-rs"
+      }
+    ]
+  }
+}

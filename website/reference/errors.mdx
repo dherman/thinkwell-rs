@@ -1,0 +1,86 @@
+---
+title: "Errors and cleanup"
+description: "Handle failed requests and understand what happens to your connection and tools."
+---
+
+For a small program, returning `thinkwell::Result<()>` and using `?` is a useful
+starting point. It reports a failed operation and lets values go out of scope.
+You don't need a separate finish step after awaiting an answer.
+
+## Choose limits for a request
+
+A plan uses these defaults:
+
+| Limit | Default |
+| --- | --- |
+| Whole turn, including tools | 120 seconds |
+| One tool callback, including value checking | 30 seconds |
+| Application-tool calls | 32 |
+| Invalid final answers before failure | 3 |
+
+Change them with `RunOptions`. This complete example uses the
+[first tutorial's dependencies](/get-started/first-answer):
+
+```rust
+use std::time::Duration;
+use thinkwell::{Plan, RunOptions, agent::Claude};
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> thinkwell::Result<()> {
+    let agent = Claude::connect().await?;
+    let answer = Plan::<String>::new()
+        .text("Suggest a name for a community garden.")
+        .options(RunOptions {
+            turn_timeout: Duration::from_secs(30),
+            max_tool_calls: 4,
+            ..RunOptions::default()
+        })
+        .run(&agent)
+        .await?;
+    println!("{answer}");
+    Ok(())
+}
+```
+
+All limits must be nonzero. They bound work and waiting time, not model spending
+or token usage directly. Invalid tool calls still count toward the tool-call
+budget. The final typed answer has its own invalid-answer budget.
+
+## Decide whether to reconnect
+
+The important distinction is whether the request started:
+
+- **Before sending:** invalid options, unsupported schemas or missing bindings
+  can be corrected before trying again in the same session.
+- **After starting:** a failed or cancelled turn closes the session and connection.
+  Connect again for subsequent work; earlier history isn't recovered automatically.
+
+Dropping a running request's future cancels it. Because no future remains to return
+a value, that cancellation doesn't deliver an error to the dropped caller.
+
+Match `error.kind` to handle categories and display `error.message` for people.
+Don't parse message text. `ErrorKind` is non-exhaustive, so a match needs a fallback.
+Useful categories include `Contract`, `Binding`, `Busy`, `Transport`, `Deadline`,
+`MissingResult` and `Closed`. The operation that failed and whether it started
+matter when deciding what to do next; a category alone isn't a general retry policy.
+
+## A tool error can be recoverable within the turn
+
+Returning `Error::tool(...)` from a callback tells the agent why that call failed.
+The agent may correct its input and continue. A callback timeout is also reported
+as a tool error. Exhausting the whole-turn deadline or call budget ends the turn.
+
+Changes a tool already made aren't rolled back. A retry could repeat a write,
+charge or other effect. Keep that in mind when choosing which operations to expose
+and how your application detects repeated work.
+
+## Cleanup starts automatically
+
+Let the session and agent go out of scope when done. Dropping them starts cleanup,
+including when your function returns early. It isn't necessary to call shutdown
+before using a successful answer.
+
+For an application that must wait for cleanup confirmation, `Agent::shutdown`
+provides an optional awaited operation. See its [Rustdoc](/reference/rust-api) for
+the exact lifecycle contract. Keep progress display separate from completion:
+only the awaited request result determines whether the turn succeeded.

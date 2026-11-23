@@ -82,6 +82,11 @@ section, extract the archive, and open `thinkwell/index.html`. Keep the whole
 extracted tree together for styles, search, and source links. GitHub artifacts
 are downloads, not a hosted documentation website.
 
+Use `crate::` for imports from the current crate in examples and documentation.
+Keep explicit crate names for dependencies and imports across crate boundaries:
+a package's binary, library, integration tests, examples, and doctests are separate
+crates.
+
 Use default rustfmt and Clippy behavior. There is no custom lint configuration.
 CI runs the Cargo/Book and bootstrap checks above and whitespace checking on Ubuntu 24.04.
 It installs exact tool versions and uses a SHA-pinned checkout action. Runner images

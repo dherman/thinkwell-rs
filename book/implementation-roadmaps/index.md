@@ -38,3 +38,8 @@ results, supporting observations, limitations, and integration state.
 Preparation criteria may have no anchor coverage, with an explicit reason.
 Do not manufacture product anchors for setup work. Local validation and an authored
 CI workflow are distinct from a GitHub workflow run or integration into main.
+
+The owner-assigned [Rust documentation site](documentation-site.md) now includes
+the core learning path, worked examples, practical reference, and local validation.
+The owner approved committing and pushing this starting point without a PR.
+Integration, CI automation and publication remain separate work.

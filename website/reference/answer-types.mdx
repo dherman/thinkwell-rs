@@ -1,0 +1,60 @@
+---
+title: "Supported values"
+description: "Choose data types for answers, tool calls and prompt context."
+---
+
+Start with ordinary strings, lists, structs and enums. Thinkwell uses `JsonSchema`
+to describe values to the agent and Serde to convert them. Those roles determine
+which derives you need.
+
+| Where the value goes | Traits you need |
+| --- | --- |
+| An answer from the agent | `Deserialize` and `JsonSchema` |
+| Input to your tool function | `Deserialize` and `JsonSchema` |
+| Output returned by your tool | `Serialize` and `JsonSchema` |
+| Context added with `.json(&value)` | `Serialize` |
+
+Built-in types already implement these traits. For your own types, use derives as
+shown in [Working with structs and enums](/learn/answer-types). Nested structs and
+enums are expanded automatically; no extra inlining annotation is needed.
+
+## Good starting choices
+
+- `String` for text, `bool` for a yes/no answer.
+- `i64` for integers and `f64` for finite decimal values.
+- `Vec<T>` for a list of supported values.
+- Structs for records and enums for alternatives.
+- `Option<T>` when a value may be absent or null, using Serde's representation.
+- `()` for a tool with no meaningful input or output.
+
+A successful answer has the requested structure. It may still contain an incorrect
+interpretation, an unsuitable recommendation, or an out-of-range application value.
+Check those in Rust. A prompt asking for three entries doesn't make `Vec<T>` a
+fixed-length list, and a field comment saying “0 to 10” doesn't enforce a range.
+
+## Numeric details
+
+Use `i64` rather than assuming every Rust integer type works. Integer fields reject
+floating representations such as `3.0`. An `f64` value must be finite: NaN and
+infinities are rejected, including when serialization would turn them into null.
+Normal decimal-to-binary floating-point rounding still applies.
+
+For currency or other exact quantities, choose a representation and application
+checks that fit your domain; floating-point output isn't an exact decimal contract.
+
+## What isn't supported yet
+
+Not every schema produced by `JsonSchema` is accepted. Recursive types, unresolved
+schema references, and many constraints and formats are unsupported. For example,
+don't rely on schema patterns or numeric range annotations to validate your domain.
+An unsupported schema produces `ErrorKind::Contract` before the prompt is sent.
+
+For readers working directly with schemas, the current validator accepts the
+2020-12 dialect with object properties and required fields, boolean
+`additionalProperties`, homogeneous arrays, primitive types, `const`/`enum`,
+`oneOf`/`anyOf`, and the `int64` and `double` formats. Remaining `$ref`/`$defs`
+references are rejected after Thinkwell's nested-type expansion.
+
+These restrictions apply to typed answers and tool values. `.json()` supplies
+serialized prompt context; it doesn't impose this schema subset on that context.
+See [Adding context](/learn/context) for the simpler input-data path.

@@ -1,0 +1,112 @@
+---
+title: "Agent setup"
+description: "Connect Claude or Codex, choose a model, or supply your own launch command."
+---
+
+Thinkwell connects to an agent program through ACP. It doesn't call a model
+provider's API directly. Start with one of the two tested presets below; your
+agent's account and configuration determine which models you can use.
+
+Both presets need Node.js with npm/npx. Cache the exact adapter version before
+connecting: the presets use offline npx and won't download it during a request.
+These commands download packages; they don't authenticate your account.
+
+## Claude
+
+Install and authenticate Claude Code using its
+[setup guide](https://code.claude.com/docs/en/setup), then cache the adapter:
+
+```sh
+npm exec --yes --package=@zed-industries/claude-agent-acp@0.23.1 -- node --version
+```
+
+Use `thinkwell::agent::Claude` and call `Claude::connect().await?` as in
+[Your first typed answer](/get-started/first-answer).
+
+## Codex
+
+Authenticate Codex separately using its normal setup, then cache its adapter:
+
+```sh
+npm exec --yes --package=@agentclientprotocol/codex-acp@2.8.0 -- node --version
+```
+
+The same plan works with Codex. With the first tutorial's Cargo dependencies:
+
+```rust
+use thinkwell::{Plan, agent::Codex};
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> thinkwell::Result<()> {
+    let agent = Codex::connect().await?;
+    let names = Plan::<Vec<String>>::new()
+        .text("Suggest three names for a community garden.")
+        .run(&agent)
+        .await?;
+    println!("{names:?}");
+    Ok(())
+}
+```
+
+The Codex preset selects the adapter's read-only mode. Your existing Codex
+configuration still applies, including other MCP servers. Reserve the server name
+`thinkwell` for this library. Codex can perform native reads without asking
+Thinkwell, so read-only mode and Thinkwell's tool permissions are not an
+operating-system sandbox.
+
+## Choose a model
+
+Defaults are enough to start. To select a model explicitly, open a session with
+`.model(...)` and run plans in it. This program takes the model ID as its first
+command-line argument:
+
+```rust
+use thinkwell::{Plan, agent::Claude};
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> thinkwell::Result<()> {
+    let model = std::env::args()
+        .nth(1)
+        .expect("Usage: cargo run -- MODEL_ID");
+    let agent = Claude::connect().await?;
+    let mut session = agent.session().model(model).open().await?;
+    let greeting = Plan::<String>::new()
+        .text("Welcome a new member to a gardening club.")
+        .run_in(&mut session)
+        .await?;
+    println!("{greeting}");
+    Ok(())
+}
+```
+
+Pass an ID supported by your agent and account; model names aren't portable
+between agents. Thinkwell has no public model-discovery catalog. If the agent
+can't apply the selection, session creation returns an error.
+
+## Use a custom launch command
+
+Use `AgentConfig` when your ACP agent is installed under a different command.
+Pass arguments separately; this API doesn't interpret a shell command string.
+
+```rust
+use thinkwell::{Agent, AgentConfig, Plan};
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> thinkwell::Result<()> {
+    // Replace this command with your installed ACP agent executable.
+    let agent = Agent::connect(AgentConfig::new("my-acp-agent").args(["--acp"])).await?;
+    let answer = Plan::<String>::new()
+        .text("Say hello in one sentence.")
+        .run(&agent)
+        .await?;
+    println!("{answer}");
+    Ok(())
+}
+```
+
+This demonstrates configuration, not an additional tested provider. Custom agents
+must support the protocol capabilities Thinkwell uses. For environment settings,
+use `AgentConfig::env`; avoid putting credentials in source code.
+
+The current library targets Tokio on macOS and Linux, with one open conversation
+per connection. For connection or request failures, see [Errors and cleanup](/reference/errors).

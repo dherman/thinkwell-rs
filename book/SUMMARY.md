@@ -24,5 +24,6 @@
   - [Codex agent compatibility](implementation-roadmaps/codex.md)
   - [Progress observation design](implementation-roadmaps/progress-observation.md)
   - [JavaScript unminifier investigation](implementation-roadmaps/unminifier.md)
+  - [Rust documentation site](implementation-roadmaps/documentation-site.md)
 - [Change delivery](change-delivery.md)
 - [Working on the project](working-on-the-project.md)

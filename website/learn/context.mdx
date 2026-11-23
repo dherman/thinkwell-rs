@@ -1,0 +1,109 @@
+---
+title: "Adding context"
+description: "Build a prompt from instructions, Rust data and source code."
+---
+
+A prompt usually needs two things: what you want the agent to do, and the material
+it should work with. A plan lets you add those pieces separately.
+
+Use `.text()` for instructions and ordinary text, `.json()` for Rust values, and
+`.code()` for source code. They all add content to the same request.
+
+## Pass data you already have
+
+This program asks for a short release announcement based on a Rust list. It uses
+the setup from [Your first typed answer](/get-started/first-answer).
+
+```rust
+use serde::Serialize;
+use thinkwell::{Plan, agent::Claude};
+
+#[derive(Serialize)]
+struct Change<'a> {
+    feature: &'a str,
+    benefit: &'a str,
+}
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> thinkwell::Result<()> {
+    let agent = Claude::connect().await?;
+    let changes = [
+        Change {
+            feature: "Pinned notes",
+            benefit: "Keep important notes easy to find",
+        },
+        Change {
+            feature: "Exact phrase search",
+            benefit: "Find notes using a phrase you remember",
+        },
+    ];
+
+    let announcement = Plan::<String>::new()
+        .text("Write a short release announcement from these changes. Do not add other features.")
+        .json(&changes)?
+        .run(&agent)
+        .await?;
+
+    println!("{announcement}");
+    Ok(())
+}
+```
+
+`.json(&changes)` serializes the list and adds it to the prompt. It only needs
+`Serialize`: this is input context, not an answer type or a tool contract. The `?`
+handles serialization failure. After the call, the plan holds the resulting text;
+it doesn't keep borrowing `changes`.
+
+## Include source code
+
+For code, supply both the source and a language hint:
+
+```rust
+use thinkwell::{Plan, agent::Claude};
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> thinkwell::Result<()> {
+    let agent = Claude::connect().await?;
+    let source = "fn double(n: i64) -> i64 { n * 2 }";
+    let explanation = Plan::<String>::new()
+        .text("Explain this function to a Rust beginner in one sentence.")
+        .code(source, "rust")?
+        .run(&agent)
+        .await?;
+    println!("{explanation}");
+    Ok(())
+}
+```
+
+`.code()` adds a fenced code block and adjusts its fence to accommodate backticks
+in the source. It doesn't parse or execute the code. Use a language name such as `rust`, or an empty string for no hint. Backticks
+and control characters in the hint return an error.
+
+## Reuse instructions
+
+A plan without bound tool functions can be cloned. This is useful when several
+independent requests should share a tone or purpose:
+
+```rust
+use thinkwell::{Plan, agent::Claude};
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> thinkwell::Result<()> {
+    let agent = Claude::connect().await?;
+    let base = Plan::<String>::new().text("Write one friendly sentence. Avoid jargon.");
+    for topic in ["Welcome a new member", "Invite members to a seed swap"] {
+        let message = base.clone().text(topic).run(&agent).await?;
+        println!("{message}");
+    }
+    Ok(())
+}
+```
+
+The instructions are reused, but the conversation history isn't: each `run` starts
+fresh. These requests run one after another on the same connection.
+
+All three content helpers supply text to the agent. Formatting makes the material
+easier to interpret; it doesn't prevent instructions inside supplied content from
+influencing the model. Keep consequential decisions in code you control.
+
+Next, [give the agent a function it can call](/learn/tools).
