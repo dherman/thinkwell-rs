@@ -15,8 +15,10 @@ The owner selected Codex for the next agent-compatibility investigation.
 model selection and a diagnostic two-turn workflow, and identifies permission
 correlation as required implementation work. The owner approved the Codex milestone;
 it is complete through owner-merged PR #9, with passing final-head CI.
-The owner approved [progress observation](implementation-roadmaps/progress-observation.md)
-and assigned its bounded implementation milestone, now In progress.
+The owner merged [progress observation](implementation-roadmaps/progress-observation.md#integrated-completion)
+in PR #10. The unminifier investigation passed local tests; the owner assigned its standalone
+example milestone and a Plan::code formatting convenience. Execution remains sequential
+with the existing run API; the code-context follow-up is locally validated, not integrated.
 The supported product scope remains [typed conversations](design/typed-conversations.md).
 
 Initial choices are settled for Tokio, one session per owned ACP connection,
@@ -28,7 +30,7 @@ from this slice.
 
 | Open area | Remaining question |
 | --- | --- |
-| First-use expansion | One-shot execution and inline tools are integrated; are further quoting helpers needed? |
+| First-use expansion | Code context is assigned alongside the unminifier; are other quoting helpers needed? |
 | Runtime and embedding | What additional ownership/runtime contracts support shared host connections and concurrent sessions? |
 | Schemas | Which broader validator/reference-resolution support justifies expanding the deliberately finite subset? |
 | Provider coverage | Which additional agents, capabilities, model discovery, and transport paths should be tested and supported? |

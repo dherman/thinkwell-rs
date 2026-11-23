@@ -23,8 +23,11 @@ through owner-merged PR #8 at 43c147c. Final-head and merge-commit CI passed.
 The owner-selected [Codex investigation](codex.md) found a permission-message
 compatibility gap, resolved in owner-merged PR #9 at d1becc9. Its
 [integrated completion](codex.md#integrated-completion) records final-head CI and
-review. The owner approved [progress observation](progress-observation.md) and assigned
-its bounded implementation milestone, now In progress.
+review. The owner merged [progress observation](progress-observation.md#integrated-completion)
+in PR #10 at ab1e821; both bounded milestones are complete with final-head CI passing.
+The [unminifier investigation](unminifier.md) passed local AST and live-agent
+experiments. Its standalone example and the owner-assigned Plan::code follow-up
+are In progress; local validation passes and integration remains pending.
 
 Use the pinned [roadmap format](../working-on-the-project.md#pinned-method-references):
 stable milestone and criterion fragments, outcome, status, identifier,
