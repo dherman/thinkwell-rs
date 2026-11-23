@@ -160,6 +160,29 @@ Live inference is opt-in; the walkthrough documents installation, command argume
 new-file output and teaching-example assumptions. No JavaScript runtime is required by
 ordinary checks; locally recorded behavior checks used Node only on original fixtures.
 
+## Website checks
+
+The **Documentation site** CI job runs the [website checks](website/README.md#validate)
+on pushes and pull requests. From the repository root:
+
+```sh
+python3 website/scripts/check_examples.py
+```
+
+From `website/`, using Node 24.12.0:
+
+```sh
+npx --yes mint@4.3.84 validate --telemetry false
+npx --yes mint@4.3.84 broken-links --telemetry false
+```
+
+Complete tutorial programs are compiled without running inference. Source excerpts
+are compared with repository code; navigation, local links, MDX and the Mintlify
+build are checked. Dependencies resolve from the tutorial's manifest into ignored
+`target/website-examples`; this is not a locked release build. CI has a 15-minute
+job timeout and no deployment step. It doesn't establish browser appearance,
+external-service availability or real-model behavior.
+
 ## Updating tools
 
 Inspect the candidate engine's CLI, configuration reader, compiled contract,

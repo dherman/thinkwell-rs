@@ -146,3 +146,28 @@ jobs:
         run: cargo clippy --manifest-path examples/javascript-unminifier/Cargo.toml --all-targets --locked -- -D warnings
       - name: Deterministic tests (no agent credentials)
         run: cargo test --manifest-path examples/javascript-unminifier/Cargo.toml --locked
+
+  documentation:
+    name: Documentation site
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/target/website-check
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.100.0 --profile minimal --component rustfmt
+      - name: Install Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.12.0'
+      - name: Compile tutorials and check source excerpts (no inference)
+        run: python3 website/scripts/check_examples.py
+      - name: Validate Mintlify content and build
+        working-directory: website
+        run: npx --yes mint@4.3.84 validate --telemetry false
+      - name: Check website links
+        working-directory: website
+        run: npx --yes mint@4.3.84 broken-links --telemetry false

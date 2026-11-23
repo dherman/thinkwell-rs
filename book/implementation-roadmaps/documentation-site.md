@@ -306,3 +306,54 @@ separate local work. The owner reviewed the tutorials as a good starting point;
 this author review checked the delivery scope and source excerpt consistency.
 Push does not imply merge, publication, or completion of the Porting Phase.
 Documentation milestones remain In progress pending integration.
+
+## Milestone 4. Documentation CI {#documentation-site-4}
+
+**Identifier:** `documentation-site-4`
+
+**Status:** In progress
+
+**Outcome:** Run tutorial compilation, source-excerpt checks and Mintlify validation
+on pushes and pull requests without model credentials or deployment.
+
+**Assignment:** After documentation commit 756cd93 was pushed, the owner approved
+adding documentation checks to CI with “proceed”. This milestone became Ready
+and is now In progress. No hosting, DNS, release or new API work is assigned.
+
+**Dependencies and basis:** The checked-in site and validation script at 756cd93;
+`R-easy-agent-programming`, `R-reviewed-delivery` and the existing CI workflow.
+
+**Tasks:** Add a bounded documentation job with pinned tools; document its local
+commands and limits; validate the workflow and run the commands locally.
+
+### Completion criteria
+
+#### Automated checks {#documentation-site-4-checks}
+
+- **Anchor coverage:** None — documentation consistency, not new product behavior.
+- **Criterion:** CI compiles all complete tutorial programs, matches source excerpts,
+  checks formatting/navigation, validates Mintlify content/build and checks links.
+  It neither invokes agents nor publishes the site.
+- **Evidence:** A separate Documentation site job now runs all three existing
+  website check commands on push and pull_request. It uses Ubuntu 24.04, Rust
+  1.100.0, Node 24.12.0 and Mintlify CLI 4.3.84, with a 15-minute timeout and
+  SHA-pinned checkout/setup-node actions. It uses only contents: read permissions,
+  no agent credentials or deployment. Contributor and website instructions match
+  the job. Tutorial dependency resolution intentionally follows the documented
+  version ranges, not a newly introduced release lockfile.
+
+#### Validation and delivery {#documentation-site-4-validation}
+
+- **Anchor coverage:** None — CI setup and delivery.
+- **Criterion:** Check workflow syntax and run its validation commands locally;
+  record tested state and distinguish local results from an actual GitHub run.
+- **Evidence:** Local checks on 756cd93 plus this CI/documentation change pass:
+  website/scripts/check_examples.py (13 complete programs, 20 excerpts, formatting
+  and local links); Mintlify 4.3.84 validate (including build) and broken-links;
+  `go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 -shellcheck=
+  .github/workflows/ci.yml` (workflow lint, without ShellCheck); Book structural
+  check, mdBook build and whitespace check. The local Node version is 24.12.0.
+  An author review checked the commands, action SHA, time limit and absence of
+  deployment/model work. No GitHub execution or Linux result is claimed yet.
+  The owner authorized committing and pushing this workflow follow-up without a PR.
+  Integration is outstanding; a push alone does not establish a successful GitHub run.

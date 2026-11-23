@@ -46,4 +46,8 @@ npx --yes mint@4.3.84 broken-links --telemetry false
 
 These commands validate the site without publishing it. Browser review and live
 agent behavior are separate from compilation and Mintlify validation. The checks
-are currently local commands, not GitHub CI jobs.
+run in the **Documentation site** GitHub Actions job on pushes and pull requests.
+The job uses Rust 1.100.0, Node 24.12.0 and Mintlify CLI 4.3.84, with a
+15-minute timeout. It does not install agent adapters, use model credentials, or
+deploy the site. Cargo resolves tutorial dependencies using the documented version
+ranges, so this checks their current compatibility rather than a frozen release.
