@@ -10,6 +10,36 @@ without implying every ACP agent supports the same capabilities.
 > Authority: `D-provisional-scoped-turns`
 > - Criterion `behavior` [test]: Deterministic HTTP tests inject stale and malformed calls during a replacement turn, assert zero mutation, and verify valid calls and revoked queues.
 
+> **`A-session-endpoint-isolation`** (draft): **Each session controls access to its tool endpoint**
+> Property: The tool endpoint is loopback-only, requires the current session's bearer credential, rejects browser Origin headers, and limits request bodies to 256 KiB. Replacement sessions receive fresh credentials; dropping a session revokes its endpoint. These controls do not authenticate a call's originating prompt or bound all concurrent senders.
+> Authority: `D-initial-conversation-scope`
+> - Criterion `loopback-binding` [test]: Endpoint addresses bind only loopback interfaces; session setup exposes the reachable local endpoint.
+> - Criterion `credential-isolation` [test]: Missing, wrong, and prior-session credentials cannot invoke tools in the active session; current credentials permit a valid call.
+> - Criterion `origin-denial` [test]: Requests carrying browser Origin headers are rejected before callback invocation, including requests with valid credentials.
+> - Criterion `body-limit` [test]: Independently specified requests at the 256-KiB boundary and above it demonstrate the accepted limit and rejection before tool invocation.
+> - Criterion `endpoint-revocation` [test]: Dropping a session closes its listener and prevents its credentials or queued endpoint work from authorizing a replacement session.
+
+> **`A-declared-tool-permissions`** (draft): **Permission grants stay within the active declared-tool scope**
+> Property: Thinkwell grants only AllowOnce for declared tools in the active session and turn, correlating supported direct names or earlier tool-call IDs. Unknown, conflicting, unrelated, and terminal identities cannot obtain a grant. Correlation holds at most 1024 IDs; overflow disables grants for that turn. Completion and teardown discard correlation state. Agent-provided metadata supplies neither authenticated tool provenance nor an OS sandbox.
+> Authority: `D-initial-conversation-scope`; `R-provider-breadth`
+> - Criterion `allowed-identities` [test]: Direct names and notification-correlated IDs in the supported Claude and Codex naming forms obtain only AllowOnce for active declared tools, including result submission.
+> - Criterion `identity-rejection` [test]: Unknown, unrelated, conflicting, terminal, wrong-session, and wrong-turn identities are denied; partial updates cannot restore an invalid identity.
+> - Criterion `correlation-limit` [test]: Independently constructed sequences exercise 1024 distinct IDs and overflow, showing that overflow disables grants without evicting an old identity to permit reuse.
+> - Criterion `correlation-reset` [test]: Turn completion and connection teardown discard correlation state; stale IDs cannot authorize a later turn or replacement session.
+
+> **`A-explicit-model-selection`** (draft): **Requested model selection succeeds or fails explicitly**
+> Property: Without an override, a session uses the agent's default. An explicit model choice is applied before prompting; rejection returns UnsupportedModel instead of silently using another model. This does not promise portable model identifiers, discovery, or mid-conversation switching.
+> Authority: `R-progressive-control`; `R-provider-breadth`
+> - Criterion `default-selection` [test]: Opening without a model override leaves selection to the agent and permits the subsequent prompt.
+> - Criterion `requested-selection` [test]: An accepted explicit choice is applied before prompting; a rejected choice produces UnsupportedModel and sends no prompt with an unintended fallback.
+
+> **`A-session-startup-failure-reporting`** (draft): **Reported adapter startup failures affect only their owning session**
+> Property: A reported Codex failure of the reserved Thinkwell MCP server produces Configuration during setup or a later turn, including while an ACP request is pending. Old-session reports cannot fail a replacement session. Before session identity is known, at most 64 distinct reported IDs are retained; overflow fails setup closed. Selecting or replacing a session and teardown clear the applicable correlation state.
+> Authority: `D-initial-conversation-scope`; `R-provider-breadth`
+> - Criterion `session-correlation` [test]: Current-session failures prevent further prompting; reports for prior or unrelated sessions cannot poison the selected session.
+> - Criterion `pending-failure` [test]: Reports arriving during setup, model selection, an idle session, and a pending turn produce Configuration with the owning cleanup behavior instead of waiting for an unrelated timeout.
+> - Criterion `report-capacity` [test]: Independent 64-ID and overflow sequences exercise bounded setup correlation, fail-closed overflow, and clearing on session selection, replacement, or teardown.
+
 ## Configuration and presets
 
 `AgentConfig` holds owned command, arguments, environment overrides, and setup/shutdown

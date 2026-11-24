@@ -174,9 +174,9 @@ new product behavior, or rendered verification-state UI is part of this work.
 
 ## Milestone 2. Every obligation participates in anchor satisfaction {#executable-verification-2}
 
-**Outcome:** Known uncovered obligations have explicit criteria. Passing runtime
-checks preserve their evidence but cannot satisfy an anchor whose compiler,
-failure-path, environment, or limit criteria lack current passing results.
+**Outcome:** Known uncovered obligations have explicit criteria, and missing
+anchors for the assessed design constraints are visible as draft proposals.
+Passing runtime checks cannot satisfy independently uncovered obligations.
 
 **Status:** In progress
 
@@ -196,6 +196,8 @@ removed and no product body or existing test assertion is changed.
 - [x] Keep source links on the assertions they establish; leave missing and unsupported checks explicitly unlinked.
 - [x] Run verification and assert the expected covered and uncovered criterion states, including anchor aggregation.
 - [x] Validate bootstrap, Book structure and rendered records/links, and record the exact test scope and limitations.
+- [x] Assess example, documentation, and agent-integration constraints; propose missing anchors while preserving existing records and unresolved choices.
+- [ ] Review the proposed anchor scope and authority, then map actual assertions and configure execution where supported.
 
 ### Completion criteria
 
@@ -222,39 +224,84 @@ separate passing workspace evidence until the engine can consume their results.
 Current Linux evidence cannot supply the required macOS result. All existing
 requirements and prior results remain in their owning records and milestones.
 
+#### Design constraint coverage {#executable-verification-2-design-coverage}
+
+The assessed design exposes consequential constraints, their governing basis,
+missing anchor coverage, and executable verification obligations for review.
+Existing agreements and records retain their scope; new records remain draft.
+
+- **Anchor coverage:** None — design/coverage reconciliation does not verify the proposed properties.
+- **Evidence:** The common contract's constraint-coverage rule was applied to
+  example applications, user documentation, and agent integration. Seven draft
+  anchors below represent constraints already stated in those chapters. The seven
+  existing anchors and all 22 criteria remain byte-identical. No implementation,
+  test assertion, authority record, verification configuration, or unresolved
+  choice changed. This is a bounded assessment, not a complete audit of the Book.
+
+| Owning design and draft anchor | Constraint and consequence for review |
+| --- | --- |
+| [Scheduler](../design/examples.md#A-scheduler-validated-outcomes) | Rust validates extracted constraints and solver outcomes; generated explanation cannot replace the canonical result or establish interpretation accuracy. |
+| [Sentiment](../design/examples.md#A-sentiment-measurement-provenance) | Reports distinguish observed tool measurements from generated interpretation and retain measurements after answer failure. |
+| [Unminifier](../design/examples.md#A-unminifier-source-preservation) | Bounded source edits preserve unaffected text and property keys; general JavaScript equivalence and atomic output remain excluded. |
+| [Session endpoint](../design/agent-integration.md#A-session-endpoint-isolation) | Per-session credentials, loopback binding, Origin rejection, and body limits control endpoint access; submitted turn IDs alone do not supply these controls. |
+| [Permission grants](../design/agent-integration.md#A-declared-tool-permissions) | AllowOnce grants stay within declared tools and bounded correlation state; agent metadata is not authenticated provenance or an OS sandbox. |
+| [Model selection](../design/agent-integration.md#A-explicit-model-selection) | Explicit selection fails visibly instead of silently falling back; portable discovery remains unresolved. |
+| [Startup reports](../design/agent-integration.md#A-session-startup-failure-reporting) | Session-scoped adapter failures interrupt setup/work without poisoning replacement sessions; setup correlation has a fail-closed bound. |
+
+The draft properties and their authority references are the review surface. Existing
+first-product, Codex, example, and documentation approvals remain valid; any proposed
+change to their meaning needs a design decision. The four [open choices](../open-questions.md#approval-bases-requiring-clarification)
+about filesystem context, model discovery, deadline composition, and MCP negotiation
+remain unresolved. The design overview only links owning properties and needs no
+duplicate anchor. The selected properties protect session trust boundaries, explicit user intent,
+validated results, measurement provenance, and user source files. Tutorial
+compilation, excerpt and link checks, and example dependency layout remain
+ordinary design and test obligations; being testable alone does not justify an
+anchor. Explanatory prose and subjective teaching goals remain design judgments.
+
+The new criteria start unlinked. Existing permission/model/startup tests and example
+workspace tests are candidates for assertion mapping, not
+passing evidence for these new criteria. The configured runner currently covers
+library sources/tests; example execution requires its own supported
+integration. Keep missing or unsupported checks explicit.
+
 #### Computed state {#executable-verification-2-state}
 
-The 38 existing linked checks still pass. Their seven runtime criteria are
-satisfied; all 15 newly explicit gap criteria are unlinked. Only routing and
-cancellation anchors are satisfied; the other five are partial. No anchor with a
-missing required criterion may be reported satisfied.
+The 38 existing linked checks retain their scope and pass. Among the original
+seven anchors, two remain satisfied and five partial, with seven satisfied criteria
+and 15 unlinked criteria. The seven new draft anchors and their 26 criteria remain
+unlinked pending assertion mapping and execution. No missing obligation is reported
+satisfied.
 
 - **Anchor coverage:** None — consumer acceptance of the engine's all-criteria rule; it does not claim that the uncovered product obligations are implemented.
-- **Evidence:** `cargo anchor verify --config anchorbook.toml --method test --format json`
-  passed on the local Linux `port-phase-adoption` tree based on
-  `4f13784f3b07cfee26f745901cafe1b0ca3b2cf6`, with the Book and verification
-  integration changes uncommitted. JSON and JUnit assertions confirm 38 passing
-  tests, seven satisfied runtime criteria, 15 unlinked gap criteria, two satisfied
-  anchors, and five partial anchors. No failed or skipped test is reported. The
-  run completed with no findings and exit 0; no Complete-milestone Full claims
-  were present, so that exit status does not mean all anchors are satisfied.
+- **Evidence:** On 2026-11-24, `cargo anchor verify --config anchorbook.toml
+  --method test --format json` passed on the local Linux `port-phase-adoption`
+  tree based on `4f13784f3b07cfee26f745901cafe1b0ca3b2cf6`, with the Book and
+  verification integration uncommitted. JSON and JUnit report 38 passing tests,
+  seven satisfied criteria and 41 unlinked criteria: 14 anchors, with two
+  satisfied, five partial, and seven unlinked. No failure, skipped test, or
+  finding is reported. Exit 0 checks Complete-milestone Full claims (none here);
+  it does not mean every anchor is satisfied.
 
-  Code identity remains `c5aec1dd9dd03591` and configuration identity
-  `a9835f786b88232f`. Criteria identity changes from `430a13eaa269155e` to
-  `3173bc7858e8742e`. The same pinned engine evaluates both revisions; its existing
-  aggregation already requires all declared criteria. Snapshot comparison confirms
-  that the four affected design chapters changed only criterion declarations.
+  The original seven anchors retain their 22 criteria and previous states
+  (seven satisfied, 15 unlinked). All 26 criteria in the seven new draft anchors
+  are unlinked. Code identity `c5aec1dd9dd03591` and configuration identity
+  `a9835f786b88232f` are unchanged; criteria identity is `cc07783c28a61d03`.
+  The earlier 22-criterion run used `3173bc7858e8742e`; its results do not establish
+  the added properties. Snapshot comparison confirms the original design prose
+  and records are unchanged after excluding the new anchor blocks.
 
-  `cargo test -p anchor-runner --locked` passes all five bootstrap/launcher tests;
-  `cargo anchor check --config anchorbook.toml` passes structural/v1 with zero
-  errors. `mdbook build --dest-dir target/complete-criteria-book` passes, and the
-  engine's rendered-output acceptance checks 37 complete records and 1,262 local
-  links. `git diff --check` passes. Production code and test assertions are
-  unchanged by this correction; the missing checks remain explicit work.
+  Structural checking and `mdbook build --dest-dir target/design-constraints-book`
+  pass. The engine's rendered-output acceptance passes for 44 complete records
+  and 1,410 local links. `git diff --check` passes. The five bootstrap tests passed
+  during the earlier criterion reconciliation; no launcher changes were made in
+  this refinement. Product code and test assertions are unchanged, and missing
+  executable coverage remains work rather than an inferred pass.
 
 ### Completion record
 
-Local correction and validation are complete. The milestone remains In progress
+The seven draft additions await scope/authority review and executable evidence.
+Earlier criterion decomposition and validation are complete. The milestone remains In progress
 pending the project's review and durable integration process; CI, publication,
 and a Port transition are not claimed. The correction exposes existing gaps;
 implementing their missing checks is subsequent work. CI's report-only exit

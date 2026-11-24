@@ -305,7 +305,9 @@ explicitly unresolved approval bases survive the cleanup. Structural, bootstrap,
 rendering, and local-link checks pass; the cleanup diff is separately reviewable.
 
 - **Anchor coverage:** None: Book integrity does not establish anchor satisfaction.
-- **Evidence:** Validated the uncommitted `port-phase-adoption` tree based on
+- **Evidence:** This cleanup validation precedes the separate
+  [design-constraint additions](executable-verification.md#executable-verification-2-design-coverage).
+  Validated the uncommitted `port-phase-adoption` tree based on
   `4f13784f3b07cfee26f745901cafe1b0ca3b2cf6`, with Rust 1.100.0, mdBook 0.5.4,
   nextest 0.9.151, and the configured engine `fb7badc8f3bb763f9ba89d6c15c8701faefe1e46`.
   The pre-cleanup snapshot includes the separately authored 22-criterion correction.
