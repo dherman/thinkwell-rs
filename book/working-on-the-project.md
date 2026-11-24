@@ -76,14 +76,15 @@ milestone is not a substitute for current executable anchor coverage.
 ## Pinned method references
 
 The installed engine is pinned to
-[`fb7badc8f3bb763f9ba89d6c15c8701faefe1e46`](https://github.com/anchor-book/anchor-book/tree/fb7badc8f3bb763f9ba89d6c15c8701faefe1e46),
+[`7966c9fddb3e9b9a710444c365cd698550de9b5f`](https://github.com/anchor-book/anchor-book/tree/7966c9fddb3e9b9a710444c365cd698550de9b5f),
 with mdBook 0.5.4. Use the formats from that revision:
 
-- [Anchor definitions](https://github.com/anchor-book/anchor-book/blob/fb7badc8f3bb763f9ba89d6c15c8701faefe1e46/book/design/anchor-definitions.md)
-- [Authority definitions](https://github.com/anchor-book/anchor-book/blob/fb7badc8f3bb763f9ba89d6c15c8701faefe1e46/book/design/authority-definitions.md)
-- [Verification](https://github.com/anchor-book/anchor-book/blob/fb7badc8f3bb763f9ba89d6c15c8701faefe1e46/book/design/verification.md)
-- [Roadmap format](https://github.com/anchor-book/anchor-book/blob/fb7badc8f3bb763f9ba89d6c15c8701faefe1e46/book/implementation-roadmaps/index.md)
-- [Working guidance and implementation status](https://github.com/anchor-book/anchor-book/blob/fb7badc8f3bb763f9ba89d6c15c8701faefe1e46/book/working-on-anchor-book.md)
+- [Anchor definitions](https://github.com/anchor-book/anchor-book/blob/7966c9fddb3e9b9a710444c365cd698550de9b5f/book/design/anchor-definitions.md)
+- [Authority definitions](https://github.com/anchor-book/anchor-book/blob/7966c9fddb3e9b9a710444c365cd698550de9b5f/book/design/authority-definitions.md)
+- [Verification](https://github.com/anchor-book/anchor-book/blob/7966c9fddb3e9b9a710444c365cd698550de9b5f/book/design/verification.md)
+- [Roadmap format](https://github.com/anchor-book/anchor-book/blob/7966c9fddb3e9b9a710444c365cd698550de9b5f/book/implementation-roadmaps/index.md)
+- [Working guidance and implementation status](https://github.com/anchor-book/anchor-book/blob/7966c9fddb3e9b9a710444c365cd698550de9b5f/book/working-on-anchor-book.md)
+- [Using Anchor Book with an agent](https://github.com/anchor-book/anchor-book/blob/7966c9fddb3e9b9a710444c365cd698550de9b5f/book/design/user-guidance.md)
 
 The CLI implements `check`, `contract`, `md`, `verify`, and `proof`, plus help
 and version. `check`, `contract`, `md`, and test verification are configured here.
@@ -100,11 +101,19 @@ is configured here. Product anchors use test criteria; nextest runs the linked
 tests, and roadmaps preserve evidence and coverage limits. Verus and mutation
 tooling require their own applicable scope, not merely upstream usage.
 
-This pin includes the Port phase, configured contract delivery, and
-programmatic-only verification from the engine's `programmatic-verification`
-branch. The full revision, rather than the moving branch, is the installation target. If configuration prevents contract retrieval, use
-`cargo anchor contract` for the common diagnostic guidance, fix the reported
-configuration problem, and retry the configured command before port work.
+This merged revision includes the Port phase, programmatic-only verification,
+complete-criterion and key-correctness guidance, concise roadmap guidance, and the
+conversational user guide. The full revision is the installation target. If
+configuration prevents contract retrieval, use `cargo anchor contract` for the
+common diagnostic guidance, fix the reported configuration problem, and retry the
+configured command before port work.
+
+For help using the Book, ask the agent to explain the current state and available
+paths, or describe the outcome you want. The contract supplies the conversational
+guidance and prompt examples; this Book supplies Thinkwell's actual context. An
+explicit request for guidance gets a concise recommendation, while a request to
+read the Book or report readiness retains the full report. No local engine
+checkout, trial launcher, or copied contract is required.
 
 ## Verification and review
 

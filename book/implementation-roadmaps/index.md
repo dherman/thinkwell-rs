@@ -12,7 +12,7 @@ unlinked anchor obligations.
 | [Port working contract](lifecycle-delivery.md#lifecycle-delivery-2) | Locally validated on the fork; upstream review, CI, and integration remain outstanding. |
 | [Library design reconciliation](library-design-reconciliation.md) | Component reconciliation prepared; the assigned [system overview](library-design-reconciliation.md#library-design-reconciliation-2) connects the complete Rust system. Unclear approval bases remain explicit. |
 | [Executable verification](executable-verification.md) | Local runner/CI wiring and criterion reconciliation validated; the current result and all uncovered obligations are recorded there. |
-| [Book contract cleanup](lifecycle-delivery.md#lifecycle-delivery-3) | Reconcile knowledge placement and stale completion accounts, preserving design, implementation, and evidence. Separate local diff; no publication or lifecycle transition. |
+| [Book contract cleanup](lifecycle-delivery.md#lifecycle-delivery-3) | Reconcile knowledge placement and stale completion accounts, preserving design, implementation, and evidence. Separate commit in the combined PR; no lifecycle transition. |
 
 These assignments remain In progress until their delivery obligations are met.
 Existing human approvals authorize their recorded scope; roadmap presence alone
@@ -23,14 +23,17 @@ does not assign further implementation or missing coverage work.
 The owner assigned these changes to one PR for the Thinkwell author. The local
 `book-design-reconciliation` branch keeps setup, library reconciliation,
 verification, cleanup, draft anchors, system overview, and diagram styling in
-separate commits. Only the setup commit changes the published engine pin, to
-`fb7badc8f3bb763f9ba89d6c15c8701faefe1e46`; the local trial launcher is excluded.
+separate commits. A subsequent pin commit adopts merged Anchor Book revision
+`7966c9fddb3e9b9a710444c365cd698550de9b5f`, including conversational user guidance.
+The local trial launcher is excluded; configured contract retrieval uses the pin.
 
-Local validation is recorded in the owning roadmaps. The owner authorized pushing
-this branch to the personal fork, `kwdev/thinkwell-rs`; GitHub authorization for
-the CI changes is available. Opening the upstream PR remains a separate next step.
-GitHub CI must establish results for the pushed revision before upstream delivery;
-human review and owner-controlled integration remain outstanding.
+Local validation is recorded in the owning roadmaps; the
+[merged-pin validation](lifecycle-delivery.md#lifecycle-delivery-2-guidance)
+checks this combined Book against the published engine. The user authorized
+pushing `book-design-reconciliation` to `kwdev/thinkwell-rs` and opening the
+upstream PR with both the prepared Book commits and the new pin. Required CI
+must establish results for the submitted revision; upstream human review,
+owner-controlled integration, and roadmap synchronization remain outstanding.
 
 ## Integrated work
 

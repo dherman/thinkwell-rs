@@ -6,7 +6,8 @@ Current integration state: milestone 1 was delivered through owner-merged
 [PR #2](https://github.com/dherman/thinkwell-rs/pull/2). See the
 [shared integration evidence](first-product-slice.md#integrated-completion).
 [Milestone 2](#lifecycle-delivery-2) is a separate port-contract experiment on the
-fork's `port-phase-adoption` branch, pending upstream review and integration.
+fork, prepared with the Book changes on `book-design-reconciliation`, pending
+upstream review and integration.
 
 Goal: extend the completed scaffold with owner-approved lifecycle and delivery
 policy, without product functionality or a detailed port plan.
@@ -196,13 +197,13 @@ closes the synchronization gap. No lifecycle transition is implied.
 
 ## Milestone 2. Adopt the engine's Port working contract {#lifecycle-delivery-2}
 
-**Outcome:** The configured phase activates reusable port guidance, including engineer questions, source reconstruction, coherent target design, and implementation and transition boundaries.
+**Outcome:** The pinned engine supplies the configured Port contract, including source reconstruction, coherent target design, key correctness guarantees, conversational guidance, and implementation and transition boundaries.
 
 **Status:** In progress
 
 **Identifier:** `lifecycle-delivery-2`
 
-**Dependencies:** Milestone 1; Anchor Book `fb7badc8f3bb763f9ba89d6c15c8701faefe1e46`, published on its `programmatic-verification` branch. The fork owner requested this bounded adoption on a branch of `kwdev/thinkwell-rs`; upstream approval and merge remain separate.
+**Dependencies:** Milestone 1; merged Anchor Book revision `7966c9fddb3e9b9a710444c365cd698550de9b5f`. Upstream owner review and integration remain required.
 
 **Design basis:** `R-reproducible-checks`, `R-temporary-migration-reference`, `R-porting-transition`, `R-reviewed-delivery`, and the existing [lifecycle](../lifecycle.md) and [change-delivery procedure](../change-delivery.md).
 
@@ -223,16 +224,58 @@ closes the synchronization gap. No lifecycle transition is implied.
 The repository launcher installs the exact published revision, configured retrieval includes the Port section once, and the consistency checks reject missing configured retrieval or a different project phase. The common contract remains available for configuration diagnosis.
 
 - **Anchor coverage:** None: engine pin and schema compatibility; no product behavior change.
-- **Evidence:** The current engine pin is `fb7badc8f3bb763f9ba89d6c15c8701faefe1e46`. This update, based on `d8133a57afe8a4588a1ca50da0f45671fc76e25a`, retains configured Port and design-before-roadmaps guidance and requires programmatic anchor verification. Seven existing criteria retain their executable test obligations; review directions move into project guidance and no historical review is relabeled as a test pass. The real launcher installed this revision from GitHub with Rust 1.100.0 and reported its exact identity. Configured retrieval includes Port, Design before roadmaps, and programmatic-verification guidance once each. All five bootstrap tests, formatting, whitespace, structural checking, and mdBook 0.5.4 rendering pass. A separate export of only the staged pin/compatibility change also passes bootstrap and Book checks. Rendered acceptance on the working Book checks 37 records and 1,230 local links; that working tree includes separate design-reconciliation edits, which are not included in this commit. The preceding pin `3bd59b7c1e352e94bafcf133dc05c9a7560a48df` passed the five launcher/consistency tests and Book checks; the product results below remain the initial adoption's evidence. The separate design-reconciliation work is outside this pin update.
-
+- **Evidence:** The pin is `7966c9fddb3e9b9a710444c365cd698550de9b5f`, the merge of
+  [Anchor Book PR #52](https://github.com/anchor-book/anchor-book/pull/52), including
+  the earlier contract changes in PRs #50 and #51. The upgrade is prepared on
+  `book-design-reconciliation` based on `7b6805706142eca9e8aaf2d67eeefbbb380a435b`; its separate commit changes
+  tooling references and guidance, not product code or anchor definitions.
+  The launcher installed the pin and reported its exact identity. Configured
+  retrieval includes the conversational guide, Port section, design-constraint
+  guidance, and design-before-roadmaps rule exactly once. Combined validation
+  is recorded below. The [previous pin and adoption evidence](https://github.com/kwdev/thinkwell-rs/blob/7b6805706142eca9e8aaf2d67eeefbbb380a435b/book/implementation-roadmaps/lifecycle-delivery.md#lifecycle-delivery-2-contract)
+  retains its original revisions and scope; it does not establish the new pin.
 
 #### Coherent guidance and delivery {#lifecycle-delivery-2-guidance}
 
 Active instructions agree on Port and the engine pin, preserve the existing human-controlled lifecycle gate, and direct accepted discoveries into owning design before roadmap implementation. The Book passes structure and rendering checks. Review and integration are recorded without treating this tooling change as product verification or completion of the port.
 
 - **Anchor coverage:** None: project guidance and delivery policy.
-- **Evidence:** `cargo fmt --all -- --check`, `cargo check --workspace --all-targets --locked`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, and `cargo test --workspace --locked` passed on Rust 1.100.0; the workspace suite ran 100 tests including doctests, with no failures or ignored tests. The Python capability-probe regression passed one test. `RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked`, `cargo anchor check --config anchorbook.toml`, mdBook 0.5.4's build, and whitespace checking passed. Anchor Book's existing rendered-output acceptance, directed at this Book, checked 37 complete records and 1,056 local links. Separate scheduler, sentiment, unminifier, website, and live-agent checks were not rerun for this tooling and guidance change.
-- **Review:** After implementation, the implementing agent reviewed the complete diff, installed-engine output, phase descriptions, pin references, bootstrap failure cases, and rendered records and links. Current guidance consistently selects Port; historical test revisions remain historical. Existing product authority and the human-approved lifecycle transition gate are preserved. No independent-agent or upstream owner approval is claimed. CI, upstream owner review, merge, and synchronization remain outstanding; this change does not establish that existing product design is already fully consolidated.
+- **Evidence:** Validated on Linux on 2026-11-24 at the base revision above plus
+  the uncommitted pin/guidance update. Rust 1.100.0, mdBook 0.5.4,
+  mdbook-mermaid 0.17.1, and nextest 0.9.151 were used. The documented formatting,
+  workspace all-target check, Clippy, workspace tests, Python probe regression,
+  and strict Rustdoc commands passed. Workspace tests include 55 library tests,
+  five launcher/bootstrap tests, 36 ordinary doctests, and four compile-fail
+  probes; compile-only examples do not establish runtime behavior.
+
+  `cargo anchor check --config anchorbook.toml` passed with zero errors.
+  `cargo anchor verify --config anchorbook.toml --method test --format json`
+  executed all 38 linked tests successfully: 14 anchors (two satisfied, five
+  partial, seven unlinked), 48 criteria (seven satisfied, 41 unlinked), and no
+  findings. The first attempt lacked nextest and supplied no passing evidence;
+  the completed run followed installation of the documented runner. Code,
+  configuration, and criteria identities remain `df9a46678ae71335`,
+  `a9835f786b88232f`, and `cc07783c28a61d03` respectively. Missing coverage remains
+  explicit; this pin changes no criterion or computed coverage state.
+
+  `mdbook-mermaid install .` left Book configuration unchanged;
+  `mdbook build --dest-dir target/merged-engine-book` passed. The engine's
+  existing rendered-output acceptance passed for 44 complete records and
+  1,534 local links, including unique print targets. Its source tree matches
+  the pinned merge. `git diff --check` passed. Standalone example/site suites
+  and live-agent checks were not rerun locally for unchanged implementation;
+  earlier evidence retains its revision, and required CI remains outstanding.
+- **Review:** The prepared Book commits retain their author-review records.
+  This session performed a separate review of their design boundaries, coverage
+  claims, CI/bootstrap changes, and rendered output, then self-reviewed the pin
+  update.
+  Comparison with the prepared branch confirms all 44 authority/anchor blocks
+  are unchanged by the pin. Comparison with upstream confirms product bodies
+  and test assertions are unchanged after excluding verification annotations
+  and blank lines. A stale current-pin claim in the roadmap index was corrected.
+  Unresolved design choices and the seven draft anchors retain their review
+  status. Upstream owner approval, required CI, integration, and roadmap
+  synchronization remain outstanding.
 
 ### Completion record
 
