@@ -229,3 +229,23 @@ the complete overview diff receives a deliberate author review before delivery.
 
 In progress. The overview and Rust feasibility checks are locally validated; upstream CI,
 human review, and integration remain required for durable completion.
+
+
+### Diagram presentation and setup
+
+The owner also assigned Anchor Book's diagram styling. A separate commit under
+this milestone converts the new system diagram to Mermaid, adds the adapted
+stylesheet with its MIT notice, and configures mdbook-mermaid 0.17.1. The working
+guide records provenance. CONTRIBUTING and CI install the renderer and generate
+ignored browser assets before the Book build. This adds no runtime dependency,
+changes no Anchor Book engine pin, and imports no TypeScript product material.
+
+The local trial Book check and mdBook 0.5.4 build pass. The renderer emits its
+upstream compatibility warning (built against mdBook 0.5.0); the Book's generated
+HTML and actual Chromium rendering work with the pinned 0.5.4. Repeating
+`mdbook-mermaid install .` leaves the checked-in configuration unchanged. Both
+bootstrap-consistency tests pass. Browser checks cover all eight diagram nodes,
+light/navy theme colors, readable narrow-screen scrolling contained to the diagram,
+white print styling, and no JavaScript errors. Author visual inspection corrected
+crowded labels and the default process-box fill; the final diagram uses the shared
+palette and a labeled process boundary. No runtime or anchor result changed.

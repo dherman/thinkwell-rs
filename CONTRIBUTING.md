@@ -14,10 +14,13 @@ Run from the repository root with Git and rustup installed:
 rustup toolchain install 1.100.0 --profile minimal --component rustfmt --component clippy
 cargo anchor --version
 cargo install mdbook --version 0.5.4 --locked --root target/tools
+cargo install mdbook-mermaid --version 0.17.1 --locked --root target/tools
 cargo install cargo-nextest --version 0.9.151 --locked --root target/tools
 export PATH="$PWD/target/tools/bin:$PATH"
 rustc --version
 mdbook --version
+mdbook-mermaid --version
+mdbook-mermaid install .
 cargo nextest --version
 ```
 
@@ -40,6 +43,16 @@ new shell. No global Rust default change is required.
 Anchor verification uses cargo-nextest 0.9.151, the release supported by the
 pinned engine. Install it under the same ignored tool root and verify its identity;
 the engine reports the version it ran but does not enforce that pin itself.
+
+Mermaid diagrams use mdbook-mermaid 0.17.1 and `theme/diagrams.css`. Run the
+installer above after setup or a renderer upgrade; it generates the ignored
+`mermaid.min.js` and `mermaid-init.js` assets. CI generates the same assets before
+building the Book. The checked-in Book configuration already declares the
+preprocessor and files, so installation should leave that configuration unchanged.
+The diagram stylesheet carries its upstream MIT notice; the
+[Book working guide](book/working-on-the-project.md#book-diagrams) records provenance
+and authoring conventions. Diagram rendering is development tooling, not a
+Thinkwell runtime dependency or an Anchor Book engine-pin change.
 
 ## Local checks
 

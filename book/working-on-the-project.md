@@ -161,3 +161,24 @@ Respect the [source-provenance constraint](authority/requirements.md#R-source-pr
 before copying or adapting source. Public research is context, not approval to
 publish unrelated material. Commit, push, publication, and repository-setting
 authorization remain separate from implementing an assigned milestone.
+
+
+## Book diagrams {#book-diagrams}
+
+Use Mermaid fences for architecture diagrams. mdbook-mermaid renders them after
+the Anchor Book preprocessor; the pinned installer and generated browser assets
+are documented in CONTRIBUTING. Keep diagram meaning available in surrounding
+prose and label process boundaries, messages, and ownership explicitly.
+
+`theme/diagrams.css` adapts Anchor Book's quiet surfaces, rounded nodes, readable
+labels, and theme-aware colors. Its `guide-context`, `guide-design`, `guide-build`,
+and `guide-choice` classes select the shared palettes. Prefer a few consistent
+colors; color alone must not carry a distinction. Inspect light and dark themes,
+narrow-screen scrolling, and print output after changing diagrams or styling.
+
+Provenance: the owner-selected local `theme/diagrams.css` from Anchor Book,
+based on revision `4a24dca491b731e69a779fd69328068ef9ff6a21` with local stylesheet
+changes, was adapted on 2026-11-24 under its MIT option. The complete copyright
+and permission notice is retained in the stylesheet. This is development-theme
+reuse, independent of the published engine revision in `tools/anchor/src/main.rs`;
+no ongoing dependency on a sibling checkout is introduced.

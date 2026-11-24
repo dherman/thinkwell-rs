@@ -9,8 +9,14 @@ build-dir = "target/anchorbook"
 create-missing = false
 
 [output.html]
+additional-css = ["theme/diagrams.css"]
+additional-js = ["mermaid.min.js", "mermaid-init.js"]
 
 [preprocessor.anchorbook]
 command = "cargo anchor md"
 config = "anchorbook.toml"
 after = ["links"]
+before = ["mermaid"]
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"

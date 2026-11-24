@@ -20,24 +20,24 @@ locally polled execution from owned transport work. The agent communicates with
 its model provider using its own integration; Thinkwell does not implement that
 provider protocol or control the model service.
 
-```text
-Application process (Rust + Tokio)          External agent environment
-+--------------------------------------+   +----------------------------+
-| Application workflow and data        |   | ACP agent / adapter        |
-|   |                                  |   |                            |
-|   v                                  |   | Session history, model     |
-| Thinkwell Plan / Session / execution |   | access, native operations  |
-|   |                     |            |   |                            |
-|   +--> local Rust tools |            |   +----------------------------+
-|   +--> local observer   |            |       ^       ^          |
-|                         v            |       |       |          v
-| Owned ACP driver <-------------------------->+       |     Model provider
-|   connection and process lifetime    |   ACP/stdio  |     (agent-managed)
-|                                      |               |
-| Session HTTP endpoint <----------------------------->+
-|   owned tool requests/replies        |     MCP/HTTP on loopback
-+--------------------------------------+
+```mermaid
+%%{init: {"flowchart": {"curve": "basis", "padding": 18, "nodeSpacing": 24, "rankSpacing": 36}, "themeVariables": {"fontFamily": "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif", "fontSize": "16px"}}}%%
+flowchart TB
+    subgraph application["Application process"]
+        workflow["Application workflow"] --> execution["Scoped execution<br/>Plan / Session"]
+        execution --> tools["Borrowed<br/>Rust tools"]
+        execution --> observer["Borrowed<br/>observer"]
+        execution <-->|"Owned control"| driver["Owned<br/>ACP driver"]
+        execution <-->|"Owned tool calls / replies"| endpoint["Session<br/>HTTP endpoint"]
+    end
+    driver <-->|"ACP over stdio"| agent["External ACP agent<br/>or adapter"]
+    endpoint <-->|"MCP over loopback HTTP"| agent
+    agent <-->|"Agent-managed integration"| provider["Model provider"]
+    class workflow,agent,provider guide-context
+    class execution,driver,endpoint guide-design
+    class tools,observer guide-build
 ```
+
 
 ACP carries initialization, session creation, prompts, terminal responses,
 permission requests, and progress notifications. MCP over the session's local
