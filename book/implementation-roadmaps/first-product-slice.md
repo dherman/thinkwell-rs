@@ -8,7 +8,7 @@ run differently typed turns, and release resources through ordinary ownership.
 
 ## Milestone 1. Deliver the initial typed conversation API {#first-product-slice-1}
 
-**Outcome:** An unpublished Thinkwell library provides the public API below,
+**Outcome:** An unpublished Thinkwell library provides the public programming path,
 with deterministic acceptance tests and an opt-in live example. Application code
 can alternate between Rust and typed prompts without explicit cleanup boilerplate
 or protocol turn identifiers in its tool signatures.
@@ -22,9 +22,9 @@ evidence closing this milestone. Earlier local-stage statements remain historica
 
 **Dependencies:** The owner approved the concrete proposal and instructed
 “proposal looks good, proceed.” This assigns the product slice and authorizes
-local continuation on the current unintegrated branch; prior work remains
-pending delivery, not silently Complete. No commit, push, merge, publication,
-or lifecycle transition is authorized. Scope recorded Ready, readiness reported, then In progress.
+local implementation after Ready and readiness reporting. The owner subsequently
+authorized PR delivery and merged the reviewed result; that evidence is below.
+Package publication and lifecycle transition were not assigned.
 
 **Design basis:** `D-acp-client`, `D-derived-contracts`,
 `D-provisional-scoped-turns`, `D-connection-vocabulary`,
@@ -39,7 +39,7 @@ or lifecycle transition is authorized. Scope recorded Ready, readiness reported,
 
 - [x] Obtain approval of this scope and settle the delivery prerequisite; record
       Ready, report readiness, then record In progress.
-- [x] Incorporate the approved properties below as product anchors with test/review
+- [x] Incorporate the approved properties as product anchors and
       criteria, reconciling design, authority, supported environments, and this roadmap.
 - [x] Implement the public types and example in crates/thinkwell, with normal
       documentation and actionable typed errors.
@@ -79,16 +79,18 @@ platform/live-agent observations remain in the evidence below.
 
 ### Product properties and verification
 
-The original six anchors and their unchanged test/review criteria now reside in
-the owning chapters above. Their identities and the coverage recorded below are
-preserved. `A-progress-observation` belongs to its separate roadmap. No new proof
-or mutation evidence is claimed by consolidating the definitions.
+The original six anchor identities remain in the owning chapters above;
+`A-progress-observation` belongs to its separate roadmap. The current pinned
+contract uses executable test criteria. The later [criterion reconciliation](executable-verification.md#executable-verification-2)
+separates previously unexercised obligations: historical completion of this slice
+does not establish complete coverage of those criteria. Review is delivery evidence,
+not a verification method. No new proof or mutation evidence is claimed here.
 
 ### Completion criteria
 
 #### Public programming path {#first-product-slice-1-api}
 
-The example above compiles and runs through the public crate API. Tests also
+The recorded conversation example compiles and runs through the public crate API. Tests also
 exercise an external custom preset/config conversion, configured/default connect,
 cloneable unbound plans, reusable Agent after normal session drop, and informative
 busy/closed/preflight failures. Callback code can hold Rc across await and mutate
@@ -168,41 +170,11 @@ licenses, and documentation; record findings and resolutions.
   below. Owner review, final-head and merge-commit Linux CI, and integration
   are recorded under [integrated completion](#integrated-completion).
 
-### Verification and delivery
-
-Use the repository's fmt/check/Clippy/workspace-test/Book/bootstrap commands.
-Product process fixtures have finite deadlines and owned cleanup guards.
-Include the example in compilation, compiler rejection tests, and deterministic
-acceptance tests in normal workspace CI; live inference remains opt-in.
-Reconcile CONTRIBUTING.md's empty-library description and initial support limits
-when implementation actually lands. Inspect source licensing before adaptation
-or new dependencies; record dependency versions in Cargo.lock.
-
-Local passing checks do not establish CI or durable completion. Obtain authorized
-delivery, inspect checks for the actual revision, and perform owner review before
-merge. Keep the milestone In progress until all criteria and integration conditions
-hold. Publication and ending the Porting Phase need separate authorization.
-
-### Planning evidence
-
-This proposal was prepared under the owner's explicit planning assignment.
-The API shape follows the approved integrated examples, with deliberate deferrals
-listed above. Runtime/results experiments supply bounded feasibility evidence;
-their code, wire fixtures, hard-coded budgets, hand-written validation, and
-consuming connection API are not silently promoted to product authority.
-Book structural checking, rendering, local links/fragments, and whitespace
-validation passed for the planning artifact. Product work is recorded below.
-
-
 ### Local implementation and review evidence
 
-The implementation follows owner approval on the current unintegrated port-design
-branch, based on 83ac7e6faf7b4e7dfd74c306436760e44ba46a21.
-The milestone remains In progress. Local implementation is not durable completion:
-Linux CI, owner review, and authorized integration are outstanding. No commit,
-push, publication, or repository-setting change was performed.
-
-The current product source-set SHA-256 is
+Initial local implementation was tested on port-design, based on
+83ac7e6faf7b4e7dfd74c306436760e44ba46a21, before PR delivery. Its product
+source-set SHA-256 was
 235deecba3745c22a71eb944a541b2db1c7cad89bb5060f2b3c65d66d2c62bb9.
 Reproduce by lexically sorting repository-relative Cargo.lock,
 crates/thinkwell/Cargo.toml, and all .rs/.py files under that crate's src, tests,
@@ -277,18 +249,14 @@ and cleanup changes. This is not a statistical reliability claim.
 Book structure/rendering, local links/fragments, changed-file whitespace, and
 bootstrap consistency are checked after documentation reconciliation. The existing
 Ubuntu CI workflow now explicitly checks Python 3 and ps prerequisites before
-running the same credential-free tests. It has not been pushed or run for this
-tree. Retain this gap before claiming Linux support verified.
+running the same credential-free tests. The final-head and merge-commit runs
+below subsequently supplied Linux execution evidence.
 
-### Retained limits and next delivery step
+### Retained limits
 
-The public slice intentionally has no standalone Plan::run, inline-tool helper,
-progress stream, explicit cancellation handle, dynamic catalog, concurrent
-sessions per Agent, shared embedding adapter, Windows support, arbitrary schema
-references, or installation/authentication automation. Unsupported contracts fail
-before prompting; model selection failures are explicit. Every failed started
-turn closes its connection, while preflight failure leaves the session reusable.
-Callback errors may be handled as tool errors until a turn-level bound is hit.
+The first slice did not include later one-shot tools, progress observation, or
+composition conveniences. Their accepted behavior now belongs to the owning
+design chapters; the six-anchor evidence here does not cover those later additions.
 
 An old request carrying the current valid turn identifier cannot be attributed
 to its original work by the envelope. Cancellation is not rollback. The bounded
@@ -298,97 +266,25 @@ Completed HTTP task records are retained for cleanup diagnostics until Agent
 shutdown; no session-count memory bound is claimed. Runtime destruction may
 prevent diagnostic publication; absent outcome is not cleanup confirmation.
 
-The next delivery action is owner review of this local product slice and
-authorization for its branch/PR delivery together with the outstanding prior
-work. After authorized publication, require current Linux CI and owner merge
-approval, then synchronize durable evidence before another milestone.
+### Documentation and API review evidence
 
-### Draft PR delivery authorization
+The owner authorized draft PR delivery, CI Rustdoc generation and download, public
+API documentation, a learning-focused rewrite, and `thinkwell::agent::Claude`.
+The public preset namespace changed; launch/connection behavior did not. Rustdoc
+is generated with warnings denied, missing public documentation is denied, and
+agent-dependent examples compile without inference. CI's downloadable artifact
+retains the generated assets and source pages for 14 days; this is not hosting.
 
-The owner requested a draft PR for review in the GitHub UI. This authorizes
-committing and pushing the current design, original experiments, and product
-slice to port-design and opening a draft against main. Merge, package publication,
-and ending the Porting Phase remain unassigned. Prior “not pushed” statements
-above describe the local validation stage. The PR will carry the tested commit
-and current CI state; milestone status remains In progress pending review,
-passing required CI, and authorized integration.
-
-
-### Rustdoc CI follow-up
-
-The owner requested generating Rustdocs in GitHub CI. The existing Rust and Book
-checks job now runs `cargo doc --workspace --no-deps --locked` with
-`RUSTDOCFLAGS="-D warnings"`. CONTRIBUTING.md documents the matching local check
-and target/doc output. This checks Rustdoc generation and warnings separately from
-the existing doctests. It adds no deployment or package-publication step.
-
-The first local Rustdoc run caught an unclosed HTML tag in the plain-text
-`Into<AgentConfig>` API comment. Marking it as inline code fixes the warning.
-This is a documentation-only source change after the product digest above.
-The corrected Rustdoc build, doctests, Book checks/rendering, bootstrap consistency,
-and whitespace checks passed locally; CI verification of this follow-up is pending.
-
-The owner also asked to view the generated output. CI uploads target/doc as the
-rustdoc artifact using a SHA-pinned actions/upload-artifact v4, retained for
-14 days; CONTRIBUTING.md explains downloading and opening thinkwell/index.html.
-The generated files include sibling assets and source pages. No external service
-or hosted-site deployment is configured. Upload execution awaits GitHub CI.
-
-
-### Public API Rustdoc coverage
-
-The owner requested thorough documentation for all public APIs and concrete
-examples for major APIs. Crate-level guidance now introduces the ownership model,
-a quick start, supported schemas, and initial limits. Public types, enum variants,
-fields, traits, and methods document their behavior; the major workflows include
-examples for presets/configuration, custom preset conversion, session reuse,
-borrowed tools, changing result types, budgets, errors, diagnostics, and shutdown.
-
-The crate now denies missing public API documentation. Agent-dependent examples
-use no_run: they are compiled by doctests without starting processes or inference.
-Local examples execute, and both existing ownership compile-fail examples remain.
-This follow-up changes documentation and its enforcement, not runtime behavior;
-the earlier product source digest is historical. Contributor guidance records
-the policy. Local Rustdoc with warnings denied and all 23 doctests passed
-(12 compile-only examples, nine runnable examples, two compile-fail probes).
-Final workspace and Book checks are run before updating the draft PR.
-
-
-### Learning-focused Rustdoc revision
-
-Owner review found the initial API docs too dense and architectural for newcomers.
-The revised crate introduction follows a first conversation, explains Agent,
-Session, and Plan through that example, and links to progressively richer uses.
-Public API pages lead with practical purpose and small examples: follow-up
-questions, structured answers, word counting, and a borrowed shopping list.
-Cleanup, errors, and supported schemas remain documented after the basic workflows.
-Contributor guidance records this learning-first approach.
-
-The revision changes documentation only: comparison against e0ea812 after removing
-Rustdoc comments and whitespace confirms identical executable source in all three
-edited Rust files. Local strict Rustdoc generation and all 28 doctests passed
-(18 compile-only examples, eight runnable examples, two compile-fail probes).
-Rendered crate and major type pages were inspected for introductory text and
-examples. Formatting, compilation of all targets, and Clippy with warnings denied
-passed. All 19 product tests and five launcher/bootstrap tests passed via
-`cargo test --workspace --locked`. Book structure, rendering with pinned mdBook
-0.5.4, and whitespace checks passed. The ambient mdBook was 0.5.1; installing
-the documented 0.5.4 under ignored target/tools resolved that rendering mismatch.
-GitHub CI for this revision has not yet been verified.
-No product behavior, API decision, or milestone status changes in this revision.
-
-### Built-in agent namespace
-
-The owner approved moving Claude to `thinkwell::agent::Claude` and updating the
-draft PR. The public `agent` module now contains the preset; it is no longer
-exported at the crate root. `Agent`, `AgentConfig`, and `Connect` keep their root
-paths. Launch configuration and connection behavior are unchanged. Rustdoc links,
-examples, integration-test imports, and the Book example use the new path.
-
-Local all-target compilation, Clippy with warnings denied, strict Rustdoc, and
-workspace tests passed, including all 28 doctests, 19 product tests, and five
-launcher/bootstrap tests. Formatting, Book structure/rendering, and whitespace
-checks are required before delivery. GitHub CI for this revision remains unverified.
+The initial strict Rustdoc run caught an unclosed `Into<AgentConfig>` HTML tag;
+inline code fixed it. Public-API documentation passed 23 doctests (12 compile-only,
+nine runnable, two compile-fail); the learning revision passed 28 (18 compile-only,
+eight runnable, two compile-fail). Comparing against e0ea812 after removing
+Rustdoc/whitespace found identical executable source in the three edited files.
+The learning and namespace revisions also passed 19 product tests, five bootstrap/
+launcher tests, all-target compilation, strict Clippy/Rustdoc, formatting, and Book
+checks. Rendered crate/type introductions and examples were inspected. An ambient
+mdBook 0.5.1 mismatch was resolved by installing the pinned 0.5.4. Final CI below
+covers the delivered revision; intermediate source digests remain historical.
 
 
 ### Copilot review corrections
@@ -415,10 +311,9 @@ local checks, without credentials or model calls.
 On base 244d27f plus this correction, all-target compilation, formatting, Clippy,
 strict Rustdoc, 20 product tests, five launcher/bootstrap tests, 28 doctests, and
 the Python probe regression passed locally. Book structure/rendering and whitespace
-checks are required before delivery. A focused implementation-author review checked
+checks passed before delivery. A focused implementation-author review checked
 schema direction at all three use sites, preservation of validation, and request
-versus response dispatch. GitHub CI for these corrections remains unverified;
-owner review and authorized integration are still outstanding.
+versus response dispatch. The final CI and owner merge below include both fixes.
 
 
 ### Integrated completion {#integrated-completion}
@@ -456,11 +351,10 @@ and runtime/result experiment including the turn-envelope follow-up. Their
 outcomes and bounded criterion evidence are complete; their milestone statuses
 are reconciled accordingly. Historical source digests and limitations are retained.
 
-This documentation follow-up records the integrated state on a fresh branch
-based on 1b21c83; its own delivery remains separate from PR #2. It introduces no
-product code or new supported capability. The scheduler milestone has
-[approved scope](meeting-scheduler.md); implementation awaits integration
-of this closeout. The project remains in the Porting Phase and unpublished.
+The documentation closeout was subsequently reviewed and merged in PR #3 at
+`eecb8ec98424689c4deb3ce526e524421e3faef8`, satisfying the scheduler's delivery
+prerequisite. Its checks below establish Book integrity, not new product behavior.
+The project remains in the Porting Phase and unpublished.
 
 ### Closeout documentation validation
 
@@ -479,5 +373,6 @@ inference were not rerun for the documentation-only closeout. The scheduler
 planning probe is described in its own roadmap and does not establish solver or
 agent interoperability. On 2026-11-20 the owner approved the scheduler scope and
 explicitly authorized publishing this closeout/proposal as a new draft PR. The
-historical PR #2 CI pass is not a CI pass for this follow-up. Its CI and owner
-merge remain outstanding; approval does not itself integrate the closeout.
+historical PR #2 CI pass is distinct from this follow-up's final-head CI:
+runs 44762298590 and 44762288442 passed before the owner reviewed and merged
+PR #3 on 2026-11-20 at 15:25:01 UTC. This closes the recorded delivery prerequisite.

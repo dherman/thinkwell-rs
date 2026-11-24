@@ -65,6 +65,14 @@ build with mdBook, and inspect affected records and navigation. Reconcile discov
 into owning chapters rather than appending a session journal. Keep evidence tied
 to its tested state; a green structural check establishes no product behavior.
 
+Keep current definitions in [design](design/index.md), unresolved choices in
+[open questions](open-questions.md), and source observations in the migration-only
+research chapters. Roadmaps own assignments, approvals, and bounded evidence.
+Update status and evidence in place when new facts supersede them; retain exact
+revisions, assertions, results, failures, and limitations, and leave session
+chronology and obsolete sketches recoverable through Git. An integrated historical
+milestone is not a substitute for current executable anchor coverage.
+
 ## Pinned method references
 
 The installed engine is pinned to

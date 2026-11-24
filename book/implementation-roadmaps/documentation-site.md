@@ -2,24 +2,30 @@
 
 Roadmap identifier: `documentation-site`.
 
+Milestones 1–3 are integrated on main at `756cd93e674f81e7bb099dc156caf90427b61a68`;
+milestone 4 at `59b8bd56e64cfd5a0318673421dd176316987c07`. The owner approved the
+tutorial direction and direct commit/push delivery without a PR. The
+[completion record](#integrated-completion) distinguishes that authorization,
+local validation, successful CI, and the still-unassigned publication work.
+
 ## Milestone 1. Audit and establish the learning path {#documentation-site-1}
 
 **Identifier:** `documentation-site-1`
 
-**Status:** In progress
+**Status:** Complete
 
 **Outcome:** Review the TypeScript website, propose navigation for Rust learners,
 and prepare a complete first typed-answer tutorial for owner review.
 
 **Assignment:** The owner approved this bounded next step with “proceed” after
 proposing porting the Mintlify site to thinkwell.rs. The preparation milestone
-became Ready and is assigned In progress. Site-wide implementation, hosting,
-DNS, publication, commits and pushes are not assigned by this step.
+became Ready before work. The later site expansion and direct delivery were
+separately approved; hosting, DNS, and publication were not assigned.
 
 **Dependencies and basis:** Integrated API through PR #11 at 5644d6f;
 `R-easy-agent-programming`, `R-progressive-control`, `R-code-prompt-ergonomics`,
-`R-source-provenance`. The earlier scope review and guide experiment remain
-unintegrated; this assignment does not accept their proposed deferrals.
+`R-source-provenance`. This assignment did not accept the separate scope review or guide experiment's
+proposed deferrals.
 
 **Tasks:** Audit source/navigation and Rust differences; propose the learning path;
 write and compile the first tutorial; record publication prerequisites separately.
@@ -31,8 +37,9 @@ write and compile the first tutorial; record publication prerequisites separatel
 - **Anchor coverage:** None — documentation preparation, no new product guarantee.
 - **Criterion:** Trace the proposed pages to inspected source and current Rust
   behavior; identify obsolete claims, provenance concerns and delivery choices.
-- **Evidence:** Audit and proposed navigation below, with source revision and
-  explicit limits. Owner review remains outstanding.
+- **Evidence:** The linked source audit records the revision, Rust differences, and
+  provenance limits. The owner reviewed the tutorial positively and authorized
+  continuing with the learning path; the completed site is integrated as recorded below.
 
 #### First tutorial {#documentation-site-1-tutorial}
 
@@ -59,105 +66,34 @@ write and compile the first tutorial; record publication prerequisites separatel
   and milestone anchors were inspected. An author review checked preset version,
   dependency setup, supported types, fresh-conversation semantics, cleanup wording,
   and publication claims against the Rust sources. No Mintlify rendering, GitHub CI,
-  deployment or DNS operation is claimed. Owner review and integration remain open.
+  deployment or DNS operation was established by those initial checks. Owner
+  review and integration are recorded in the completion record below.
 
-## Source audit
+## Design and source basis
 
-Inspected local TypeScript website navigation and page content at revision
-`2393101fd66b8471f33bb3a4908aeee919fdf0ce` in dherman/thinkwell.
-Source: [website tree](https://github.com/dherman/thinkwell/tree/2393101fd66b8471f33bb3a4908aeee919fdf0ce/website),
-[public tutorials](https://thinkwell.sh/examples).
-This is migration evidence, not authority for Rust behavior. Current Rust code,
-preset docs and integrated example walkthroughs determine the draft's API claims.
+[User documentation](../design/documentation.md) owns the accepted learning path,
+source-excerpt policy, and validation design. [Website source research](../migration.md#website-source-audit)
+retains the pinned audit, source links, and licensing limits. No TypeScript prose,
+code, logos, configuration, or community policy was copied.
 
-| Source area | Useful teaching idea | Rust treatment |
-| --- | --- | --- |
-| Introduction and quickstart | Start with a concrete typed answer and explain each part | Fresh tutorial using Cargo, JsonSchema/Deserialize derives, Plan::run and automatic cleanup. No published crate assumed. |
-| CLI reference | Make installation and execution explicit | Replace with Cargo setup/run instructions; no Rust Thinkwell CLI, Homebrew release or TS schema build step. |
-| Coding agents | Help users obtain accurate generated examples | Defer a Rust coding skill until docs/API guidance exists; do not advertise the TS skill as Rust-compatible. |
-| API overview, agent and sessions | Introduce connection, prompt and history separately | Teach a one-shot plan first, then run_in and changing answer types; only Claude/Codex presets are evidenced. No cwd, environment-override or concurrent-session parity claims. |
-| Plan reference | Compose instructions, context and tools | Teach text/json/code, inline borrowed tools and observe. No skill/quote/textln/ThoughtStream parity claims. Rustdoc owns exhaustive signatures. |
-| Hello world | Tiny complete runnable application | Fold the first answer into quickstart; teach a tool on the next page rather than adding tools to the first program. |
-| Sentiment analysis | Let a model call deterministic analysis | Adapt the integrated Rust walkthrough with borrowed callback/log, not the TS implementation. |
-| Meeting scheduler | Alternate interpretation, exact computation and explanation | Use the Rust solver example and its validation limits. A solver validates its encoded constraints, not the model's interpretation of human intent. |
-| JavaScript unminifier | Combine language understanding with mechanical rewriting | Use the integrated Rust pipeline: deterministic discovery and sequential prompt batches. Do not copy TS parallelism, UMD conversion or broad correctness claims. |
-| Community | Give contributors a clear route into the project | Link Rust CONTRIBUTING and the Book. Do not import TS release processes or adopt a community policy implicitly. |
-
-The source docs.json uses Mintlify's maple theme, fonts/colors, local logo assets,
-and four tabs. Several legacy redirects target pages absent from this source tree
-(for example get-started/architecture and get-started/registry); do not carry those
-redirects into the Rust site automatically. Website assets and community policy
-text have not been cleared for copying. No root LICENSE file or website-local
-license was found in this checkout; package licensing is not sufficient evidence
-for adapting all site content. This draft uses original prose/code and copies no
-TS prose, code, logos, configuration or Contributor Covenant text. Any later asset
-or text reuse needs its applicable license/notices verified first.
-
-## Proposed navigation
-
-Use Mintlify for the learning site and Rustdoc for exact API details. This keeps
-one authoritative signature reference while giving newcomers a task-oriented path.
-Only the first tutorial is drafted; these are proposed titles, not existing routes.
-
-- **Learn:** What is Thinkwell?; Your first typed answer; Working with structs and
-  enums; Adding context; Giving the agent a tool; Continuing a conversation;
-  Showing progress.
-- **Examples:** Sentiment analysis; Meeting scheduler; JavaScript unminifier.
-- **Reference:** Agent setup (Claude/Codex and custom commands); Supported answer
-  types; Errors and cleanup; Rust API reference.
-- **Contribute:** Link the repository contribution guide and project Book.
-
-Introduce each concept when a reader needs it. Start tools with Plan::tool and a
-borrowed Rust function. Introduce explicit tool catalogs only when teaching history.
-Explain ACP briefly as the connection protocol; do not begin with the transport,
-MCP envelopes, worker architecture, or cancellation internals. Put actionable
-limitations beside relevant operations, not in a long opening architecture tour.
-
-## Delivery proposal
-
-Next, after review of the sample and navigation, implement the Mintlify scaffold
-and core learning pages in website/. Select a pinned CLI compatible with the
-existing configuration format, validate MDX and links, and compile tutorial code
-in CI without inference. Avoid maintaining unchecked duplicate code snippets.
-The owner subsequently requested a docs.json for local preview. A minimal
-configuration now includes the existing tutorial and Rust repository link, with
-preview instructions in website/README.md. JSON parsing and navigation targets
-were checked; browser rendering has not been verified. This narrow follow-up
-is part of the assigned preparation work, not approval for the remaining pages.
-
-Keep thinkwell.sh as the TypeScript documentation and label thinkwell.rs as Rust.
-Do not redirect the whole TypeScript site. Add cross-links when each destination
-exists and its site update is authorized. Keep the project Book separate from
-user tutorials.
-
-Before publishing, confirm the owner's Mintlify project/account, repository and
-website/ source-directory configuration, plan support for the custom domain,
-and deployment branch. Obtain the actual DNS records from the chosen host rather
-than guessing CNAME targets; verify TLS and canonical URLs after deployment.
-The owner controls thinkwell.rs, but no DNS state or hosting configuration was
-inspected or changed in this assignment.
-
-Rustdoc currently exists as a downloadable CI artifact, not a public website.
-Choose a durable Rustdoc host/path before adding a public reference link; docs.rs
-is a future option after crate publication, not a working link today. Neither a
-crate release nor Rustdoc hosting is implied by the documentation-site proposal.
-
-Keep this milestone In progress until review and integration. A complete website,
-public availability and the end of the Porting Phase are separate outcomes.
+Publication remains unassigned: hosting account/source directory/deployment branch,
+custom-domain support and host-provided DNS records, TLS/canonical URLs, and a
+public Rustdoc destination require a separate delivery choice. No hosting or DNS
+state was inspected, and no publication is established by the integrated source.
 
 ## Milestone 2. Core learning pages {#documentation-site-2}
 
 **Identifier:** `documentation-site-2`
 
-**Status:** In progress
+**Status:** Complete
 
 **Outcome:** Extend the approved first-tutorial style into a navigable core Rust
 learning path with checked code and Mintlify validation.
 
 **Assignment:** The owner reviewed the tutorial positively and instructed “Let's
-continue with the docs.” This next preparation milestone became Ready and is now
-In progress. The earlier draft remains unintegrated. No publishing, DNS changes,
-commit/push, library API change or lifecycle transition is assigned.
+continue with the docs.” This preparation milestone became Ready before work;
+its approved direct delivery is recorded below. Publishing, DNS changes, library
+API changes, and lifecycle transition remained outside its scope.
 
 **Dependencies and basis:** Owner-reviewed first tutorial; current typed-conversation
 API; `R-easy-agent-programming`, `R-progressive-control`, `R-code-prompt-ergonomics`.
@@ -178,7 +114,8 @@ pages remain subsequent work.
   answer types, context, tools, conversations and progress. Original prose and
   complete programs use current Rust APIs. The first tutorial links forward;
   later guides link prerequisites and next steps. Owner approved the initial
-  tutorial's style; review of these additional pages remains outstanding.
+  tutorial's style and then reviewed the core pages positively before assigning
+  milestone 3. Final documentation delivery is recorded below.
 
 #### Executable examples {#documentation-site-2-examples}
 
@@ -191,7 +128,7 @@ pages remain subsequent work.
   MDX directly and uses the first tutorial's dependency list with a local path
   substitution. Generated manifests/lockfiles stay under ignored target/.
   This checks compilation, not live model behavior or all runtime schemas; no
-  new inference was run. The checks are not yet installed in GitHub CI.
+  new inference was run. Milestone 4 subsequently installed these checks in CI.
 
 #### Site validation {#documentation-site-2-validation}
 
@@ -205,22 +142,22 @@ pages remain subsequent work.
   Rendered Book milestone anchors/navigation were inspected. An author review
   corrected the code-language hint description to match actual validation
   (backticks/control characters rejected, not all whitespace). No browser visual
-  review, GitHub CI, publication or DNS change is claimed. Owner review and
-  integration remain outstanding.
+  review, GitHub CI, publication or DNS change was established by these local
+  checks. Subsequent delivery and CI are recorded below.
 
 ## Milestone 3. Worked examples and practical reference {#documentation-site-3}
 
 **Identifier:** `documentation-site-3`
 
-**Status:** In progress
+**Status:** Complete
 
 **Outcome:** Connect the core learning path to the three integrated Rust examples
 and document agent setup, supported values, failure handling and API lookup.
 
 **Assignment:** The owner reviewed the core pages positively and requested continued
 work after the proposed example/reference follow-up. This milestone became Ready
-and is assigned In progress. Existing documentation remains unintegrated. Commit,
-push, hosting, DNS, release and product API changes are not authorized.
+before implementation. Direct commit/push delivery was subsequently approved;
+hosting, DNS, release, and product API changes remained outside scope.
 
 **Dependencies and basis:** Integrated example source and walkthroughs at 5644d6f;
 current Rust API; `R-easy-agent-programming`, `R-progressive-control`,
@@ -261,8 +198,8 @@ and links; compile new complete samples; run Mintlify and Book validation.
   checked source/command paths, preset versions, defaults and behavioral limits.
   Example executable tests and live inference were not rerun: product code is
   unchanged and its integrated evidence remains historical. No browser visual
-  review, GitHub CI, commit/push, publication or DNS change is claimed. Human
-  review and integration remain outstanding.
+  review, GitHub CI, publication or DNS change was established by these local
+  checks. The completion record supplies later review, integration, and CI evidence.
 
 
 ### Self-contained tutorial revision
@@ -281,8 +218,8 @@ complete programs and matches twenty excerpts against repository source; Mintlif
 4.3.84 validation/build and broken-link checks pass. Book structural checking,
 mdBook rendering and whitespace checks also pass. An author review corrected
 indentation and removed an unmatched closing brace from a partial source excerpt.
-No new model requests or product changes were needed. This remains local,
-uncommitted work awaiting owner review and integration.
+No new model requests or product changes were needed. This revision is included
+in the owner-authorized documentation commit recorded below.
 
 
 ### Import convention
@@ -294,7 +231,8 @@ crate because binary and library are separate Rust crates. Dependency imports in
 tutorial programs and Rustdoc examples remain explicit. No module layout or API
 changed. The unminifier locked all-target cargo check and rustfmt pass, as does the website
 check (thirteen complete programs and twenty source excerpts). Book structural
-checking, rendering and whitespace checks pass. Changes remain uncommitted.
+checking, rendering and whitespace checks passed. This convention and import
+change are included in the integrated documentation commit.
 
 
 ### Documentation delivery
@@ -304,21 +242,22 @@ website, documentation roadmap/navigation, and import-convention follow-up are
 included. Earlier port-scope research and the guide-disclosure experiment remain
 separate local work. The owner reviewed the tutorials as a good starting point;
 this author review checked the delivery scope and source excerpt consistency.
-Push does not imply merge, publication, or completion of the Porting Phase.
-Documentation milestones remain In progress pending integration.
+The documentation commit is on main; no PR merge is claimed for this explicitly
+authorized direct delivery. Publication and the Porting Phase remain separate.
 
 ## Milestone 4. Documentation CI {#documentation-site-4}
 
 **Identifier:** `documentation-site-4`
 
-**Status:** In progress
+**Status:** Complete
 
 **Outcome:** Run tutorial compilation, source-excerpt checks and Mintlify validation
 on pushes and pull requests without model credentials or deployment.
 
 **Assignment:** After documentation commit 756cd93 was pushed, the owner approved
 adding documentation checks to CI with “proceed”. This milestone became Ready
-and is now In progress. No hosting, DNS, release or new API work is assigned.
+before implementation. Hosting, DNS, release, and new API work remained outside
+this assignment.
 
 **Dependencies and basis:** The checked-in site and validation script at 756cd93;
 `R-easy-agent-programming`, `R-reviewed-delivery` and the existing CI workflow.
@@ -354,6 +293,31 @@ commands and limits; validate the workflow and run the commands locally.
   .github/workflows/ci.yml` (workflow lint, without ShellCheck); Book structural
   check, mdBook build and whitespace check. The local Node version is 24.12.0.
   An author review checked the commands, action SHA, time limit and absence of
-  deployment/model work. No GitHub execution or Linux result is claimed yet.
-  The owner authorized committing and pushing this workflow follow-up without a PR.
-  Integration is outstanding; a push alone does not establish a successful GitHub run.
+  deployment/model work. The owner authorized committing and pushing this workflow
+  follow-up without a PR. Its integrated revision and actual Linux execution are
+  recorded below; the local validation alone did not establish them.
+
+## Integrated completion {#integrated-completion}
+
+The existing approval records above establish the owner-reviewed tutorial style,
+core learning path, self-contained example presentation, and authorization to
+commit/push the documentation and CI follow-up without PRs. Local Git places
+`756cd93e674f81e7bb099dc156caf90427b61a68` (site, walkthroughs, validation, import
+convention) and `59b8bd56e64cfd5a0318673421dd176316987c07` (documentation CI) on main.
+This reconciles the obsolete pending-integration statements; it invents no PR
+approval or publication event.
+
+GitHub evidence inspected on 2026-11-24 confirms successful
+[documentation-commit CI](https://github.com/dherman/thinkwell-rs/actions/runs/45134008131)
+and successful [CI at 59b8bd5](https://github.com/dherman/thinkwell-rs/actions/runs/45135752602).
+The latter ran all five jobs: Rust and Book checks, scheduler, sentiment, unminifier,
+and Documentation site. The documentation job compiled thirteen complete programs,
+matched twenty source excerpts, and ran the pinned Mintlify validation and link
+commands. The other successful run at that same final revision is
+[45134438390](https://github.com/dherman/thinkwell-rs/actions/runs/45134438390).
+
+All four bounded milestones are Complete. Their historical local checks retain
+their original scope; CI does not establish clean-machine authentication, model
+behavior, browser visual review, public hosting, or a lifecycle transition.
+This Book status correction remains local work under
+[lifecycle-delivery-3](lifecycle-delivery.md#lifecycle-delivery-3).

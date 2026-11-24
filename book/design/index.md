@@ -1,4 +1,4 @@
-# Library design
+# Design
 
 Thinkwell lets an application alternate deterministic Rust computation with
 LLM-powered reasoning. Application code owns the workflow: it supplies context,
@@ -11,6 +11,12 @@ govern the short path from a prompt to a typed answer and the ability to introdu
 explicit sessions, tools, model choices, limits, and observation as needed.
 `R-idiomatic-reimplementation` governs the Rust ownership model. These chapters
 define the library independently of any migration source.
+
+[Example applications](examples.md) define the scheduler, sentiment tool, and
+unminifier as consumers of that library. [User documentation](documentation.md)
+defines the learning site, its relationship to Rustdoc, and executable snippet
+validation. Their roadmaps retain approval and delivery evidence, rather than
+serving as separate system definitions.
 
 ## Components and responsibilities
 

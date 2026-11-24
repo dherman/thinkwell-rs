@@ -33,16 +33,16 @@ review before proposing an implementation milestone.
 - **Criterion:** Show ordinary typed answers, optional progress, a borrowed tool
   alongside separate observer state, persistent history, observer failure and
   cancellation with borrows released.
-- **Evidence:** The sketches below cover these cases. They are uncompiled proposed
-  APIs; existing names retain their current meanings.
+- **Evidence:** The original review sketches covered these cases; their Git revision
+  and incorporated design are linked below. They supplied no compiled API evidence.
 
 #### Behavior and scope {#progress-observation-1-behavior}
 
 - **Anchor coverage:** None — proposed semantics need review before adoption.
 - **Criterion:** Distinguish agent reports from host facts, typed completion from
   progress, control from observation, and bounded delivery from a complete audit.
-- **Evidence:** Event and lifecycle proposals below state these distinctions,
-  buffering limits, explicit exclusions and implementation questions.
+- **Evidence:** The reviewed proposal distinguished these roles, buffering limits,
+  exclusions, and implementation questions. The accepted definition is linked below.
 
 #### Owner review {#progress-observation-1-review}
 
@@ -53,181 +53,26 @@ review before proposing an implementation milestone.
   enums and private payload fields/accessors. Local structural and rendering checks pass;
   no product code, dependency or live-agent test was added for this assignment.
 
-## Reviewed proposal
+## Review outcome and incorporation
 
-The owner approved this direction, including a non_exhaustive enum and private
-payload fields/accessors. The initial sketches below preserve the review context;
-implementation names and guarantees are defined in Rustdocs and the live design.
+The owner approved Plan::observe followed by run/run_in, a local synchronous
+borrowed observer, non_exhaustive event kinds, and private payloads with accessors.
+The [owning design](../design/progress-observation.md) defines the selected wrapper,
+events, disclosure limits, buffering, fairness, and cleanup. The awaited typed
+result remains authoritative; observation neither authenticates a delayed message's
+originating turn nor supplies a reasoning feed or permission-policy hook.
 
-### Recommendation
+The three original [review sketches](https://github.com/dherman/thinkwell-rs/blob/ab1e8212455c25837f1b9805ad0f666b1ba18300/book/implementation-roadmaps/progress-observation.md)
+showed a console answer, distinct tool/observer captures, and persistent history
+with fallible logging and timeout cancellation. They were uncompiled review
+artifacts; crate Rustdocs and the progress example provide compiled uses.
+Application logging failures remain application state. Synchronous callbacks must
+return promptly; an async timeout cannot preempt them. Panic follows ordinary
+unwinding and guards, with no destructor guarantee under panic=abort.
 
-The reviewed placement is Plan::observe followed by run/run_in, with a local,
-synchronous borrowed observer and the awaited Result remaining authoritative.
-The complete current definition is [progress observation](../design/progress-observation.md),
-including the wrapper, event types, disclosure, buffering, fairness, and cleanup.
-The examples below retain the original review context; compiled uses live in the
-crate Rustdocs and progress example. They are not a second API specification.
-
-## Example 1: a console answer with optional progress
-
-These remain illustrative review sketches; the crate Rustdocs and progress
-example provide compiled uses of the implemented API.
-
-```rust,ignore
-use thinkwell::{agent::Codex, Plan, ProgressEvent};
-
-let agent = Codex::connect().await?;
-let names = Plan::<Vec<String>>::new()
-    .text("Suggest three names for a community garden.")
-    .observe(|event| {
-        if let ProgressEvent::Message(message) = event {
-            eprint!("{}", message.text());
-        }
-    })
-    .run(&agent)
-    .await?;
-
-// Progress text is not the validated answer.
-for name in names {
-    println!("Suggestion: {name}");
-}
-```
-
-Removing observe leaves the current program. User-visible message chunks are
-optional agent output: silence is not evidence of a hung execution. A spinner
-can use the application's own timer. An Event enum should be non_exhaustive;
-clients match only the events they need and include a fallback. This allows
-future variants without requiring exhaustive matches to change.
-
-## Example 2: a tool and an observer borrowing different state
-
-```rust,ignore
-use thinkwell::{agent::Claude, Plan, ProgressEvent};
-
-let agent = Claude::connect().await?;
-let mut total = 0_i64;
-let mut activity = Vec::new();
-
-let answer = Plan::<i64>::new()
-    .text("Call add with 3 and report the total.")
-    .tool("add", "Add to the total", async |amount: i64| {
-        total += amount;
-        Ok(total)
-    })
-    .observe(|event| {
-        if let ProgressEvent::ToolStarted(tool) = event {
-            activity.push(format!("Running {}", tool.name()));
-        }
-    })
-    .run(&agent)
-    .await?;
-
-println!("Answer: {answer}; Rust total: {total}");
-for line in activity {
-    println!("{line}");
-}
-```
-
-Both borrows end when the owned run future completes or is dropped. The observer
-cannot read total while the tool exclusively borrows it. ToolStarted carries
-metadata, not references to callback captures. Applications can explicitly copy
-measurements into their own shared state if required; Thinkwell need not require
-locks or static captures merely to show progress. The local activity Vec is
-application-owned and can grow; a bounded library queue does not bound user logs.
-
-## Example 3: persistent history, fallible output and cancellation
-
-An observer's output destination can fail independently of the agent's work.
-The recommended first version leaves that choice in ordinary application code:
-
-```rust,ignore
-use std::{io::Write, time::Duration};
-use thinkwell::{Plan, ProgressEvent};
-
-let mut session = agent.session().open().await?;
-let mut log_error = None;
-let mut output = std::io::stderr();
-
-let summary = Plan::<String>::new()
-    .text("Summarize the supplied document.")
-    .json(&document)?
-    .observe(|event| {
-        if log_error.is_none()
-            && let ProgressEvent::Message(message) = event
-            && let Err(error) = write!(output, "{}", message.text())
-        {
-            log_error = Some(error);
-        }
-    })
-    .run_in(&mut session)
-    .await?;
-
-if let Some(error) = log_error {
-    eprintln!("Progress output failed: {error}");
-}
-
-// The same history, a different result type, and a fresh observer.
-let mut updates = 0;
-let outcome = tokio::time::timeout(
-    Duration::from_secs(20),
-    Plan::<Vec<String>>::new()
-        .text("List the next actions based on that summary.")
-        .observe(|_| updates += 1)
-        .run_in(&mut session),
-).await;
-
-println!("Observed {updates} updates");
-match outcome {
-    Ok(result) => show_actions(result?), // An application helper.
-    Err(_) => {
-        // timeout consumed/dropped the future; captures are released.
-        // If work had started, existing policy invalidates the session/connection.
-        eprintln!("Timed out; reconnect before starting more work.");
-    }
-}
-```
-
-A synchronous callback must return promptly: blocking it stalls execution, and
-an async timeout cannot preempt synchronous code. An observer panic follows normal
-Rust unwinding; existing execution guards must revoke access and initiate cleanup.
-Do not catch panics and silently report a successful typed result. Under panic=abort,
-normal destructor guarantees do not apply. No async observer or fallible observer
-trait is proposed initially. A caller wanting a logging failure to cancel work can
-use application cancellation composition in a later example/assignment.
-
-## Proposed initial events
-
-The reviewed event meanings and omissions are incorporated into
-[the observer and event contract](../design/progress-observation.md#observer-and-event-contract).
-It distinguishes agent reports, local invocation processing, result validation,
-and loss reporting, with the final typed result authoritative. No reasoning feed,
-raw arguments/results, or permission-policy hook was assigned.
-
-## Delivery and lifecycle proposal
-
-The [owning design](../design/progress-observation.md) defines queue and metadata
-bounds, tail delivery, polling fairness, local capture ownership, setup attribution,
-and drop/panic behavior. [Execution lifecycle](../design/execution-lifecycle.md)
-defines connection cleanup. The original proposal was assessed by milestone 2;
-its evidence remains below. In particular, session filtering does not authenticate
-an originating turn for delayed same-session agent messages.
-
-## Choices for owner review
-
-1. **Placement:** recommend plan.observe(...).run(...), compared with the earlier
-   execute(...).observe(...).await. The latter offers room for more controls but
-   introduces a second execution vocabulary now.
-2. **Delivery:** recommend a synchronous borrowed observer with explicit loss
-   reporting. A separate async stream permits asynchronous consumers but introduces
-   another polling/ownership/buffering contract. It can be a later surface.
-3. **Scope:** recommend user-visible messages, distinct agent/local tool activity,
-   result validation feedback and overflow. Keep the final typed Result authoritative
-   and defer lower-level tracing, reasoning text and cancellation handles.
-
-After owner review, prepare a bounded implementation milestone covering the chosen
-surface, compiler-checked borrowed callbacks, deterministic ordering/overflow/error
-fixtures and live console examples with both supported agents. The owner subsequently approved proceeding; milestone 2 records the assigned
-implementation and the live design chapter owns the accepted anchor.
+The reviewed alternatives—an execution-first vocabulary, independent async stream,
+async/fallible observer traits, and additional cancellation handles—were not selected
+for this bounded surface. Its implementation evidence remains below.
 
 
 ## Milestone 2. Implement optional progress observation {#progress-observation-2}
@@ -358,5 +203,4 @@ The owner merged [PR #10](https://github.com/dherman/thinkwell-rs/pull/10), head
 Meeting scheduler example, and Sentiment analysis example. The owner reported
 merge and authorized the subsequent closeout and unminifier investigation.
 Together with the design approval and criterion evidence above, this completes
-both bounded milestones. Merge-commit CI has not been assessed here. This Book
-synchronization is a subsequent local change and is not yet integrated.
+both bounded milestones. Merge-commit CI has not been assessed here. The subsequent Book synchronization is present on main at 59b8bd5.

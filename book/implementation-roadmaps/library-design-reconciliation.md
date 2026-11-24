@@ -57,8 +57,8 @@ and historical verification evidence retain their meaning. Roadmap links identif
 the owning design without changing completed outcomes or claiming new verification.
 
 - **Anchor coverage:** None — preservation assessment, not execution of anchor criteria.
-- **Evidence:** A comparison against the updated baseline at 4f13784 confirms all
-  seven anchor definitions (including their authority and criteria) are byte-for-byte
+- **Evidence:** At this pass's validation, comparison against the baseline at 4f13784
+  confirmed all seven anchor definitions (including their authority and criteria) are byte-for-byte
   unchanged, with one definition per ID. The three authority files, all 72 existing
   fourth-level completion-criterion blocks, existing milestone statuses, and the
   historical execution/review sections of changed library roadmaps are unchanged.
@@ -100,9 +100,11 @@ transition remain outside this pass.
 
 ### Approval bases and open choices {#approval-bases-and-open-choices}
 
-The accepted library authorities and all seven anchors are preserved verbatim
-from 4f13784, which separately migrated anchor criteria to executable tests and
-moved review into project guidance. Historical review remains review evidence;
+This reconciliation preserved the accepted authorities and seven anchors verbatim
+from 4f13784, which migrated verification to executable tests and moved review
+into project guidance. The separately assigned [criterion reconciliation](executable-verification.md#executable-verification-2)
+subsequently split uncovered obligations into explicit criteria; that change is
+outside this pass's preservation comparison. Historical review remains review evidence;
 it does not satisfy or gate anchor verification.
 The first product assignment and its accepted scope supply the basis for owned
 Tokio/ACP connections, fixed catalogs, typed results, supported schemas, and
@@ -114,7 +116,8 @@ invent separate approvals for moving their definitions.
 The wider integrated API review remains a provisional basis. Its host-attachment,
 model-discovery/mutation, and explicit cancellation-handle sketches are not
 silently incorporated as supported APIs. The bounded product scope defers them.
-No accepted requirement, decision, anchor property, or verification method changes.
+This pass changed no accepted requirement, decision, anchor property, or
+verification method.
 
 The following source observations have no clear specific approval basis in the
 read Book. They remain observations and review questions, not new guarantees:
@@ -133,5 +136,7 @@ details to a general protocol contract.
 
 These questions do not block consolidation of already accepted behavior. The
 implementation is preserved, and no new product work is assigned to resolve them.
-Existing delivery-status inconsistencies, including unminifier closeout, are
-outside this pass and have not been repaired or used to infer new review evidence.
+Delivery-status corrections, including unminifier closeout, belong to the later
+[lifecycle-delivery-3 cleanup](lifecycle-delivery.md#lifecycle-delivery-3), using
+recorded approvals and inspected integration evidence. They are not part of this
+library reconciliation or its separate diff.

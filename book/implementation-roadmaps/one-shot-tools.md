@@ -115,5 +115,4 @@ head `da10a45948b9455352c0767d55cda0a36bf5fe52`, as
 `43c147c250efd2c5fb1a1d8db57df0b03991c134`. All three final-head CI jobs passed
 (runs `44915979688` and `44915974137`); merge-commit run `44917077737` also passed.
 The owner reported CI and review passed without issues. Together with the local
-criterion evidence above, this completes the bounded milestone. This Book
-synchronization is a subsequent local change and is not yet integrated.
+criterion evidence above, this completes the bounded milestone. The subsequent Book synchronization is present on main at 59b8bd5.

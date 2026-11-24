@@ -5,8 +5,6 @@ Roadmap identifier: `lifecycle-delivery`.
 Current integration state: milestone 1 was delivered through owner-merged
 [PR #2](https://github.com/dherman/thinkwell-rs/pull/2). See the
 [shared integration evidence](first-product-slice.md#integrated-completion).
-Its earlier local-stage evidence and pending-delivery statements are historical;
-they retain their tested scope and do not describe current integration status.
 [Milestone 2](#lifecycle-delivery-2) is a separate port-contract experiment on the
 fork's `port-phase-adoption` branch, pending upstream review and integration.
 
@@ -24,8 +22,9 @@ and reviewable delivery; CI protects bootstrap relationships.
 
 **Dependencies:** Completed project scaffolding. The project owner explicitly
 approved this bounded assignment and its acceptance criteria in the lifecycle
-and change-delivery request on 2026-11-17. The milestone was recorded Ready on that approval and is now In progress.
-No port milestone is authorized.
+and change-delivery request on 2026-11-17. Ready preceded implementation;
+PR #1 delivered the policy and PR #2 integrated its synchronization. This governance
+assignment did not authorize a product port milestone.
 
 **Design basis:** The owner's accepted lifecycle and delivery direction:
 `R-temporary-migration-reference`, `R-porting-transition`, `R-reviewed-delivery`,
@@ -85,7 +84,7 @@ synchronization are recorded before durable completion.
   serializes fixture lifetimes without changing assertions or production behavior. Rendered navigation, affected authority
   and roadmap records, and local HTML links/fragments passed inspection. Final-head
   and merge-commit Linux CI passed; PR #1 is merged. The owner confirmed human review.
-  Integration of this roadmap synchronization remains outstanding; see below.
+  PR #2 subsequently integrated the roadmap synchronization, as recorded below.
 
 ### Validation and review evidence
 
@@ -95,7 +94,7 @@ At that validation, no new tested commit existed and changes were local, not
 committed, pushed, or integrated. The owner subsequently authorized committing,
 pushing, and opening a PR for review on branch `lifecycle-delivery-integration`.
 PR #1 subsequently merged; its exact revisions and CI evidence are recorded below.
-Durable completion remains pending the remaining delivery-record obligations.
+PR #2 subsequently closed the remaining synchronization obligation.
 Rust 1.100.0, mdBook 0.5.4, and Anchor Book revision
 `9689b00416fd577bfb68a02f1fa310f6088404cf` remain unchanged.
 
@@ -179,10 +178,9 @@ confirmation is recorded here rather than represented as a GitHub approval.
 No protection bypass is inferred. The earlier implementing-agent review and its
 findings remain recorded above.
 
-The owner requested this post-merge roadmap synchronization. It is a local,
-uncommitted documentation follow-up on `port-design`, based on the merge commit;
-its integration is still pending. No product milestone is assigned by this update.
-For this documentation follow-up, `cargo anchor check --config anchorbook.toml`
+The owner requested post-merge roadmap synchronization on `port-design`, based
+on the PR #1 merge commit. That follow-up introduced no product milestone and was
+subsequently integrated through PR #2. For its local validation, `cargo anchor check --config anchorbook.toml`
 passed structural/v1 with zero errors, mdBook 0.5.4 built successfully, and
 `git diff --check` passed. The changed source and rendered integration evidence,
 criterion links, and completion record were inspected. No implementation changed;
@@ -239,3 +237,112 @@ Active instructions agree on Port and the engine pin, preserve the existing huma
 ### Completion record
 
 Pending upstream owner review, required CI, merge, and evidence synchronization.
+
+## Milestone 3. Reconcile the Book with its working contract {#lifecycle-delivery-3}
+
+**Outcome:** The Book separates accepted design, migration research, current
+questions, and delivery evidence, without retaining superseded planning as the
+current project account.
+
+**Status:** In progress
+
+**Identifier:** `lifecycle-delivery-3`
+
+**Dependencies:** The user explicitly assigned this cleanup after requesting a
+fresh contract reading. The bounded Book-only assignment was recorded Ready in
+the readiness report and is now In progress. Earlier design reconciliation and
+executable-verification changes remain separate local work. No implementation,
+publication, merge, or lifecycle transition is assigned.
+
+**Design basis:** The pinned contract's whole-design, knowledge-placement, and
+in-place evidence rules; `R-reproducible-checks`, `R-reviewed-delivery`, and
+[change delivery](../change-delivery.md).
+
+**Tasks**
+
+- [x] Reconcile current status against recorded approval and integration evidence.
+- [x] Consolidate superseded design sketches and move source observations into research.
+- [x] Preserve criteria, implementation, tested scope, and unresolved approval bases.
+- [x] Validate the Book and bootstrap, review the separate cleanup diff, and record limitations.
+
+### Completion criteria
+
+#### Current project account {#lifecycle-delivery-3-state}
+
+Roadmaps and current questions distinguish integrated work, local assignments,
+and unresolved decisions. Completion corrections cite their approval and delivery
+basis; missing evidence remains explicit.
+
+- **Anchor coverage:** None: evidence reconciliation, not product verification.
+- **Evidence:** Existing owner approvals and read-only Git/GitHub inspection on
+  2026-11-24 establish PR #11's owner merge and successful final-head/merge CI,
+  plus the owner-authorized documentation commits on main and successful site CI.
+  The unminifier and documentation roadmaps now cite those revisions and runs.
+  Earlier integrated roadmap closeouts no longer claim to be awaiting delivery.
+  The fork's current contract, library reconciliation, verification, and cleanup
+  assignments remain In progress; no new upstream approval is inferred.
+
+#### Knowledge placement {#lifecycle-delivery-3-knowledge}
+
+Accepted system definitions live in design chapters, source observations in
+migration research, and bounded work and evidence in roadmaps. Superseded
+chronology remains recoverable from Git without serving as current guidance.
+
+- **Anchor coverage:** None: Book organization only.
+- **Evidence:** The design overview now includes example applications and user
+  documentation, incorporating already-approved behavior, including the one-shot
+  sentiment revision and the unminifier's teaching scope. Roadmaps link those
+  definitions. Library/ACP source observations moved from Open Questions into a
+  migration-only chapter; website provenance moved into migration research.
+  Open Questions retains actual unresolved choices. Superseded ACP, integrated-API,
+  and observer sketches are linked to their integrated Git revisions. Their bounded
+  results, review basis, compiler probes, and limits remain in roadmap evidence.
+
+#### Preservation and validation {#lifecycle-delivery-3-validation}
+
+Existing implementation, all anchor obligations, historical test scope, and
+explicitly unresolved approval bases survive the cleanup. Structural, bootstrap,
+rendering, and local-link checks pass; the cleanup diff is separately reviewable.
+
+- **Anchor coverage:** None: Book integrity does not establish anchor satisfaction.
+- **Evidence:** Validated the uncommitted `port-phase-adoption` tree based on
+  `4f13784f3b07cfee26f745901cafe1b0ca3b2cf6`, with Rust 1.100.0, mdBook 0.5.4,
+  nextest 0.9.151, and the configured engine `fb7badc8f3bb763f9ba89d6c15c8701faefe1e46`.
+  The pre-cleanup snapshot includes the separately authored 22-criterion correction.
+  Comparison confirms no cleanup changes outside the Book, byte-identical authority
+  and anchor definitions, and preservation of every existing explicit record ID.
+
+  Commands/results:
+
+  - `cargo anchor contract --config anchorbook.toml`: reread the configured contract.
+  - `cargo anchor check --config anchorbook.toml`: structural/v1 passed after each batch.
+  - `cargo test -p anchor-runner --locked`: all five launcher/bootstrap tests passed.
+  - `cargo anchor verify --config anchorbook.toml --method test --format json`:
+    exit 0; 38 linked tests passed, seven criteria satisfied and fifteen unlinked;
+    two anchors satisfied and five partial. Criterion identity `3173bc7858e8742e`,
+    configuration `a9835f786b88232f`, and code `c5aec1dd9dd03591` are unchanged.
+  - `mdbook build`: passed; all 36 navigated chapters and local HTML links/fragments
+    were checked. The pinned engine's `rendered_book` acceptance test, run with
+    `--ignored --nocapture` and `ANCHORBOOK_TEST_BOOK` / `ANCHORBOOK_TEST_OUTPUT`
+    directed at this checkout and output, passed all 37 record cards, combined
+    print targets, and local links. Its Cargo invocation used `--locked --offline`
+    and an external temporary target directory; no new tests were added.
+  - `git diff --check` and whitespace inspection including new chapters: passed.
+
+  The separate cleanup diff is generated against the pre-cleanup snapshot as
+  `/tmp/thinkwell-book-contract-cleanup.diff`; preservation/link results and the
+  fresh verification JSON are temporary review artifacts, not repository truth.
+  A separate author diff review checked knowledge placement, latest approved
+  example behavior, preserved test scope and probes, and status/CI attribution.
+  This is self-review, not independent or upstream owner review. The wider
+  workspace, standalone example/site, and live-agent suites were not rerun for
+  unchanged implementation; their earlier evidence remains tied to its tested
+  revisions. No fresh GitHub CI, publication, or lifecycle transition is claimed.
+
+### Completion record
+
+Local cleanup, author review, and validation are prepared for user review as a
+separate diff. The milestone remains In progress pending the project's delivery
+process. Unclear filesystem-context, model-selector, deadline-composition, and MCP
+negotiation choices remain explicit in Open Questions; missing anchor obligations
+remain unlinked. No commit, push, publication, or upstream integration was performed.

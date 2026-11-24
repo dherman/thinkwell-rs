@@ -9,8 +9,6 @@ In particular, experiment-specific limits and APIs are not promoted by reconcili
 Current integration state: completed work was delivered through owner-merged
 [PR #2](https://github.com/dherman/thinkwell-rs/pull/2). See the
 [shared integration evidence](first-product-slice.md#integrated-completion).
-Earlier local-stage evidence and pending-delivery statements below are historical;
-they retain their tested scope and do not describe current integration status.
 
 Goal: establish whether the reviewed API's two unproven foundations—per-turn typed
 final results and RAII-managed connection lifetime—work together before committing
@@ -178,20 +176,18 @@ integration remain separate requirements for durable completion.
 
 ### Exit and next implementation recommendation
 
-If the criteria hold, use the demonstrated design to propose the first product
-slice in crates/thinkwell, with explicit behavioral anchors, chosen dependency and
-runtime support scope, and acceptance tests. If they do not, revise the affected
-provisional design with the owner before expanding the API. Do not carry every
-experimental helper or fixture into the product automatically. Promotion and
-public API implementation require their own scoped assignment.
+The separately approved [first product slice](first-product-slice.md) selected
+the public runtime, schema, and support scope after this experiment. Experimental
+helpers and fixtures were not automatically promoted into product API.
 
 ### Evidence and completion record
 
 The owner approved this milestone after approving the integrated design.
-Implementation and a separate criterion-by-criterion self-review are locally
-complete on 2026-11-19. Status remains In progress pending human review and
-authorized integration, not Complete. No commit, push, or publication occurred.
-The project remains in the Porting Phase with the engine in prototyping mode.
+Implementation and a separate criterion-by-criterion self-review completed
+locally on 2026-11-19; owner review and PR #2 integration subsequently completed
+the milestone. See the [shared delivery evidence](first-product-slice.md#integrated-completion).
+The historical checks below used the then-pinned engine's prototyping mode;
+the current configured working mode is Port. No lifecycle transition occurred.
 
 The experiment extends the existing isolated experiments/acp-integration package;
 crates/thinkwell and the workspace dependency selection are unchanged.
@@ -420,9 +416,9 @@ assigned. Existing local evidence remains historical until rerun for this change
 
 ### Turn-envelope implementation evidence
 
-The approved follow-up is implemented and locally validated. The milestone remains
-In progress pending human review and authorized integration. No commit or push
-was performed.
+The approved follow-up passed local validation on the source state below and was
+subsequently owner-reviewed and integrated in PR #2. It retains the experimental
+scope and submitted-identifier limitations described here.
 
 runtime.rs now advertises a fixed accumulate contract with required turn and
 input fields; input uses the existing derived Input schema. Each prompt supplies

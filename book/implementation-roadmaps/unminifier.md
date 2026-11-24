@@ -2,46 +2,17 @@
 
 Roadmap identifier: `unminifier`.
 
-## Current scope and owner direction
-
-The owner approved a standalone example after local AST and live-agent experiments.
-The owner then corrected its emphasis: this is a readable Thinkwell demo, not a
-production refactoring tool. Happy-path code with assertions/panics is preferred
-over comprehensive input rejection, resource budgets or equivalence checking.
-This revises the example's scope, not Thinkwell's library guarantees.
-
-The example reads a JavaScript module, discovers private top-level function
-declarations, asks for typed naming suggestions in sequential batches, and applies
-renames. Plan clone/json/run provides the workflow; the owner-assigned Plan::code
-follow-up makes source context easier to read without changing execution semantics.
-The implementation and beginner walkthrough live at `examples/javascript-unminifier/`.
-
-Oxc 0.159.0 supplies parser and semantic information. Instead of printing a new AST,
-the helper edits declaration and resolved-reference byte ranges in reverse order.
-Untouched source text, including comments and whitespace, stays unchanged; shorthand
-object properties expand to retain their original keys. Existing names are reserved
-and collisions receive numeric suffixes. Named exports and unrelated shadowed
-bindings are left alone. This is not a general JavaScript refactoring guarantee.
-
-The owner suggested tree-sitter for permissive parsing and source fidelity. Targeted
-edits achieve source fidelity with the scope information already available from Oxc,
-avoiding a second parser or handwritten resolver. Oxc remains a strict parser;
-tree-sitter has not been selected, built or compared experimentally. Its permissive
-parsing remains a possible future option, not a prerequisite for the teaching example.
-
-The demo assumes ordinary lexical JavaScript and sensible identifier suggestions.
-It does not try to detect every problematic export, eval, reflection or unusual
-assignment form. It asserts basic parser and result expectations rather than building
-custom errors. Renaming can change observable function names and stack traces.
-Output uses a new file to avoid replacing input; failed writes may leave a partial
-new file. No atomic publication, size limits, equivalence proof or retry policy is
-promised. UMD conversion and parallel batches remain outside the example.
+The [example design](../design/examples.md#javascript-unminifier) owns the accepted
+teaching scope and transformation rules; [typed conversations](../design/typed-conversations.md)
+owns Plan::code. The owner selected a simple demo with happy-path assertions,
+replacing the earlier production-style rejection/equivalence scope. Milestones 1–3
+are Complete through owner-merged PR #11; see [delivery evidence](#integrated-completion).
 
 ## Milestone 1. Assess a small Rust unminifier example {#unminifier-1}
 
 **Identifier:** `unminifier-1`
 
-**Status:** In progress
+**Status:** Complete
 
 **Outcome:** Assess AST libraries and the typed naming workflow; present a concrete
 example direction for owner selection.
@@ -49,14 +20,14 @@ example direction for owner selection.
 **Assignment:** Following owner-merged PR #10, the owner approved investigation,
 then local testing and extension to scripted/live agent workflows. The owner
 subsequently approved the standalone example and the simplicity-first direction
-above. Local research and review are satisfied; durable integration remains pending.
+in the linked design. Research, scope review, and delivery are complete through PR #11.
 
 **Design basis:** `R-code-prompt-ergonomics`, `R-easy-agent-programming`,
 `R-progressive-control`, `R-source-provenance`, `D-reviewed-api-baseline`, and
 [typed conversations](../design/typed-conversations.md).
 
 **Tasks:** Source/library assessment, local experiment, concrete workflow and owner
-scope review are done; deliver the records with milestone 2.
+scope review and delivery with milestone 2 are complete.
 
 ### Completion criteria
 
@@ -84,13 +55,13 @@ scope review are done; deliver the records with milestone 2.
 - **Criterion:** Present recommendations and obtain scope selection.
 - **Evidence:** The owner approved the standalone example after local testing,
   then explicitly preferred simplicity and permitted panics outside the happy path.
-  The current scope above incorporates that correction; integration remains pending.
+  The owning design incorporates that correction; PR #11 integrated it.
 
 ## Milestone 2. Deliver the standalone unminifier example {#unminifier-2}
 
 **Identifier:** `unminifier-2`
 
-**Status:** In progress
+**Status:** Complete
 
 **Outcome:** Teach code/prompt alternation through a small standalone example with
 source-preserving renames and a beginner walkthrough.
@@ -107,8 +78,8 @@ formatting convenience is separately assigned in milestone 3.
 milestone 1. The example is application code, not a new supported library contract.
 
 **Tasks:** Standalone package, prompt loop, source edits, simple CLI, walkthrough,
-deterministic tests and CI configuration are implemented locally. Final delivery,
-CI and owner integration remain outstanding.
+deterministic tests, CI, and owner-reviewed integration are complete. The evidence
+below distinguishes initial local checks from the final delivered revision.
 
 ### Completion criteria
 
@@ -139,12 +110,12 @@ CI and owner integration remain outstanding.
 - **Anchor coverage:** None — review and integration.
 - **Criterion:** Record local checks, author review, CI and owner integration.
 - **Evidence:** Local validation and author review are below. The separate Linux CI
-  job is configured but has not run for this unpublished change. Commit/push and
-  draft PR delivery are authorized; owner review and integration remain pending.
+  job passed on the final PR head and merge commit. Owner merge and exact
+  revisions are recorded in the completion record below.
 
 ## Local evidence and limitations
 
-Current tests run on macOS/Rust 1.100.0, base `ab1e821` plus the uncommitted
+Initial local tests ran on macOS/Rust 1.100.0, base `ab1e821` plus the uncommitted
 unminifier-design tree. With `CARGO_TARGET_DIR="$PWD/target/unminifier"` and manifest
 `examples/javascript-unminifier/Cargo.toml`, locked cargo tests pass (four unit,
 two scripted-workflow, three CLI). All-target check, strict Clippy and formatting
@@ -180,7 +151,7 @@ correction, span-edit order, shorthand handling, named-export selection, retaine
 file protection and removed guarantees. No new library policy or API was introduced.
 All nine focused tests, all-target check, strict Clippy, formatting, Book structure,
 rendering and whitespace checks pass. This is author review, not independent or
-owner review; draft PR delivery is now authorized; CI and integration remain pending.
+owner review. Subsequent owner delivery and CI are recorded below.
 
 ## PR review correction
 
@@ -197,7 +168,7 @@ while the former expansion changes the prototype. On `e777f72` plus this correct
 all ten example tests (five unit, two workflow, three CLI), strict all-target Clippy,
 formatting, Book structure/rendering and whitespace checks pass. Author review checked
 the special case against decoded symbol identity and unchanged ordinary shorthand
-handling. CI for the correction and owner integration remain pending.
+handling. The correction is included in the final passing CI and owner merge below.
 
 
 ## Presentation follow-up
@@ -214,13 +185,13 @@ this presentation commit. Existing deterministic checks cover the reorganized co
 
 **Identifier:** `unminifier-3`
 
-**Status:** In progress
+**Status:** Complete
 
 **Outcome:** Plan::code(source, language) adds readable code context and simplifies
 this example's reusable prompt.
 
 **Assignment and basis:** The owner explicitly assigned this follow-up commit on
-PR #11 after presentation improvements. It became Ready and is now In progress.
+PR #11 after presentation improvements. It became Ready before implementation.
 Basis: `R-code-prompt-ergonomics`, `R-progressive-control`, `D-reviewed-api-baseline`
 and the typed-conversation design. Commit/push to the same PR is authorized.
 
@@ -247,7 +218,7 @@ update the example, run workspace and example checks, and record review/evidence
 - **Criterion:** Unit/Rustdoc/workspace/example checks and author review pass;
   CI and owner integration recorded before completion.
 - **Evidence:** Workspace, Rustdoc and example checks pass locally; see follow-up
-  validation below. CI and owner integration remain pending.
+  validation below. Final CI and owner integration are recorded below.
 
 
 ### Code-context follow-up validation
@@ -270,8 +241,8 @@ A separate author review checked source-first argument order, delimiter sizing,
 label rejection, snapshot/clone semantics, state preservation and the teaching flow.
 The Result return makes invalid labels immediate, consistent with json. No new
 instruction-trust or JavaScript-validity claim is introduced. This is author review,
-not independent/owner review. Commit/push to PR #11 is authorized; CI and owner
-integration remain pending.
+not independent/owner review. The owner's final merge and successful CI are
+recorded separately below.
 
 
 A bounded live Claude run of the two-function fixture with code context suggested
@@ -279,3 +250,27 @@ A bounded live Claude run of the two-function fixture with code context suggeste
 including preserved inline comments/formatting. Node v24.12.0 checked three expected
 averages, all passing. The run used a 150-second outer process-group guard and existing
 authentication; it is not part of ordinary CI and establishes only this configuration.
+
+## Integrated completion {#integrated-completion}
+
+GitHub evidence inspected on 2026-11-24 confirms that owner `dherman` merged
+[PR #11](https://github.com/dherman/thinkwell-rs/pull/11) on 2026-11-23 at
+01:54:43 UTC. Final head `725f50df1f7c9db30999b91b72e14df0a78baac3` was integrated
+as `5644d6fc0924b0a13aa979980582aefd9b5bf4a7`. The owner-directed teaching
+simplification, presentation revision, and Plan::code follow-up are included.
+Copilot's final comment recommended approval with no active findings; it is
+recorded as automated review, not a human approving review. The owner selected
+and revised the scope and merged the final result.
+
+All four jobs (Rust and Book, scheduler, sentiment, and unminifier) passed on the
+final head in [PR CI](https://github.com/dherman/thinkwell-rs/actions/runs/45068758821)
+and [push CI](https://github.com/dherman/thinkwell-rs/actions/runs/45068754266).
+[Merge-commit CI](https://github.com/dherman/thinkwell-rs/actions/runs/45097193947)
+also passed. The final unminifier suite has ten tests: five unit, two scripted
+workflow, and three CLI. Earlier nine-test and live-printer results remain
+historical evidence, not substitutes for the corrected source-edit tests.
+
+All three bounded milestones are Complete. General JavaScript equivalence,
+permissive parsing, provider breadth, and atomic output remain outside scope;
+no new live run is claimed by this status reconciliation. This Book correction
+remains local work under [lifecycle-delivery-3](lifecycle-delivery.md#lifecycle-delivery-3).
