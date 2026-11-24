@@ -15,6 +15,7 @@
   - [Progress observation](design/progress-observation.md)
 - [Open questions](open-questions.md)
 - [Implementation roadmaps](implementation-roadmaps/index.md)
+  - [Executable anchor verification](implementation-roadmaps/executable-verification.md)
   - [Library design reconciliation](implementation-roadmaps/library-design-reconciliation.md)
   - [Completed project scaffolding](implementation-roadmaps/phase-0.md)
   - [Lifecycle and change delivery](implementation-roadmaps/lifecycle-delivery.md)

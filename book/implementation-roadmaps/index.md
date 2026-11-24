@@ -1,5 +1,9 @@
 # Implementation roadmaps
 
+The separately assigned [executable verification](executable-verification.md)
+connects existing test assertions to the pinned runner, documents coverage gaps,
+and adds verification to local and CI validation.
+
 The [library design reconciliation](library-design-reconciliation.md) is the
 assigned Book-only pass. It consolidates the library definition while preserving
 implementation and historical evidence; examples, the documentation site, and
@@ -48,3 +52,8 @@ The owner-assigned [Rust documentation site](documentation-site.md) now includes
 the core learning path, worked examples, practical reference, and local validation.
 The owner approved committing and pushing this starting point without a PR.
 Integration, CI automation and publication remain separate work.
+
+[Executable verification milestone 2](executable-verification.md#executable-verification-2)
+owns the criterion decomposition that makes known evidence gaps visible in anchor
+states. Its newly declared gap criteria remain required work even while the
+existing runtime tests pass.

@@ -21,12 +21,18 @@ jobs:
         run: |
           cargo anchor --version
           cargo install mdbook --version 0.5.4 --locked --root target/tools
+          cargo install cargo-nextest --version 0.9.151 --locked --root target/tools
           echo "$GITHUB_WORKSPACE/target/tools/bin" >> "$GITHUB_PATH"
       - name: Check tool identities
         run: |
           rustc --version
           cargo anchor --version
           test "$(mdbook --version)" = "mdbook v0.5.4"
+          nextest_identity="$(cargo nextest --version)"
+          case "$nextest_identity" in
+            "cargo-nextest 0.9.151 "*) ;;
+            *) echo "Unexpected nextest identity: $nextest_identity"; exit 1 ;;
+          esac
       - name: Formatting
         run: cargo fmt --all -- --check
       - name: Compilation
@@ -54,6 +60,10 @@ jobs:
         run: cargo test -p anchor-runner --test bootstrap_consistency --locked
       - name: Book structure
         run: cargo anchor check --config anchorbook.toml
+      - name: Anchor verification
+        # Verification reports criterion states; exit 0 is not universal satisfaction.
+        # Keep the engine report in the job log, separate from rendered Book output.
+        run: cargo anchor verify --config anchorbook.toml --method test
       - name: Render Book
         run: mdbook build
       - name: Whitespace

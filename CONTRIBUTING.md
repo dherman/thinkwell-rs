@@ -14,9 +14,11 @@ Run from the repository root with Git and rustup installed:
 rustup toolchain install 1.100.0 --profile minimal --component rustfmt --component clippy
 cargo anchor --version
 cargo install mdbook --version 0.5.4 --locked --root target/tools
+cargo install cargo-nextest --version 0.9.151 --locked --root target/tools
 export PATH="$PWD/target/tools/bin:$PATH"
 rustc --version
 mdbook --version
+cargo nextest --version
 ```
 
 The toolchain file selects Rust 1.100.0, including formatting and Clippy. It is a
@@ -35,6 +37,10 @@ dependency-free development binary, not a Thinkwell runtime dependency.
 Tools and generated output stay under ignored `target/`. Re-export PATH in each
 new shell. No global Rust default change is required.
 
+Anchor verification uses cargo-nextest 0.9.151, the release supported by the
+pinned engine. Install it under the same ignored tool root and verify its identity;
+the engine reports the version it ran but does not enforce that pin itself.
+
 ## Local checks
 
 After installing tools and setting PATH, run:
@@ -48,6 +54,7 @@ cargo test --workspace --locked
 python3 -m unittest discover -s experiments/acp-integration -p 'test_probe_agent.py'
 RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked
 cargo anchor check --config anchorbook.toml
+cargo anchor verify --config anchorbook.toml --method test
 mdbook build
 cargo test -p anchor-runner --test bootstrap_consistency --locked
 git diff --check
@@ -67,6 +74,23 @@ Claude adapter and existing authentication; it is not part of ordinary tests.
 The mdBook preprocessor additionally validates authority records and roadmap
 references. Inspect generated navigation, records, and links under
 `target/anchorbook/`; a build is not a complete content review.
+
+`verify` runs the linked library unit/integration tests with nextest and reports
+each criterion's current state. Runner logs and JUnit output are under
+`target/anchorbook-verify/`; the aggregate text report is stdout. Add `--format json`
+for the engine's structured report. Exit 0 means no evaluated completion claim
+was violated, not that every criterion is satisfied. Inspect all states and the
+[assertion coverage and limits](book/implementation-roadmaps/executable-verification.md#assertion-coverage).
+Missing links, unavailable runners, and skipped checks are not passing evidence.
+
+Keep `cargo test --workspace --locked`: nextest does not run the rustdoc examples
+or four compile-fail ownership probes. They can also be run separately with
+`cargo test -p thinkwell --doc --locked`; their results are not consumed by the
+pinned Anchor runner. `no_run` examples establish compilation only. Python
+subprocess assertions used by linked Rust tests are part of those tests; the
+standalone capability-probe regression remains separate. Local verification covers
+the current OS, not a new result for the other supported platform. The engine
+does not display these computed states in the rendered Book.
 
 The Rustdoc check builds workspace API documentation without dependency docs and
 treats documentation warnings (including broken intra-doc links) as errors. Local

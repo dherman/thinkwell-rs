@@ -8,12 +8,19 @@ within one conversation. `D-initial-conversation-scope` bounds schema support.
 > **`A-typed-turn-completion`** (accepted): **Typed results require completed turns**
 > Property: Success requires supported-schema validation and conversion, a valid candidate, normal terminal response, and settled local callbacks. Result types may change between turns in one conversation.
 > Authority: `R-per-turn-result-types`
-> - Criterion `behavior` [test]: Tests cover changing types, invalid/corrected/exhausted submissions, missing and duplicate results, abnormal stops, transport loss, and cancellation or callback overlap after candidate acceptance.
+> - Criterion `behavior` [test]: Tests cover changing result types within a session; invalid, malformed, corrected, exhausted, missing and duplicate submissions; cancellation after candidate acceptance; terminal/callback overlap; and transport failure before a candidate.
+> - Criterion `abnormal-completion` [test]: Each supported abnormal terminal stop reason rejects an accepted candidate, returns its defined error, and leaves the session unusable; only normal terminal completion with settled callbacks returns the result.
+> - Criterion `candidate-transport-loss` [test]: Transport loss after accepting a candidate fails the turn, discards the candidate, and prevents session reuse.
+> - Criterion `custom-result-decoding` [test]: A schema-valid result rejected by a custom Deserialize implementation consumes the invalid-result budget and never becomes a candidate; correction succeeds and exhaustion fails the turn.
+> - Criterion `nullable-result-submission` [test]: An explicit null value is accepted for a supported nullable result type, while an absent value is rejected and consumes the invalid-result budget.
 
 > **`A-supported-contract-boundary`** (accepted): **Advertised supported contracts are enforced**
 > Property: Unsupported contracts fail before prompting. Supported input, serialized tool output, and final-result constraints are validated independently of Serde conversion.
 > Authority: `D-derived-contracts`
-> - Criterion `behavior` [test]: Contract tests cover every supported keyword and unsupported dialects/references/constraints, malformed input and output, and located preflight errors.
+> - Criterion `behavior` [test]: Contract tests assert supported primitive, array, closed-object, required-field, const/enum and union validation; directional nested schemas; numeric precision and finite doubles; rejection of unsupported dialects, references and constraints; malformed wire input/output; and located preflight errors.
+> - Criterion `open-object-fields` [test]: With additionalProperties true, undeclared fields are accepted while declared field types and required fields remain enforced; false rejects undeclared fields.
+> - Criterion `schema-metadata` [test]: String title and description metadata are accepted without changing value validation; malformed metadata types fail preflight with their schema locations.
+> - Criterion `custom-input-decoding` [test]: Schema-valid tool input rejected by a custom Deserialize implementation returns the defined tool error without invoking the callback; a later valid invocation remains usable.
 
 ## Contract generation and value boundaries
 

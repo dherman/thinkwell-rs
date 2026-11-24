@@ -1031,6 +1031,7 @@ mod tests {
     use super::*;
     use axum::body::to_bytes;
 
+    /// anchorbook: A-turn-envelope-routing#behavior
     #[tokio::test]
     async fn revoked_queue_never_reaches_replacement_callback() {
         tokio::time::timeout(Duration::from_secs(2),async {

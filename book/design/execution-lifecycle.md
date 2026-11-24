@@ -13,7 +13,10 @@ The bounded owned-connection scope is governed by `D-initial-conversation-scope`
 > **`A-owned-resource-cleanup`** (accepted): **Owned resources have bounded cleanup**
 > Property: Drop revokes local access and signals existing cleanup infrastructure without async waiting or spawning. Awaited shutdown reports a bounded outcome; owned-process guards force termination on driver/runtime loss on supported macOS and Linux hosts. No detached-descendant or asynchronous application-destructor guarantee is made.
 > Authority: `D-reviewed-api-baseline`
-> - Criterion `behavior` [test]: Instrumented child-process tests observe exit/reaping and listener closure for success, constructor failure, early errors, drops, awaited shutdown and runtime teardown on both supported runtime flavors.
+> - Criterion `behavior` [test]: Existing runtime fixtures assert direct-child reaping after success, setup/turn errors, abandoned work, shutdown, and current-thread runtime teardown; early-return and one-shot cleanup close the listener and preserve cleanup diagnostics.
+> - Criterion `runtime-cleanup-matrix` [test]: Instrumented fixtures assert direct-child exit/reaping and listener closure for success, constructor failure, early errors, drops, awaited shutdown, and runtime teardown on both current-thread and multithread runtimes.
+> - Criterion `supported-platform-cleanup` [test]: Current-revision executable results establish the cleanup matrix on both supported macOS and Linux hosts, including driver/runtime loss; directly owned resources are distinguished from excluded detached descendants.
+> - Criterion `drop-locality` [test]: Instrumented destructor checks establish immediate callback/route revocation and signaling of existing cleanup infrastructure without spawning a new task, blocking on an async runtime, or waiting for asynchronous cleanup.
 
 ## Ownership and execution
 

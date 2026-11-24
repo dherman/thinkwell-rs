@@ -5,6 +5,7 @@ use std::{fs, path::Path};
 const GUIDE: &str = "working-on-the-project.md";
 const LIFECYCLE: &str = "lifecycle.md";
 const DELIVERY: &str = "change-delivery.md";
+const VERIFY: &str = "cargo anchor verify --config anchorbook.toml --method test";
 
 fn validate(read: impl Fn(&str) -> Option<String>) -> Result<(), String> {
     let get = |path: &str| read(path).ok_or_else(|| format!("Missing required file: {path}"));
@@ -80,6 +81,7 @@ fn validate(read: impl Fn(&str) -> Option<String>) -> Result<(), String> {
         "cargo anchor --version",
         "cargo anchor check --config anchorbook.toml",
         "cargo test -p anchor-runner --test bootstrap_consistency --locked",
+        VERIFY,
     ] {
         if !ci.lines().any(|line| {
             let line = line.trim();
@@ -87,6 +89,18 @@ fn validate(read: impl Fn(&str) -> Option<String>) -> Result<(), String> {
         }) {
             return Err(format!("CI must run `{command}`"));
         }
+    }
+    if !get("CONTRIBUTING.md")?.lines().any(|line| line == VERIFY) {
+        return Err("CONTRIBUTING.md must include the Anchor verification command".into());
+    }
+    let verify_position = ci
+        .find(&format!("run: {VERIFY}"))
+        .ok_or("Missing CI verification step")?;
+    let render_position = ci
+        .find("run: mdbook build")
+        .ok_or("Missing CI Book build")?;
+    if verify_position >= render_position {
+        return Err("CI must verify anchors before building the Book".into());
     }
     if ci.contains("anchorbook ") || ci.contains("cargo install anchor-book") {
         return Err(
@@ -140,6 +154,7 @@ fn detects_broken_bootstrap_relationships() {
         ("book/SUMMARY.md", "](lifecycle.md)", "](missing.md)"),
         ("book/SUMMARY.md", "](change-delivery.md)", "](missing.md)"),
         ("CONTRIBUTING.md", "`anchorbook ", "`wrong-engine "),
+        ("CONTRIBUTING.md", VERIFY, "cargo test"),
         (
             "tools/anchor/src/main.rs",
             "const REVISION: &str = \"",
@@ -151,6 +166,7 @@ fn detects_broken_bootstrap_relationships() {
             "cargo anchor check",
             "anchorbook check",
         ),
+        (".github/workflows/ci.yml", VERIFY, "cargo test"),
         ("book.toml", "cargo anchor md", "anchorbook md"),
         (
             ".cargo/config.toml",
@@ -168,6 +184,17 @@ fn detects_broken_bootstrap_relationships() {
         });
         assert!(result.is_err(), "missed drift in {path}");
     }
+    let reordered = validate(|name| {
+        let text = fs::read_to_string(root().join(name)).ok()?;
+        Some(if name == ".github/workflows/ci.yml" {
+            text.replace(VERIFY, "verification-placeholder")
+                .replace("run: mdbook build", &format!("run: {VERIFY}"))
+                .replace("verification-placeholder", "mdbook build")
+        } else {
+            text
+        })
+    });
+    assert!(reordered.is_err(), "accepted verification after rendering");
     for missing in [GUIDE, LIFECYCLE, DELIVERY] {
         assert!(
             validate(|name| {

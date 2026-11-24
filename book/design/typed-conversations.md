@@ -8,7 +8,8 @@ functions that borrow application state. `D-provisional-scoped-turns`,
 > **`A-scoped-turn-ownership`** (accepted): **Scoped callbacks belong to their execution**
 > Property: Only an active execution accesses its bound callbacks; application borrows end when execution is consumed or dropped. Overlapping mutable session executions are rejected.
 > Authority: `D-provisional-scoped-turns`
-> - Criterion `behavior` [test]: Runtime tests and compiler probes establish non-Send borrowing across await, restored caller access, and rejection of overlapping mutable use.
+> - Criterion `behavior` [test]: Runtime tests establish non-Send callback borrowing across await and restored caller access after success, drop, or unwind, on current-thread and multithread runtimes.
+> - Criterion `borrow-rejection` [test]: Compiler probes reject overlapping mutable session executions and access to callback captures while an execution still borrows them; dropping the owning execution restores access.
 
 ## Values and lifetimes
 

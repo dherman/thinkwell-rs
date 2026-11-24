@@ -6,7 +6,11 @@ governs optional observation; the observer remains local to the scoped execution
 > **`A-progress-observation`** (accepted): **Optional observation preserves typed execution**
 > Property: Observers execute locally within the polled execution and can borrow non-Send state. Progress is optional, bounded and best-effort, with explicit loss reporting. Permission decisions, validation, tool replies and authoritative typed results do not depend on progress delivery. Dropping observation revokes its queue; observer unwinding initiates owned-connection cleanup. Agent reports are not authenticated originating-turn or callback-execution evidence.
 > Authority: `R-progressive-control`
-> - Criterion `behavior` [test]: Compiler and runtime tests cover borrowed observers/tools, unchanged typed success/failure, queue limits and loss, polling fairness, callback panic/drop, capture release, and route isolation.
+> - Criterion `behavior` [test]: Runtime tests cover borrowed non-Send observers/tools, unchanged typed success/failure, explicit loss reporting, callback panic/drop and capture release, queue revocation, internal-tool filtering, and route isolation.
+> - Criterion `observer-borrow-rejection` [test]: Compiler probes reject access to observer captures while the observed execution borrows them, and permit access after the owning execution is dropped.
+> - Criterion `queue-limits` [test]: Assertions independent of implementation constants establish the designed 128-event and 64-KiB queue limits, oversized-event rejection and loss accounting, and the separate 128-ID/512-byte internal-tool metadata bounds.
+> - Criterion `polling-fairness` [test]: With sustained event production and pending work, executable checks establish that execution is polled before progress and the driver yields after each batch of at most 16 events without starving completion.
+> - Criterion `control-under-pressure` [test]: When the progress queue is full, permission decisions, schema validation, tool replies, and authoritative typed completion proceed without waiting for queue space; observation loss never supplies or changes those outcomes.
 
 ## Observer and event contract
 
