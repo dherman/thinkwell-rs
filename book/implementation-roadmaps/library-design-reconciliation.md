@@ -166,8 +166,9 @@ anchor criteria, and existing evidence. Unapproved source choices remain unselec
       interaction flows, ownership, trust boundaries, and build/runtime separation.
 - [x] Connect the overview to owning design and anchors; isolate source comparisons
       in migration research and retain unresolved choices.
-- [ ] Validate the Book, inspect the complete diff and rendering, and deliver the
-      overview as its own commit within the combined PR.
+- [x] Validate the Book and inspect the complete diff, rendering, and Rust feasibility.
+- [x] Commit the overview separately from prior reconciliation and later styling.
+- [ ] Deliver the commits in the combined PR; the [delivery record](index.md#combined-delivery) tracks the remaining upstream delivery steps.
 
 ### Completion criteria
 
@@ -227,8 +228,10 @@ the complete overview diff receives a deliberate author review before delivery.
 
 ### Completion record
 
-In progress. The overview and Rust feasibility checks are locally validated; upstream CI,
-human review, and integration remain required for durable completion.
+In progress. The overview is committed separately at `5200cf6`, and Rust feasibility checks are
+locally validated. The combined delivery record distinguishes the authorized
+personal-fork push from the pending upstream PR. CI, human review, and integration
+remain required for durable completion.
 
 
 ### Diagram presentation and setup
@@ -249,3 +252,10 @@ light/navy theme colors, readable narrow-screen scrolling contained to the diagr
 white print styling, and no JavaScript errors. Author visual inspection corrected
 crowded labels and the default process-box fill; the final diagram uses the shared
 palette and a labeled process boundary. No runtime or anchor result changed.
+
+
+Final local validation of the assembled Book checked all 37 navigated chapters
+and their local links/fragments. The isolated committed tree matched the preview
+workspace byte-for-byte before delivery-record updates. The published pin is
+unchanged by the overview and styling commits. All seven setup/design/verification/
+presentation commits are preserved on the combined review branch.

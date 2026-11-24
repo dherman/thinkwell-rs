@@ -18,6 +18,20 @@ These assignments remain In progress until their delivery obligations are met.
 Existing human approvals authorize their recorded scope; roadmap presence alone
 does not assign further implementation or missing coverage work.
 
+## Combined delivery
+
+The owner assigned these changes to one PR for the Thinkwell author. The local
+`book-design-reconciliation` branch keeps setup, library reconciliation,
+verification, cleanup, draft anchors, system overview, and diagram styling in
+separate commits. Only the setup commit changes the published engine pin, to
+`fb7badc8f3bb763f9ba89d6c15c8701faefe1e46`; the local trial launcher is excluded.
+
+Local validation is recorded in the owning roadmaps. The owner authorized pushing
+this branch to the personal fork, `kwdev/thinkwell-rs`; GitHub authorization for
+the CI changes is available. Opening the upstream PR remains a separate next step.
+GitHub CI must establish results for the pushed revision before upstream delivery;
+human review and owner-controlled integration remain outstanding.
+
 ## Integrated work
 
 | Delivered scope | Evidence record |

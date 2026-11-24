@@ -298,6 +298,22 @@ satisfied.
   this refinement. Product code and test assertions are unchanged, and missing
   executable coverage remains work rather than an inferred pass.
 
+### Combined-branch verification
+
+On 2026-11-24, the committed combined branch at
+`aa44010cbf7ac504975c732f6028624a75f6267b` passed the owner-selected
+`anchorbook-local verify --config anchorbook.toml --method test --format json`.
+This used the local trial engine based on `4a24dca491b731e69a779fd69328068ef9ff6a21`
+with local changes, not the published pin. All 38 linked tests passed; 17 other
+library tests were excluded by the filter. The result remains seven satisfied
+and 41 unlinked criteria across two satisfied, five partial, and seven unlinked
+anchors. Code identity was `df9a46678ae71335`, configuration `a9835f786b88232f`,
+and criteria `cc07783c28a61d03`; the report identified a clean Git tree. An earlier
+attempt was interrupted before producing a report and supplies no passing evidence.
+The completed rerun used the isolated checkout's build directory. Bootstrap
+consistency also passed in that checkout. The [combined delivery record](index.md#combined-delivery)
+tracks the outstanding push/CI boundary. No coverage or acceptance status changed.
+
 ### Completion record
 
 The seven draft additions await scope/authority review and executable evidence.
