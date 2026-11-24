@@ -140,3 +140,92 @@ Delivery-status corrections, including unminifier closeout, belong to the later
 [lifecycle-delivery-3 cleanup](lifecycle-delivery.md#lifecycle-delivery-3), using
 recorded approvals and inspected integration evidence. They are not part of this
 library reconciliation or its separate diff.
+
+## Milestone 2. Reconstruct the system overview {#library-design-reconciliation-2}
+
+**Outcome:** A System overview chapter under Design explains the whole Rust system and connects its
+interfaces and consequential constraints to owning design and anchors.
+
+**Status:** In progress
+
+**Identifier:** `library-design-reconciliation-2`
+
+**Dependencies:** The owner assigned the missing system overview, its Rust-native
+reconciliation into Anchor Book, and a separate commit on 2026-11-24. That assignment
+made this scope Ready; it is now In progress. Delivery joins the other branch work
+in one PR. The published engine pin remains unchanged by this milestone.
+
+**Design basis:** [System overview](../design/system-overview.md), `R-idiomatic-reimplementation`,
+`R-code-prompt-ergonomics`, `D-acp-client`, `D-initial-conversation-scope`, and
+`R-temporary-migration-reference`. Reconstruct accepted design; preserve implementation,
+anchor criteria, and existing evidence. Unapproved source choices remain unselected.
+
+**Tasks**
+
+- [x] Reconcile source architecture against the accepted Rust responsibilities,
+      interaction flows, ownership, trust boundaries, and build/runtime separation.
+- [x] Connect the overview to owning design and anchors; isolate source comparisons
+      in migration research and retain unresolved choices.
+- [ ] Validate the Book, inspect the complete diff and rendering, and deliver the
+      overview as its own commit within the combined PR.
+
+### Completion criteria
+
+#### Native system definition {#library-design-reconciliation-2-design}
+
+A reader can follow an application request through the library, agent, model,
+local tool, and typed completion without reconstructing source documents or roadmaps.
+Accepted Rust choices govern the account; its constraints link to owning design
+and anchors, with remaining authority and verification gaps explicit.
+
+- **Anchor coverage:** None — design reconstruction adds no runtime verification.
+- **Evidence:** The System overview chapter now defines system context, process/task ownership,
+  ACP and HTTP MCP channels, the complete tool/result/terminal flow, trust boundaries,
+  and product versus development dependencies. It links the owning accepted and
+  draft anchors without changing their definitions. Source topology and build-tool
+  comparisons live only in [migration research](../migration.md#system-architecture-research).
+  A temporary source/target comparison was used during reconciliation; no source
+  prose, diagram, implementation, or asset was copied. The four approval questions
+  remain in Open questions; missing anchor coverage remains explicit.
+
+#### Preserved and reviewable Book {#library-design-reconciliation-2-checks}
+
+Existing implementation, authority records, criteria, and evidence are preserved.
+Structural checks, rendering, navigation, links, and bootstrap checks pass, and
+the complete overview diff receives a deliberate author review before delivery.
+
+- **Anchor coverage:** None — Book integrity does not satisfy product criteria.
+- **Evidence:** On 2026-11-24, against the uncommitted tree based on `4f13784`,
+  `./target/tools/bin/anchorbook-local check --config anchorbook.toml` passed
+  structural/v1 with zero errors. The selected local trial was based on engine
+  `4a24dca491b731e69a779fd69328068ef9ff6a21` with local engine edits; it is not the
+  published pin. `MDBOOK_PREPROCESSOR__ANCHORBOOK__COMMAND='./target/tools/bin/anchorbook-local md' mdbook build`
+  passed with mdBook 0.5.4, using an environment override without editing book.toml.
+  Initial HTML inspection checked all 36 navigated chapters and 793 local
+  links/fragments. The subsequent navigation refinement puts System overview
+  first under Design and retains the Design entry as the chapter guide.
+  `cargo test -p anchor-runner --test bootstrap_consistency --locked` passed both
+  integration tests. `git diff --check` passed. Comparison with the pre-overview
+  snapshot confirmed exactly six Book files changed; all existing authority and
+  anchor definitions, explicit record identifiers, and non-Book files were preserved.
+  The separate author review checked the complete overview diff against accepted
+  Rust design and source observations. It corrected an open-choice link to its
+  owning chapter and removed source-system language from the permanent scope.
+  This is author assessment, not independent acceptance or product verification.
+
+  Rust feasibility was checked against the actual API, owned command/tool message
+  types, driver task, local dispatch loop, and drop guards. The contributor checks
+  passed again on this Linux tree: formatting, workspace/all-target compilation,
+  Clippy with warnings denied, all 55 library tests, five launcher/bootstrap tests,
+  36 ordinary doctests, four ownership compile-fail probes, the Python capability
+  regression, and strict Rustdoc. Runtime fixtures exercise borrowed non-Send state
+  on current-thread and multithread runtimes, changing result types, candidate versus
+  terminal completion, and cancellation/cleanup. These tests do not supply every
+  missing anchor assertion or a current macOS run. Local trial verification still
+  runs 38 linked tests: seven criteria satisfied, 41 unlinked; two anchors satisfied,
+  five partial, seven unlinked. Compiler probes remain separate rustdoc evidence.
+
+### Completion record
+
+In progress. The overview and Rust feasibility checks are locally validated; upstream CI,
+human review, and integration remain required for durable completion.

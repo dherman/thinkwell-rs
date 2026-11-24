@@ -10,7 +10,7 @@ unlinked anchor obligations.
 | Assignment | Current state and boundary |
 | --- | --- |
 | [Port working contract](lifecycle-delivery.md#lifecycle-delivery-2) | Locally validated on the fork; upstream review, CI, and integration remain outstanding. |
-| [Library design reconciliation](library-design-reconciliation.md) | Local design and diff prepared; unclear approval bases remain explicit. |
+| [Library design reconciliation](library-design-reconciliation.md) | Component reconciliation prepared; the assigned [system overview](library-design-reconciliation.md#library-design-reconciliation-2) connects the complete Rust system. Unclear approval bases remain explicit. |
 | [Executable verification](executable-verification.md) | Local runner/CI wiring and criterion reconciliation validated; the current result and all uncovered obligations are recorded there. |
 | [Book contract cleanup](lifecycle-delivery.md#lifecycle-delivery-3) | Reconcile knowledge placement and stale completion accounts, preserving design, implementation, and evidence. Separate local diff; no publication or lifecycle transition. |
 

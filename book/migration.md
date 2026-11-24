@@ -316,3 +316,42 @@ license was found in the inspected TypeScript checkout; package licensing is not
 for adapting all site content. The Rust site uses original prose/code and copies no
 TS prose, code, logos, configuration or Contributor Covenant text. Any later asset
 or text reuse needs its applicable license/notices verified first.
+
+
+## System architecture research {#system-architecture-research}
+
+The system-overview reconciliation inspected the TypeScript repository at
+`2393101fd66b8471f33bb3a4908aeee919fdf0ce`, including its
+[README](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/README.md),
+[MVP design](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/doc/rfd/completed/mvp.md),
+[conductor design](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/doc/rfd/completed/conductor.md),
+and [API overview](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/website/api/overview.mdx).
+These describe different stages: the MVP places a conductor subprocess between
+client and agent; the later conductor design moves routing and HTTP bridging
+into a TypeScript package and includes proxy chains. The README's architecture
+link uses an older RFD path. No source execution or universal protocol audit is
+claimed by this reading.
+
+The useful system concepts are application-owned workflows, ACP-mediated agent
+access, separate conversation and request lifetimes, local tools, structured
+answers, and automatic contract production. The accepted Rust
+[system overview](design/system-overview.md) re-expresses those concepts through scoped
+execution, borrowed callbacks, a fixed session catalog, per-turn result types,
+and independent validation plus terminal completion. Its owned driver and
+direct loopback HTTP MCP endpoint supply the selected runtime responsibilities;
+the TypeScript package split, MCP-over-ACP bridge, and proxy topology are not
+adopted. The original MVP's rejection of direct HTTP is a historical source
+choice, not a constraint on the accepted same-host Rust integration.
+
+Rust compilation and derives replace the source's CLI/annotation/schema-loader
+path. Native agent configuration, external authentication, and model access are
+separated from application code; examples and documentation consume the public
+Rust library. Existing Rust decisions and recorded assignments govern this
+reconstruction. Source descriptions do not expand platform, embedding, recovery,
+protocol, or model-compatibility guarantees. Unresolved Rust choices remain open.
+
+The overview prose and diagram are newly authored from the Rust design and
+implementation evidence. No source prose, diagrams, code, or assets were copied.
+The file-specific licensing uncertainty recorded above remains unresolved for
+future copying. These source comparisons are removable migration research;
+understanding the Rust system does not require any of these upstream documents.

@@ -9,6 +9,7 @@
   - [Requirements](authority/requirements.md)
   - [Decisions](authority/decisions.md)
 - [Design](design/index.md)
+  - [System overview](design/system-overview.md)
   - [Typed conversations](design/typed-conversations.md)
   - [Execution lifecycle](design/execution-lifecycle.md)
   - [Contracts and typed results](design/contracts.md)
