@@ -2,6 +2,10 @@
 
 Roadmap identifier: `runtime-results-prototype`.
 
+The [library design](../design/index.md) owns the target behavior. The experimental
+policies below qualify the recorded results; they are not current product defaults.
+In particular, experiment-specific limits and APIs are not promoted by reconciliation.
+
 Current integration state: completed work was delivered through owner-merged
 [PR #2](https://github.com/dherman/thinkwell-rs/pull/2). See the
 [shared integration evidence](first-product-slice.md#integrated-completion).

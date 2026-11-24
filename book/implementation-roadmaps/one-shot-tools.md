@@ -26,12 +26,11 @@ the sentiment example; test reuse, busy agents, local preflight and cancellation
 
 ### Boundaries
 
-Use the agent's default model for run; explicit session builders remain the path
-for model selection and multi-turn history. Inline tools and named bindings both
-supply the temporary session's catalog. A Plan with callbacks remains non-cloneable.
-Plan::tool does not add tools to an existing session: run_in still checks that
-bindings match the registered catalog exactly. No concurrent sessions, history
-continuation, new provider or new shutdown mechanism is introduced.
+The current [one-shot and persistent programming model](../design/typed-conversations.md#choosing-a-conversation)
+owns temporary-session catalogs, default-model selection, capture ownership, and
+run_in matching. [Execution lifecycle](../design/execution-lifecycle.md) owns setup,
+cancellation, and cleanup. This milestone added no concurrent sessions, history
+continuation for run, provider, or shutdown mechanism; its criteria retain that scope.
 
 ### Completion criteria
 

@@ -1,86 +1,107 @@
-# Design
+# Library design
 
-The intended system combines deterministic Rust code with LLM-powered reasoning
-while preserving important Thinkwell concepts. The governing
-[requirements](../authority/requirements.md) and [boundary](../boundary.md) frame
-future design work.
+Thinkwell lets an application alternate deterministic Rust computation with
+LLM-powered reasoning. Application code owns the workflow: it supplies context,
+chooses a result type for each request, exposes Rust functions as tools when useful,
+and consumes the answer as a Rust value. Thinkwell supplies the connection,
+conversation, typed-value boundary, and execution lifetime around those requests.
+
+`R-easy-agent-programming`, `R-progressive-control`, and `R-code-prompt-ergonomics`
+govern the short path from a prompt to a typed answer and the ability to introduce
+explicit sessions, tools, model choices, limits, and observation as needed.
+`R-idiomatic-reimplementation` governs the Rust ownership model. These chapters
+define the library independently of any migration source.
+
+## Components and responsibilities
+
+| Component | Responsibility | Ownership boundary |
+| --- | --- | --- |
+| Application | Compose prompts and deterministic work; interpret answers and tool effects | Owns application data and polls execution |
+| Plan and scoped execution | Hold prompt configuration, validate a turn, dispatch local callbacks, and return its typed answer | Own captures; an explicit execution exclusively borrows its Session |
+| Session | Keep conversation identity and the fixed tool catalog across turns | Borrows Agent; retains descriptors, never a previous turn's callbacks |
+| Agent and owned driver | Initialize and drive ACP, route control messages, and clean up the owned connection/process | Background work contains owned data, never borrowed application callbacks |
+| Session tool endpoint | Advertise the fixed MCP catalog and route matching calls through owned request/reply messages | Per-session credential and per-turn revocable route |
+| Contract boundary | Derive supported schemas, validate JSON values, and convert Rust values | Shared rules for tool input/output and per-turn results |
+| Optional observation | Deliver bounded progress to a local borrowed callback | Control and typed completion remain independent of progress delivery |
+
+The application polls its execution on its own task. The ACP driver and HTTP
+endpoint exchange owned messages with that execution; the execution alone invokes
+borrowed Rust callbacks. This separation permits non-Send captures without moving
+those captures into transport tasks.
+
+```text
+Application task                         Owned I/O                 Agent program
+  Plan / active execution
+    +-- borrowed Rust callbacks
+    +-- optional borrowed observer
+    |
+    +<-- owned control/result messages --> ACP driver <--- ACP ---> agent
+    |                                       +-- process cleanup
+    +<-- owned tool requests/replies ----> HTTP endpoint <-- MCP --> same agent
+```
+
+A connection may host one open session at a time. Successful turns preserve that
+session's history while releasing their callback captures. Independent connections
+provide concurrency. The library does not supply an application workflow language
+or decide how to schedule independent model requests.
 
 ## ACP client foundation
 
-Thinkwell acts as a headless, programmatic Agent Client Protocol (ACP) client,
-as established by `D-acp-client`. Agent communication uses ACP; the Rust API
-makes it easy to interleave deterministic code with LLM prompts.
-
-The initial programming experience minimizes setup and uses reasonable defaults.
-Callers take on additional complexity as they choose more control. Compatibility
-across model providers comes through ACP agents; supported agents and their
-capabilities need explicit scope. These goals are governed by
-`R-easy-agent-programming`, `R-progressive-control`, `R-provider-breadth`, and
-`R-code-prompt-ergonomics`.
-
-Detailed API, defaults, protocol version, crate boundaries, and dependencies
-remain design questions. The provisional ownership direction is described below. Protocol support for a control does not
-by itself establish that every agent exposes it.
-
-The [typed-conversation design](typed-conversations.md) defines initial product
-properties and supported scope. Preparation progress belongs in the
-[project-scaffolding roadmap](../implementation-roadmaps/phase-0.md).
+Under `D-acp-client`, Thinkwell acts as a headless ACP client, rather than choosing
+model-provider APIs directly. [Agent integration](agent-integration.md) defines
+connection setup, presets, optional model selection, HTTP tools, permissions, and
+adapter failure handling. Speaking ACP alone does not establish that an agent
+supports every required capability.
 
 ## Type-derived contracts
 
-Under `D-derived-contracts`, developers derive tool contracts from Rust types as
-part of ordinary compilation, without an extra Thinkwell schema-generation build
-tool. The chosen schema representation must account for the serialized types
-used at the tool boundary. Derivation supplies contract metadata; runtime
-serialization, input handling, and tool invocation are separate responsibilities.
+Under `D-derived-contracts`, ordinary Rust derives supply contracts without an
+extra schema-generation build tool. [Contracts and typed results](contracts.md)
+defines supported schemas, serialization direction, runtime validation, and the
+stable submission mechanism for changing result types.
 
 ## Scoped turns and explicit conversations
 
-Under `D-provisional-scoped-turns`, the working ownership design separates an
-Agent's connection, reusable Plan configuration, Session conversation state, and
-an Execution's active turn. An execution exclusively borrows its session and owns
-its scoped tool callbacks. Conversation history can persist after those callbacks
-and their application borrows have ended. Independent connections provide concurrency in the initial supported slice.
-
-Explicit sessions declare a fixed tool catalog before opening and bind callback
-implementations per turn. A new turn rejects stale submitted turn identifiers before callback routing;
-identifiers do not authenticate causal origin when the sender uses the current one.
-Simple independent calls use fresh conversational context on a reusable connection;
-explicit sessions preserve history using the same prompt-composition model.
-
-Awaited cancellation and execution drop are distinct operations. Dropping local
-futures cannot promise completed remote or asynchronous cleanup, and neither
-operation rolls back effects. Under `D-initial-cancel-invalidation`, a cancelled or abandoned started turn
-makes its session unusable for further prompts in the initial API. Recovery is
-deferred; starting another conversation must be explicit. Method spelling, error
-representation, and detailed cleanup contracts remain to be designed.
+Under `D-provisional-scoped-turns`, configuration, conversation history, and active
+callback lifetimes are separate. [Typed conversations](typed-conversations.md)
+defines the caller's programming model and binding rules. A descriptor can survive
+between turns without retaining a callback's borrow.
 
 ## Per-turn result types
 
-Under `R-per-turn-result-types`, result typing belongs to a plan or execution,
-not to the lifetime of a conversation. Successive turns in one session can return
-different Rust types while retaining the same conversation context. The fixed
-session tool catalog must accommodate this without requiring a fixed session-wide
-result type. The [typed-conversation design](typed-conversations.md) specifies initial
-transport, schema validation, and result-completion semantics.
+Under `R-per-turn-result-types`, result typing belongs to the Plan and its execution,
+not to the Session. A conversation can return a record, then an enum or String.
+The [completion protocol](contracts.md#result-submission-and-completion) requires
+both a validated candidate and a normally completed turn.
 
 ## Connection and session vocabulary
 
-Under `D-connection-vocabulary`, connect establishes an agent connection and
-open creates a conversation session. Built-in presets provide an inherent default
-shorthand such as `Claude::connect()`, while configured instances use the
-extension-trait method, such as `Claude::default().connect()`. Both delegate to
-the same connection machinery. Trait names, ownership/embedding types, and
-behavioral connector contracts remain to be designed.
-
+Under `D-connection-vocabulary`, connect establishes an agent connection and open
+creates a session. Default preset shorthand and configured instances use the same
+connection machinery. [Agent integration](agent-integration.md#configuration-and-presets)
+defines this extension boundary.
 
 ## Lifecycle direction
 
-Under `D-reviewed-api-baseline`, ordinary use relies on RAII rather than mandatory
-explicit cleanup or scoped callbacks. Destruction releases local callback access
-and initiates teardown through owned connection infrastructure. Confirmed graceful
-shutdown remains an optional awaited operation. Owned transport/process cleanup
-must not retain borrowed application callbacks or acquire shutdown rights over a
-host-owned connection. The lifecycle mechanism and exact guarantees remain
-provisional and require implementation evidence; synchronous destruction does not
-imply remote acknowledgment or rollback of earlier effects.
+Under `D-reviewed-api-baseline`, ordinary use relies on RAII; awaited shutdown is
+optional confirmation. Under `D-initial-cancel-invalidation`, cancelled or abandoned
+started turns invalidate their session. [Execution lifecycle](execution-lifecycle.md)
+defines the conservative connection failure policy, callback release, and bounded
+owned-resource cleanup. [Progress observation](progress-observation.md) adds local
+visibility without changing the authority of the awaited result.
+
+## Supported scope and deferrals
+
+`D-initial-conversation-scope` selects Tokio, owned subprocess connections, fixed
+catalogs, a finite schema subset, and macOS/Linux. The configuration and protocol
+versions for this scope belong to [agent integration](agent-integration.md); the
+schema boundary belongs to [contracts](contracts.md). The library is unpublished;
+this design does not establish a release or an MSRV below Rust 1.100.0.
+
+Shared host-owned connections, concurrent sessions on one connection, dynamic
+catalogs, explicit cancellation handles, cancellation recovery, independent progress
+streams, broader JSON Schema support, and Windows support are outside this scope.
+The wider provisional embedding direction does not grant a wrapper shutdown rights
+over a host's connection. No concrete attachment/host-routing contract is specified
+here. These deferrals do not imply permanent exclusions or automatic authorization
+to implement the earlier exploratory API sketches.

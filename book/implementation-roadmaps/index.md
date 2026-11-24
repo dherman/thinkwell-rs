@@ -1,5 +1,10 @@
 # Implementation roadmaps
 
+The [library design reconciliation](library-design-reconciliation.md) is the
+assigned Book-only pass. It consolidates the library definition while preserving
+implementation and historical evidence; examples, the documentation site, and
+delivery-status cleanup remain separate.
+
 [Project scaffolding](phase-0.md) is historical completed preparation.
 [Lifecycle and change delivery](lifecycle-delivery.md),
 [ownership API](ownership-prototype.md),

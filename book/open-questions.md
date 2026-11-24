@@ -30,7 +30,7 @@ from this slice.
 
 | Open area | Remaining question |
 | --- | --- |
-| First-use expansion | Code context is assigned alongside the unminifier; are other quoting helpers needed? |
+| First-use expansion | Beyond the defined text/json/code composition, are other quoting helpers needed? |
 | Runtime and embedding | What additional ownership/runtime contracts support shared host connections and concurrent sessions? |
 | Schemas | Which broader validator/reference-resolution support justifies expanding the deliberately finite subset? |
 | Provider coverage | Which additional agents, capabilities, model discovery, and transport paths should be tested and supported? |
@@ -40,6 +40,10 @@ from this slice.
 
 Migration-only questions and provenance remain in [migration research](migration.md).
 Ending the Porting Phase and publication retain separate authorization.
+The [library reconciliation review](implementation-roadmaps/library-design-reconciliation.md#approval-bases-and-open-choices)
+identifies implementation choices whose approval basis is not clear. They are not
+silently incorporated as new guarantees. The [library design](design/index.md)
+owns the coherent target; delivery-status cleanup is separate from that pass.
 The following research notes preserve the exploration behind the integrated slice;
 historical statements about missing evidence do not override its current roadmap.
 

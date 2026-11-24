@@ -2,6 +2,12 @@
 
 Roadmap identifier: `integrated-api-review`.
 
+The library's current definition is in [Design](../design/index.md). The sketches
+below retain the reviewed provisional basis and its open alternatives. In particular,
+attachment, model discovery/mutation, and explicit cancellation handles are not
+introduced into the supported library by this reconciliation. The initial bounded
+scope and later approvals determine which parts are incorporated.
+
 Current integration state: completed work was delivered through owner-merged
 [PR #2](https://github.com/dherman/thinkwell-rs/pull/2). See the
 [shared integration evidence](first-product-slice.md#integrated-completion).

@@ -52,200 +52,37 @@ or lifecycle transition is authorized. Scope recorded Ready, readiness reported,
 
 ### Approved caller example
 
-This approved target is implemented in crates/thinkwell/examples/conversation.rs.
-During implementation it must become a normal compiled example with these same
-user-visible steps; no protocol fixtures or explicit cleanup are required in the
-ordinary caller flow. Compilation may refine inferred error annotations and
-imports without introducing callback scopes or mandatory cleanup.
-
-```rust,ignore
-use thinkwell::{agent::Claude, Plan, Tool};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
-#[derive(Deserialize, JsonSchema)]
-struct Add {
-    value: i64,
-}
-
-#[derive(Serialize, JsonSchema)]
-struct Total {
-    total: i64,
-}
-
-#[derive(Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-struct Summary {
-    total: i64,
-    labels: Vec<String>,
-}
-
-#[derive(Deserialize, JsonSchema)]
-#[serde(tag = "kind", deny_unknown_fields)]
-enum Decision {
-    Accept { total: i64 },
-    Reject { reason: String },
-}
-
-#[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let agent = Claude::connect().await?;
-    let add = Tool::<Add, Total>::new("add", "Add to the accumulator");
-    let mut session = agent.session().tool(&add).open().await?;
-    let mut total = 0;
-
-    let summary = Plan::<Summary>::new()
-        .text("Add 3, then summarize the total with labels [first].")
-        .bind(&add, async |input: Add| {
-            total += input.value;
-            Ok(Total { total })
-        })
-        .run_in(&mut session)
-        .await?;
-
-    assert_eq!(summary.total, 3);
-    assert_eq!(summary.labels, ["first"]);
-    total *= 2;
-
-    let decision = Plan::<Decision>::new()
-        .text("Add 4, then return Accept with the new total.")
-        .bind(&add, async |input: Add| {
-            total += input.value;
-            Ok(Total { total })
-        })
-        .run_in(&mut session)
-        .await?;
-
-    assert!(matches!(decision, Decision::Accept { total: 10 }));
-    assert_eq!(total, 10);
-    Ok(())
-}
-```
-
-The live verification harness also exercises optional awaited shutdown so its
-process-exit evidence is explicit. Ordinary examples retain the RAII default.
-Dropping the owning runtime immediately afterward permits forceful fallback;
-it does not promise that asynchronous graceful cleanup finished before main returns.
+The approved connect/open/bind/two-result workflow is embodied in
+crates/thinkwell/examples/conversation.rs. The current
+[programming model](../design/typed-conversations.md) defines it alongside one-shot
+execution and later composition conveniences. The original first-slice example
+and scope remain identifiable in this chapter's Git history; the approval and
+criterion evidence below retain their original first-slice meaning.
 
 ### Concrete scope and support choices
 
-**Runtime and platform.** Require an existing Tokio 1.x runtime with I/O/time
-enabled, supporting both current-thread and multithread runtimes. Borrowed callback
-futures may be non-Send and remain on the calling task; owned I/O tasks may be
-spawned. Use the official ACP SDK 5.4.0 initially. Establish macOS and Linux
-support through deterministic owned-process tests; Linux is verified by the
-existing Ubuntu CI job after an authorized push. Windows, runtime neutrality,
-shared host-owned connections, and an MSRV below the current Rust 1.100.0
-development toolchain are outside this slice. These are initial support limits,
-not permanent architectural exclusions.
+The owning definitions are now:
 
-**Agent construction.** Provide one Claude preset, the accepted default
-Claude::connect() shorthand, and configured instance connect through an exported
-extension trait. Presets convert to an owned AgentConfig; Agent::connect(config)
-is the custom command/arguments/environment path. This is an open conversion
-boundary, not a closed provider enum or string-based provider registry.
-Keep installation and authentication external. Use Claude ACP 0.23.1 as the
-initial interoperability target; no installer or automatic authentication.
-The normal path uses the agent's default model. Expose an optional session model
-selection, tested using haiku, and report unsupported selection explicitly.
-Do not promise that all custom ACP agents support the chosen HTTP MCP path.
+- [Typed conversations](../design/typed-conversations.md): descriptors, bindings,
+  reuse, preflight, and changing result types.
+- [Execution lifecycle](../design/execution-lifecycle.md): runtime ownership,
+  setup/turn failures, budgets, cancellation, diagnostics, and shutdown.
+- [Contracts and typed results](../design/contracts.md): finite schemas, validation,
+  wire values, corrections, duplicates, and terminal completion.
+- [Agent integration](../design/agent-integration.md): connection configuration,
+  protocol scope, credentials, permissions, and turn routing.
 
-**Ownership.** Session borrows Agent; an execution exclusively borrows Session.
-Initially allow one open session per connection; a second open returns a typed
-busy error rather than waiting indefinitely. After normal session drop the agent
-may open a fresh session, with a distinct endpoint credential and no reused
-conversation history. Drop revokes the old route. A cancelled/abandoned started
-turn makes its session permanently unusable and closes its dedicated connection;
-subsequent use of that Agent returns a closed error. Recovery requires an explicit
-new connection. Dropping an unpolled execution sends no prompt and need not
-invalidate the session. Validate these boundaries rather than transplanting the
-experiment's consuming Agent::open convenience.
-
-**Plans and tools.** Include `Tool<Input, Output>`, the fixed-catalog session builder,
-`Plan<Result>::new/text/bind/run_in`, and a cloneable unbound base plan.
-Bound plans carrying borrowed closures need not be Clone. Preflight rejects
-duplicate names, missing bindings, mismatched descriptors, reserved internal-tool
-names, and unsupported contracts before a prompt is sent. Require a binding for
-every declared application tool each turn. Input implements DeserializeOwned and
-JsonSchema; Output implements Serialize and JsonSchema; final Result implements
-DeserializeOwned and JsonSchema. No custom procedural-macro crate is needed yet.
-Standalone Plan::run, inline tool declaration, quoting helpers, observation/event
-streams, explicit cancellation handles, dynamic catalogs, and parallel sessions
-are deferred. A caller can cancel this slice by dropping its execution future.
-
-**Schemas.** Use Serde 1, schemars 1.2.3, and serde_json 1, with resolved versions
-in the workspace lockfile. Support a documented finite contract subset:
-object properties/required fields and boolean additionalProperties; homogeneous
-arrays; strings, booleans, null, numeric values; integer JSON representation and
-signed int64 enforcement; const/enum; oneOf/anyOf sufficient for internally tagged
-enums. Reject references/$defs, unknown formats/keywords, and unsupported constraints
-before starting a turn. This deliberately excludes some otherwise ordinary Rust
-types and nested named types whose generated schemas contain references.
-Provide a schema-location error explaining the unsupported feature.
-
-Use an internal validator for that subset, with contract tests independent of
-Serde conversion. The experimental interpreter is source evidence, not an automatic
-product component: review each accepted keyword and numeric semantics before
-adoption, reject unsupported dialects, and document conservative integer handling
-(for example, rejection of floating representation 3.0 for an integer contract).
-Validate tool input, serialized tool output, and final result against their
-advertised supported contracts, not only against Serde's conversion behavior.
-A broader JSON Schema validator and reference resolution are future scope.
-
-**Transport and result handling.** Use one loopback HTTP MCP server per active
-session, an ephemeral bearer credential, Origin rejection, a bounded request body,
-and a fixed catalog. Restrict permissions to that session's registered tools.
-Keep HTTP MCP 2025-11-25 as the initial tested path; native ACP MCP and the newer
-polyfill are not requirements. Every application tool requires the library-owned
-turn/input envelope; the result tool requires turn/value. Generate fresh identifiers,
-validate before choosing a callback queue, never repair stale identifiers by
-substituting the current one, and never disclose the current identifier in stale-call
-errors. Reject unknown tools without granting access.
-
-A candidate becomes successful only after normal end_turn and settlement of local
-callback work. A duplicate valid submission cannot replace the first candidate.
-Missing result, cancellation, non-normal stop, validation exhaustion, transport
-loss, and deadlines have distinguishable errors. Application-tool failures are
-reported as tool errors and may be handled by the agent.
-
-**Budgets and errors.** Expose a small RunOptions value rather than hard-coding the
-experiment's lifetime limits. Defaults: 120-second turn deadline,
-30-second callback deadline, 32 application calls, and at most three invalid result
-submissions (two opportunities to correct). Expose bounded connection/setup and
-shutdown options with proposed defaults of 30 and 12 seconds. These values are
-approved initial choices, not experimentally established universal defaults. No fixed
-whole-agent lifetime cap. Validate nonsensical options before starting work.
-Use non-exhaustive public error enums or error structs with documented categories;
-do not expose opaque SDK error strings as the whole error contract.
-
-**Cleanup.** Ordinary Drop releases local borrows and revokes routes, then signals
-the already-running owned driver. It neither blocks on asynchronous work nor
-spawns a fresh shutdown task. The driver attempts bounded shutdown; process guards
-provide forceful fallback on driver/runtime loss. Optional Agent::shutdown().await
-reports the outcome after sessions have been dropped. Provide an owned diagnostic
-handle for observing destructor-initiated cleanup failure without retaining Agent.
-No rollback, arbitrary asynchronous callback destructors, detached-descendant
-guarantee, or synchronous remote acknowledgment on Drop is promised.
+Later approved library changes extend that target. They do not expand the scope
+of this milestone's historical tests or make its original six-anchor evidence
+cover progress observation. The original first-slice dependency selection and
+platform/live-agent observations remain in the evidence below.
 
 ### Product properties and verification
 
-These approved properties are incorporated as accepted anchors in
-[typed conversations](../design/typed-conversations.md), with test/review criteria. No formal
-proof or mutation framework is proposed for this bounded first slice.
-
-| Proposed property | Authority | Required verification |
-| --- | --- | --- |
-| scoped-turn-ownership: only the active execution can access its bound callbacks; application borrows end when it is consumed or dropped; overlapping mutable session use is rejected | D-provisional-scoped-turns; R-code-prompt-ergonomics | Tests, compiler probes, ownership review |
-| typed-turn-completion: supported-schema validation and conversion, a valid candidate, normal terminal response, and settled local callbacks are all required for successful T; type may change between turns | R-per-turn-result-types; D-derived-contracts | Tests and protocol/state-machine review |
-| turn-envelope-routing: a missing, malformed, or nonmatching turn identifier cannot select or invoke the current turn's callback; revoked queue handles cannot reach replacement callbacks | D-provisional-scoped-turns | Deterministic HTTP tests and dispatch-boundary review |
-| cancelled-session-invalidation: a cancelled or abandoned started turn cannot be followed by another prompt on that session, nor by an implicit history reset | D-initial-cancel-invalidation | Tests and lifecycle review |
-| owned-resource-cleanup: Drop revokes local access and initiates owned cleanup without awaiting or new task creation; explicit shutdown reports bounded outcome; guard fallback terminates the directly owned process on supported platforms | D-reviewed-api-baseline | Instrumented process tests and resource-ownership review |
-| supported-contract-boundary: unsupported schemas fail before prompting and advertised supported tool/result constraints are enforced at their respective boundaries | D-derived-contracts; R-easy-agent-programming | Contract/error tests and schema review |
-
-The routing property identifies submitted credentials, not semantic or authenticated
-causal origin. A sender that supplies the current valid turn identifier is within
-the current routing authority even if its work began earlier. Document this
-explicitly rather than claiming that the envelope proves a tool call's origin.
+The original six anchors and their unchanged test/review criteria now reside in
+the owning chapters above. Their identities and the coverage recorded below are
+preserved. `A-progress-observation` belongs to its separate roadmap. No new proof
+or mutation evidence is claimed by consolidating the definitions.
 
 ### Completion criteria
 

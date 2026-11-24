@@ -2,6 +2,10 @@
 
 Roadmap identifier: `acp-integration-prototype`.
 
+The [library design](../design/index.md) owns the current target. The exploration
+below remains evidence of candidate designs and tested mechanisms, including choices
+later revised or deferred; it does not prescribe additional supported APIs.
+
 Current integration state: completed work was delivered through owner-merged
 [PR #2](https://github.com/dherman/thinkwell-rs/pull/2). See the
 [shared integration evidence](first-product-slice.md#integrated-completion).

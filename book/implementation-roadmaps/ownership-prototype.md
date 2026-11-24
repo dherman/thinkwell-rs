@@ -2,6 +2,10 @@
 
 Roadmap identifier: `ownership-prototype`.
 
+The [library programming model](../design/typed-conversations.md) owns the current
+target. Simulated behavior and alternative adapters below retain their experimental
+scope and are not additional supported APIs.
+
 Current integration state: completed work was delivered through owner-merged
 [PR #2](https://github.com/dherman/thinkwell-rs/pull/2). See the
 [shared integration evidence](first-product-slice.md#integrated-completion).

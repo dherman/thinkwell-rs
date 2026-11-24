@@ -35,21 +35,13 @@ limitations and exact tested adapter versions; run regression checks and review.
 
 ### Approved boundaries
 
-Use the maintained `@agentclientprotocol/codex-acp@2.8.0` adapter. Mirror the
-Claude preset's offline, pinned npx launch policy and configured-command escape
-hatch. Installation and authentication remain external. Prefer read-only mode
-for this programmatic preset; verify the effective native-tool behavior before
-claiming support. Read-only mode is not a promise that native read operations
-request client approval, nor that Thinkwell is an operating-system sandbox.
-
-Recognize declared Thinkwell tools from ACP tool notifications, then resolve a
-name-less permission request by its session and tool-call IDs. Keep correlation
-state bounded and scoped to the active session/turn. Reject unknown, conflicting,
-stale, terminal, and unrelated calls; never approve an arbitrary MCP call merely
-because it has a tool-call ID. Preserve direct named requests for Claude and
-select AllowOnce only. Application HTTP credentials, turn envelopes and schema
-validation remain independent checks. ACP peer-provided metadata is not an
-attestation of tool provenance.
+[Agent integration](../design/agent-integration.md) owns the Codex preset,
+configuration replacement, declared-tool permission correlation and limits, and
+session-scoped startup failures. [Turn routing](../design/agent-integration.md#turn-routing)
+and [contracts](../design/contracts.md) remain independent controls. The bounded
+milestone does not establish an OS sandbox or authenticated tool provenance.
+Adapter versions, observed native behavior, approval, and regression evidence remain
+recorded below; no broader provider support is inferred.
 
 ### Completion criteria
 

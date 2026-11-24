@@ -61,24 +61,12 @@ implementation names and guarantees are defined in Rustdocs and the live design.
 
 ### Recommendation
 
-Add `Plan::observe(callback)` beside the existing tool bindings, then call run or
-run_in as usual. Observation is optional; the awaited value remains `Result<T>`.
-The callback is synchronous `FnMut(&ProgressEvent) -> ()`, may borrow local state,
-and has no Send or static requirement. It runs on the task polling the execution,
-never on the owned transport driver. Attaching an observer does no agent work.
-
-This refines the earlier execute_in(...).observe(...).await sketch to fit today's
-API. A separate execution type may be useful for explicit cancellation handles
-or event receivers later, but is not necessary for console progress. No existing
-run/run_in behavior or signature needs to change.
-
-An observed plan owns its observer capture, just as a bound plan owns its tool
-captures. It is not cloneable. Clone reusable unobserved plans first, then attach
-an observer for each execution. Attach one observer per execution; applications
-can fan out to multiple consumers inside that callback. The prototype should
-assess an ObservedPlan wrapper that forwards run/run_in, leaving ordinary Plan
-unchanged. Place observe last in the chain initially, rather than duplicating
-all plan-building methods on that wrapper. These type choices are proposals.
+The reviewed placement is Plan::observe followed by run/run_in, with a local,
+synchronous borrowed observer and the awaited Result remaining authoritative.
+The complete current definition is [progress observation](../design/progress-observation.md),
+including the wrapper, event types, disclosure, buffering, fairness, and cleanup.
+The examples below retain the original review context; compiled uses live in the
+crate Rustdocs and progress example. They are not a second API specification.
 
 ## Example 1: a console answer with optional progress
 
@@ -209,67 +197,20 @@ use application cancellation composition in a later example/assignment.
 
 ## Proposed initial events
 
-| Event | Meaning and source |
-| --- | --- |
-| Message(MessageProgress) | An agent's user-visible text chunk, not a typed answer or a promise of complete transcript delivery. |
-| AgentTool(AgentToolProgress) | Agent-reported tool activity, possibly native work. It does not prove that a Rust callback ran or that Thinkwell authorized it. Partial updates may omit metadata. |
-| ToolStarted(ToolProgress) | Thinkwell is beginning a local application tool invocation, including validation. |
-| ToolFinished(ToolCompletion) | Thinkwell observed invocation success, error or deadline; not rollback or a guarantee that an external effect finished. |
-| ResultRejected(ResultRejection) | Host validation rejected a submission; another attempt may still succeed. No raw candidate value included. |
-| ResultAccepted(ResultAcceptance) | A validated candidate exists; the turn may still fail before completion. |
-| EventsDropped(DroppedEvents) | Some progress could not be delivered within the bounded observation budget. |
-
-Opaque IDs correlate events within one execution, not across sessions. Agent and
-host tool IDs need not match. Keep source distinctions in the public event shape;
-do not fabricate host execution facts from ACP notifications. Status/outcome enums
-also need non_exhaustive handling or an explicit unknown representation. Exact
-field types and whether named event structs improve Rustdocs remain prototype work.
-
-Omit raw tool arguments/results, complete prompts, HTTP headers and credentials
-from the initial events. Agent text and titles may themselves contain application
-data; an observer is an explicit choice to receive that content. Do not automatically
-persist it. Internal return_result activity is represented by result events rather
-than teaching users its wire name. No reasoning-text feed, token accounting, agent
-plans, permission-policy hooks or raw ACP trace API is in this first scope.
-
-The awaited Result remains the authority for final success/failure. Do not require
-an observer to receive a Finished event to release resources or determine the
-outcome. A missing-result error can be preceded by agent text and tool activity;
-it remains MissingResult, without converting that text into a typed answer.
+The reviewed event meanings and omissions are incorporated into
+[the observer and event contract](../design/progress-observation.md#observer-and-event-contract).
+It distinguishes agent reports, local invocation processing, result validation,
+and loss reporting, with the final typed result authoritative. No reasoning feed,
+raw arguments/results, or permission-policy hook was assigned.
 
 ## Delivery and lifecycle proposal
 
-- Drive the observer alongside the existing local execution/callback dispatcher.
-  Execution remains lazy: dropping an unpolled run sends nothing.
-- Keep transport/HTTP control independent of progress. Permission decisions,
-  routing, validation, replies and failure notification never depend on an observer
-  keeping up. The driver never waits on a full progress queue.
-- Use bounded, best-effort progress delivery. A starting prototype budget is 128
-  queued entries and 64 KiB of owned payload data per execution; oversized events
-  count as dropped. Bound retained correlation metadata too. Count losses outside
-  the full queue and deliver an overflow summary on the next opportunity.
-- Preserve enqueue order for retained events, without claiming a total causal order
-  across ACP and HTTP sources. Both agent and local tool activity may be shown for
-  the same operation. Do not infer missing lifecycle events when delivery was lossy.
-- Bound delivery batches so a chatty agent cannot starve callbacks or result handling.
-  At normal completion, process the bounded retained tail and a pending loss summary
-  before returning. Dropping/cancelling execution discards pending progress; no final
-  observer call is guaranteed on Drop. Slow callback execution has no hard time bound.
-- Unobserved runs allocate no progress queue or formatting work. Observers are never
-  transferred into owned background tasks. Closing an observer route revokes delivery
-  to that observer; stale notifications cannot reach a later execution's capture.
-- Plan-local observation starts when that run is polled, including temporary session
-  setup in run. Explicit session open precedes run_in and is outside that observer's
-  lifetime: its errors remain ordinary open errors. Connection-level diagnostics and
-  an independent event receiver are deferred.
-
-These are proposals, not implemented guarantees. In particular, passing progress
-through the owned driver into a local callback needs tests for fairness, teardown,
-late notifications, overflow and failures during setup. ACP session notifications
-lack a portable originating-turn ID; routing to the active execution cannot attest
-that delayed agent text originated in that turn. Host-generated events can retain
-their execution identity. Do not weaken existing envelope/cleanup guarantees to
-claim stronger progress provenance.
+The [owning design](../design/progress-observation.md) defines queue and metadata
+bounds, tail delivery, polling fairness, local capture ownership, setup attribution,
+and drop/panic behavior. [Execution lifecycle](../design/execution-lifecycle.md)
+defines connection cleanup. The original proposal was assessed by milestone 2;
+its evidence remains below. In particular, session filtering does not authenticate
+an originating turn for delayed same-session agent messages.
 
 ## Choices for owner review
 
