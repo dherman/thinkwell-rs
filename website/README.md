@@ -7,7 +7,9 @@ connect those concepts to the integrated programs. Reference pages cover agent
 setup, supported values, errors/cleanup and local or downloadable Rustdoc.
 
 The [documentation-site roadmap](../book/implementation-roadmaps/documentation-site.md)
-records scope, evidence and delivery plans. Hosting and DNS are separate work.
+records scope, evidence and delivery plans. Public hosting is paused; the
+tutorials, local preview below, and CI validation remain available without
+completing domain registration or configuring a hosted project.
 
 ## Local preview
 

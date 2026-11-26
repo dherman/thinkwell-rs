@@ -35,6 +35,12 @@ upstream PR with both the prepared Book commits and the new pin. Required CI
 must establish results for the submitted revision; upstream human review,
 owner-controlled integration, and roadmap synchronization remain outstanding.
 
+## Other session work
+
+- [Documentation hosting](documentation-site.md#documentation-site-5): owner-approved
+  migration is paused at the owner's request; Loopia registration is incomplete.
+  Keep the tutorials and local preview setup; resume hosting only when requested.
+
 ## Integrated work
 
 | Delivered scope | Evidence record |

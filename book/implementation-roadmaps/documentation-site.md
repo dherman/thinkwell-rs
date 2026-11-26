@@ -6,7 +6,8 @@ Milestones 1–3 are integrated on main at `756cd93e674f81e7bb099dc156caf90427b6
 milestone 4 at `59b8bd56e64cfd5a0318673421dd176316987c07`. The owner approved the
 tutorial direction and direct commit/push delivery without a PR. The
 [completion record](#integrated-completion) distinguishes that authorization,
-local validation, successful CI, and the still-unassigned publication work.
+local validation and successful CI. The separately authorized hosting assignment
+is recorded in milestone 5 below.
 
 ## Milestone 1. Audit and establish the learning path {#documentation-site-1}
 
@@ -76,10 +77,9 @@ source-excerpt policy, and validation design. [Website source research](../migra
 retains the pinned audit, source links, and licensing limits. No TypeScript prose,
 code, logos, configuration, or community policy was copied.
 
-Publication remains unassigned: hosting account/source directory/deployment branch,
-custom-domain support and host-provided DNS records, TLS/canonical URLs, and a
-public Rustdoc destination require a separate delivery choice. No hosting or DNS
-state was inspected, and no publication is established by the integrated source.
+Publication was outside milestones 1–4. The owner subsequently assigned the
+Mintlify migration below; public Rustdoc hosting remains a separate choice.
+Integrated documentation source does not itself establish publication.
 
 ## Milestone 2. Core learning pages {#documentation-site-2}
 
@@ -319,5 +319,128 @@ commands. The other successful run at that same final revision is
 All four bounded milestones are Complete. Their historical local checks retain
 their original scope; CI does not establish clean-machine authentication, model
 behavior, browser visual review, public hosting, or a lifecycle transition.
-This Book status correction remains local work under
-[lifecycle-delivery-3](lifecycle-delivery.md#lifecycle-delivery-3).
+PR #12 integrated this status correction at 9bc0a5c.
+
+
+## Integrated documentation and paused hosting assignment
+
+The owner approved integrating the documentation into main and repurposing the
+existing Mintlify project for Rust because the free personal account permits one
+project. This supersedes the earlier separate-project proposal. Keeping the
+TypeScript site online is no longer a requirement; ending the Porting Phase is
+still a separate decision.
+
+Main was fast-forwarded and pushed from 5644d6f to 59b8bd5, preserving documentation
+commit 756cd93 and CI commit 59b8bd5. The reviewed revision passed its branch CI
+and then [main CI run 45135752602](https://github.com/dherman/thinkwell-rs/actions/runs/45135752602),
+including the Documentation site job. Milestones 1–4 are Complete through that
+owner-authorized integration; earlier local-delivery statements above are historical.
+PR #12 subsequently integrated the milestones 1–4 closeout. Hosting work below
+remains a local follow-up.
+
+The following configuration is retained for a future owner-approved resumption;
+it is not an active assignment while publication is paused:
+
+- Repository: dherman/thinkwell-rs, deployment branch main.
+- Documentation subdirectory: `/website`, containing docs.json. It does not add
+  `/website` to public URLs.
+- Replace the custom domain with thinkwell.rs at the root. Obtain the project's
+  actual verification/routing records before changing DNS and preserve unrelated
+  records. Check apex support with the DNS provider and verify TLS and deep links.
+- Reuse the current project; do not create a second project or upgrade the plan.
+  No redirect from thinkwell.sh is required for launch.
+
+Mintlify 4.3.84 `publish repo` and `publish domain` guidance and
+[global settings](https://www.mintlify.com/docs/settings) informed this setup.
+CLI authentication returned AWS / aws-8f18fdf7, initially believed to be the
+wrong organization. Subsequent dashboard sign-in with the owner's personal account
+showed thinkwell.sh connected under that label, along with the TypeScript Thinkwell
+navigation. This makes the label alone insufficient to identify a wrong project.
+The owner supplied project ID `6981adca63153ddab05ccfed`; compare it with the
+Site settings before mutations. Dashboard authentication succeeded; project ID
+verification remains pending. Repository integration is complete, but Mintlify
+source/domain/GitHub App and DNS settings have not been changed.
+
+
+
+## Milestone 5. Repurpose the existing hosted project {#documentation-site-5}
+
+**Identifier:** `documentation-site-5`
+
+**Status:** Blocked
+
+**Pause:** The owner explicitly paused publication on 2026-11-25. Loopia
+registration has not been completed, and local review is the current priority.
+Do not resume Mintlify, registrar, or DNS setup without an owner request.
+This milestone is incomplete, not cancelled or delivered.
+
+**Outcome:** Serve the Rust documentation from the existing free Mintlify project
+at thinkwell.rs, replacing the TypeScript deployment.
+
+**Assignment:** The owner approved integrating main and repurposing the project
+with “proceed”, after explicitly accepting loss of the old TypeScript website.
+This milestone became Ready and work began, then the owner paused it as recorded
+above. No paid upgrade or second project is authorized.
+
+**Dependencies and basis:** Integrated documentation milestones 1–4;
+`R-easy-agent-programming`, `R-reviewed-delivery`; owner-selected existing project.
+
+**Tasks on resumption:** Confirm project identity; change source to Rust main and
+/website; retrieve actual DNS records, configure domain and verify public serving.
+Previous authentication succeeded but must not be assumed to remain valid.
+
+### Completion criteria
+
+#### Project source {#documentation-site-5-source}
+
+- **Anchor coverage:** None — hosting configuration.
+- **Criterion:** The existing project deploys dherman/thinkwell-rs main from /website.
+- **Evidence:** Main integration and CI passed. The authenticated dashboard shows
+  thinkwell.sh connected under AWS / aws-8f18fdf7. Match the owner's supplied
+  project ID before changing settings; no source configuration has changed.
+
+#### Domain and delivery {#documentation-site-5-domain}
+
+- **Anchor coverage:** None — public documentation availability.
+- **Criterion:** The Rust site serves over HTTPS at thinkwell.rs with working
+  navigation/deep links and correct domain settings.
+- **Evidence:** Pending. Local resolver and Cloudflare 1.1.1.1 returned NXDOMAIN
+  for thinkwell.rs NS queries on 2026-11-23. This establishes missing public DNS
+  resolution at inspection, not a conclusion about domain ownership. The owner identified Loopia as the registrar/DNS provider. Nameserver
+  delegation and the Loopia zone remain to be inspected. No DNS mutations occurred. The introduction's
+  TS link now points to the source repository, which remains useful independently
+  of publication. The owner subsequently reported incomplete Loopia registration;
+  do not assume the domain is registered or ready for DNS configuration.
+
+## Publication pause and handoff
+
+The owner requested completion of the hosting pause while keeping the documentation.
+Retain all Rust tutorials, website/docs.json, local Mintlify preview instructions,
+and existing documentation CI. Public hosting is not required to review these
+locally. No Mintlify source/domain settings, GitHub App permissions, or DNS records
+were changed, so no external rollback is required. Authentication was performed;
+no credentials or one-time codes are recorded in the Book.
+
+If publication is resumed, first confirm completion of Loopia registration and
+match project ID `6981adca63153ddab05ccfed` in the Mintlify dashboard. The unexpected
+AWS / aws-8f18fdf7 label alone does not identify the wrong project: the dashboard
+showed thinkwell.sh connected. Recheck live state, then use the retained source
+configuration and actual host-provided DNS records. Previous DNS observations
+are historical, not current checks. No upgrade, new project, or domain purchase
+is authorized by this record.
+
+The owner's next planning priority is convenient local Book and Rustdoc previews,
+with CI artifacts considered separately. Preview automation has not been
+implemented or assigned by this pause. Public Rustdoc hosting remains separate.
+The scope assessment and guide-disclosure experiment remain unrelated local work;
+their proposed API deferrals have not been accepted.
+
+The owner authorized a draft PR for this pause record after reviewing the local
+update. Delivery is based on PR #12's merge at 9bc0a5c; owner review, CI, and
+integration remain pending. The hosting milestone remains Blocked after delivery
+of this record; no publication or lifecycle transition is implied.
+
+Validation of the pause update: Book structural checking, mdBook 0.5.4 rendering,
+and whitespace checks passed. The rendered pause section was checked for the
+owner hold, incomplete registration, and retained project identity. No external
+service checks, product tests, or deployment were needed for this prose change.

@@ -31,7 +31,7 @@ observations is silently promoted into a new guarantee by Book cleanup.
 | Cancellation recovery | Is recovery needed beyond explicit reconnection under the [invalidation policy](design/execution-lifecycle.md)? |
 | Turn provenance | Do applications need agent-bound causal-origin evidence beyond [matching submitted identifiers](design/agent-integration.md)? |
 | Platform/compiler support | When should Windows or a lower MSRV become commitments? |
-| Documentation publication | Which hosting, deployment, DNS, and public Rustdoc arrangement should be assigned? The integrated site and CI do not establish publication. |
+| Documentation publication | Publication is paused at the owner’s request; Loopia registration is incomplete. Preserve local docs and [hosting restart context](implementation-roadmaps/documentation-site.md#publication-pause-and-handoff). Local review is the priority; public Rustdoc hosting is separate. |
 
 The [executable-verification record](implementation-roadmaps/executable-verification.md#executable-verification-2)
 tracks uncovered obligations separately. Those obligations are already required
