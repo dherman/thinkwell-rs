@@ -4,7 +4,7 @@ Roadmap identifier: `codex`.
 
 The owner selected Codex as the next agent investigation after merging PR #8.
 The initial research below used the custom AgentConfig API. The implementation includes the typed Codex preset, integrated through owner-merged
-PR #9. Earlier pending-delivery statements below describe historical tested states;
+PR #9. Local experiment records below retain their historical tested scope;
 the integrated completion record is current. The owner approved the concrete implementation milestone after reviewing these
 findings.
 
@@ -20,7 +20,7 @@ bridge or changes to application callback signatures.
 
 **Dependencies and assignment:** One-shot tools are integrated through PR #8.
 The owner assigned the investigation, then approved this concrete milestone with
-“yes”. It became Ready and is now In progress.
+“yes”. It became Ready before implementation and is now integrated through PR #9.
 
 **Design basis:** `R-easy-agent-programming`, `R-provider-breadth`,
 `R-progressive-control`, `D-reviewed-api-baseline`, and the existing
@@ -35,21 +35,13 @@ limitations and exact tested adapter versions; run regression checks and review.
 
 ### Approved boundaries
 
-Use the maintained `@agentclientprotocol/codex-acp@2.8.0` adapter. Mirror the
-Claude preset's offline, pinned npx launch policy and configured-command escape
-hatch. Installation and authentication remain external. Prefer read-only mode
-for this programmatic preset; verify the effective native-tool behavior before
-claiming support. Read-only mode is not a promise that native read operations
-request client approval, nor that Thinkwell is an operating-system sandbox.
-
-Recognize declared Thinkwell tools from ACP tool notifications, then resolve a
-name-less permission request by its session and tool-call IDs. Keep correlation
-state bounded and scoped to the active session/turn. Reject unknown, conflicting,
-stale, terminal, and unrelated calls; never approve an arbitrary MCP call merely
-because it has a tool-call ID. Preserve direct named requests for Claude and
-select AllowOnce only. Application HTTP credentials, turn envelopes and schema
-validation remain independent checks. ACP peer-provided metadata is not an
-attestation of tool provenance.
+[Agent integration](../design/agent-integration.md) owns the Codex preset,
+configuration replacement, declared-tool permission correlation and limits, and
+session-scoped startup failures. [Turn routing](../design/agent-integration.md#turn-routing)
+and [contracts](../design/contracts.md) remain independent controls. The bounded
+milestone does not establish an OS sandbox or authenticated tool provenance.
+Adapter versions, observed native behavior, approval, and regression evidence remain
+recorded below; no broader provider support is inferred.
 
 ### Completion criteria
 
@@ -89,9 +81,8 @@ attestation of tool provenance.
   review, CI, owner review and integration are recorded for the final revision.
 - **Evidence:** Local regression, strict Clippy, Rustdocs, formatting and Book
   checks pass. Author self-review completed separately after implementation.
-  The owner authorized draft PR delivery; CI, owner review and integration
-  remain pending. The milestone
-  remains In progress; local validation is not durable completion.
+  Final-head and merge-commit CI passed; the owner reviewed and merged PR #9.
+  The integrated completion record below identifies the revisions and runs.
 
 ## Research evidence
 
@@ -235,8 +226,8 @@ cleanup, configuration replacement and the distinction between client grants and
 agent-owned native operations. The MCP collision finding was addressed with an
 explicit setup error and deterministic/live coverage. No unresolved implementation
 findings were identified. This is author review, not independent or owner review;
-Linux CI and durable integration remain pending. No phase transition or publication
-is implied.
+final CI and owner integration are recorded below. No phase transition or
+publication is implied.
 
 
 ## PR review follow-up
@@ -268,7 +259,7 @@ workspace tests/check/strict Clippy, Rustdocs, formatting, whitespace, Book
 structure and rendering. Live model runs were not repeated: these deterministic
 fixtures force the timing paths the earlier live runs did not cover. Author
 follow-up review checked correlation, notification races, bounds and cleanup;
-CI and owner review of the revised head remain pending.
+the final CI and owner merge below include these fixes.
 
 ### CI prompt-publication race
 
@@ -287,7 +278,7 @@ pending turn as designed. The original no-prompt assertion is retained.
 Validation on `1bf2577` plus this fix: the delayed-startup regression passed 30
 consecutive local runs; workspace tests, strict all-target Clippy, warning-free
 Rustdocs, formatting, whitespace, Book structural check and rendering passed.
-This is local macOS evidence; revised-head Linux CI remains pending. No live model
+This is local macOS evidence; the final-head CI below supplies Linux execution. No live model
 run is needed to exercise this deterministic request-publication boundary.
 
 ## Integrated completion
@@ -298,5 +289,5 @@ head `094239b760231849a912c775081fb51a842b0fba`, as
 CI runs `44970723008` and `44970724580`. Copilot's two findings and the subsequent
 CI race were addressed with the fixes and evidence above. The milestone's bounded
 criteria are complete through owner integration. Merge-commit CI run `44972456939`
-also passed, confirmed during the progress-observation follow-up. This Book closeout is
-a subsequent local change, not yet integrated.
+also passed, confirmed during the progress-observation follow-up. The subsequent Book closeout is present in the integrated main tree at 59b8bd5;
+this cleanup does not claim new execution of those historical checks.

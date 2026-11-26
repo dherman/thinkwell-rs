@@ -1,9 +1,14 @@
 # Porting research (migration-only)
 
 This chapter is temporary migration evidence during the [Porting Phase](lifecycle.md).
+The source is the [TypeScript Thinkwell repository](https://github.com/dherman/thinkwell);
+this repository develops the Rust target. The inspected revisions below identify
+research inputs and do not establish an ongoing compatibility baseline.
 Observed legacy behavior is not an accepted Thinkwell requirement. This chapter
-includes inherited scaffolding research and the fresh API review below; neither
-selects a compatibility baseline. No ongoing revision tracking is required.
+includes source inventories and package observations from the bounded port
+investigations. [Library foundation research](library-foundation-research.md)
+records the inspected Rust/ACP mechanisms. Accepted [design](design/index.md)
+owns the selected Rust behavior; no ongoing source-revision tracking is required.
 
 ## Inspected source and concepts
 
@@ -102,7 +107,7 @@ an additional schema build tool; its durable definition is in
 [design](design/index.md#type-derived-contracts). The remaining observations guide
 API exploration, without accepting every legacy method, mechanism, or behavior.
 
-## Example selection for the next milestone {#example-selection}
+## Example selection research {#example-selection}
 
 At the owner's request following PR #2, refreshed upstream at the same revision
 `2393101fd66b8471f33bb3a4908aeee919fdf0ce`. The repository has six runnable examples
@@ -112,7 +117,12 @@ unminification, and scheduling. The web fetch of the scheduler page was unavaila
 its repository MDX source supplies the tutorial evidence below. No browser session,
 upstream example execution, or model inference was needed for this planning pass.
 
-| Example and source | Main lesson | Rust candidate / disposition |
+The following inventory records candidates at that inspection. The scheduler,
+sentiment, and unminifier were subsequently selected, implemented, and integrated;
+their accepted definitions belong to [example applications](design/examples.md).
+Unselected entries do not constitute a roadmap or assignment.
+
+| Example and source | Main lesson | Candidate assessment at inspection |
 | --- | --- | --- |
 | [Greeting](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/examples/src/greeting.ts) and hello-world tutorial | A local time tool contributes facts to a typed greeting; the script also streams progress. | `chrono` or `time` for local date/time; IANA-zone naming needs separate consideration. Useful small tool example, but little new coverage beyond current docs; omit streaming unless separately assigned. |
 | [Summarization](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/examples/src/summarize.ts) | Read text and ask for a typed summary. | Standard Rust file I/O plus existing Plan/Serde/Schemars; simple onboarding candidate. |
@@ -202,9 +212,10 @@ substantive upstream implementation; no upstream code attribution is claimed yet
 
 ## Unresolved migration questions
 
-Which capabilities and observable behavior, APIs, tests, examples, and documentation
-should be selected for the port after this review? Which differences should
-become explicit Rust-native decisions? No compatibility scope is accepted.
+Which further source capabilities, if any, should be selected beyond the accepted
+[library, example, and documentation design](design/index.md)? Existing selections
+stand independently of the TypeScript source. No additional parity commitment or
+implementation assignment follows from this inventory.
 For each adaptation, establish file-specific rights, notices, source revision, and
 affected portions before copying; the project license alone is not clearance.
 
@@ -215,8 +226,8 @@ submodule, CI, release, or contributor workflow dependencies on the legacy repos
 
 ## Removal
 
-At the human-approved transition, remove this chapter and its SUMMARY entry and
-incoming migration links. First retain any legally required notices and provenance
+At the human-approved transition, remove the migration-only chapters, their SUMMARY entries, and incoming migration
+links, including [library foundation research](library-foundation-research.md). First retain any legally required notices and provenance
 in durable records alongside adapted material. No substantive implementation has
 been adapted so far. Migration research must not be necessary to interpret the
 remaining requirements, designs, tests, or delivery records.
@@ -231,9 +242,8 @@ Greeting displays message chunks from stream(), then separately awaits result.
 The docs describe eager execution, independent event iteration/result lifecycles,
 message/thought/tool/plan events and continued execution after early iterator exit.
 These are source observations, not Rust requirements or newly verified TS runtime
-behavior. No source was copied or adapted. The Rust proposal keeps typed results
-separate from progress but recommends lazy execution and a borrowed synchronous
-observer initially. Migration links stay here; the Rust design stands independently.
+behavior. No source was copied or adapted. The accepted [Rust observer design](design/progress-observation.md) separates typed
+results from progress and selects lazy execution with a borrowed synchronous observer. Migration links stay here; the Rust design stands independently.
 
 
 ## Unminifier refresh {#unminifier-refresh}
@@ -268,3 +278,80 @@ and source mechanisms establish candidacy, not a compiled or verified pipeline.
 No source, prompts, tutorial text or third-party fixtures were adapted, and no
 repository dependency was added. The existing upstream file-license uncertainty
 still applies before any future copying.
+
+
+
+The owner suggested tree-sitter during unminifier review for permissive parsing and
+source fidelity. Oxc's resolved byte spans supplied the selected source-preserving
+edit mechanism without another parser. Tree-sitter was not built or compared;
+permissive parsing remains unselected and is not a prerequisite for the demo.
+
+## Website source audit
+
+Inspected local TypeScript website navigation and page content at revision
+`2393101fd66b8471f33bb3a4908aeee919fdf0ce` in dherman/thinkwell.
+Source: [website tree](https://github.com/dherman/thinkwell/tree/2393101fd66b8471f33bb3a4908aeee919fdf0ce/website),
+[public tutorials](https://thinkwell.sh/examples).
+This is migration evidence, not authority for Rust behavior. The accepted [documentation design](design/documentation.md) owns the Rust treatment.
+
+| Source area | Useful teaching idea | Rust treatment |
+| --- | --- | --- |
+| Introduction and quickstart | Start with a concrete typed answer and explain each part | Fresh tutorial using Cargo, JsonSchema/Deserialize derives, Plan::run and automatic cleanup. No published crate assumed. |
+| CLI reference | Make installation and execution explicit | Replace with Cargo setup/run instructions; no Rust Thinkwell CLI, Homebrew release or TS schema build step. |
+| Coding agents | Help users obtain accurate generated examples | Defer a Rust coding skill until docs/API guidance exists; do not advertise the TS skill as Rust-compatible. |
+| API overview, agent and sessions | Introduce connection, prompt and history separately | Teach a one-shot plan first, then run_in and changing answer types; only Claude/Codex presets are evidenced. No cwd, environment-override or concurrent-session parity claims. |
+| Plan reference | Compose instructions, context and tools | Teach text/json/code, inline borrowed tools and observe. No skill/quote/textln/ThoughtStream parity claims. Rustdoc owns exhaustive signatures. |
+| Hello world | Tiny complete runnable application | Fold the first answer into quickstart; teach a tool on the next page rather than adding tools to the first program. |
+| Sentiment analysis | Let a model call deterministic analysis | Adapt the integrated Rust walkthrough with borrowed callback/log, not the TS implementation. |
+| Meeting scheduler | Alternate interpretation, exact computation and explanation | Use the Rust solver example and its validation limits. A solver validates its encoded constraints, not the model's interpretation of human intent. |
+| JavaScript unminifier | Combine language understanding with mechanical rewriting | Use the integrated Rust pipeline: deterministic discovery and sequential prompt batches. Do not copy TS parallelism, UMD conversion or broad correctness claims. |
+| Community | Give contributors a clear route into the project | Link Rust CONTRIBUTING and the Book. Do not import TS release processes or adopt a community policy implicitly. |
+
+The source docs.json uses Mintlify's maple theme, fonts/colors, local logo assets,
+and four tabs. Several legacy redirects target pages absent from this source tree
+(for example get-started/architecture and get-started/registry); do not carry those
+redirects into the Rust site automatically. Website assets and community policy
+text have not been cleared for copying. No root LICENSE file or website-local
+license was found in the inspected TypeScript checkout; package licensing is not sufficient evidence
+for adapting all site content. The Rust site uses original prose/code and copies no
+TS prose, code, logos, configuration or Contributor Covenant text. Any later asset
+or text reuse needs its applicable license/notices verified first.
+
+
+## System architecture research {#system-architecture-research}
+
+The system-overview reconciliation inspected the TypeScript repository at
+`2393101fd66b8471f33bb3a4908aeee919fdf0ce`, including its
+[README](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/README.md),
+[MVP design](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/doc/rfd/completed/mvp.md),
+[conductor design](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/doc/rfd/completed/conductor.md),
+and [API overview](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/website/api/overview.mdx).
+These describe different stages: the MVP places a conductor subprocess between
+client and agent; the later conductor design moves routing and HTTP bridging
+into a TypeScript package and includes proxy chains. The README's architecture
+link uses an older RFD path. No source execution or universal protocol audit is
+claimed by this reading.
+
+The useful system concepts are application-owned workflows, ACP-mediated agent
+access, separate conversation and request lifetimes, local tools, structured
+answers, and automatic contract production. The accepted Rust
+[system overview](design/system-overview.md) re-expresses those concepts through scoped
+execution, borrowed callbacks, a fixed session catalog, per-turn result types,
+and independent validation plus terminal completion. Its owned driver and
+direct loopback HTTP MCP endpoint supply the selected runtime responsibilities;
+the TypeScript package split, MCP-over-ACP bridge, and proxy topology are not
+adopted. The original MVP's rejection of direct HTTP is a historical source
+choice, not a constraint on the accepted same-host Rust integration.
+
+Rust compilation and derives replace the source's CLI/annotation/schema-loader
+path. Native agent configuration, external authentication, and model access are
+separated from application code; examples and documentation consume the public
+Rust library. Existing Rust decisions and recorded assignments govern this
+reconstruction. Source descriptions do not expand platform, embedding, recovery,
+protocol, or model-compatibility guarantees. Unresolved Rust choices remain open.
+
+The overview prose and diagram are newly authored from the Rust design and
+implementation evidence. No source prose, diagrams, code, or assets were copied.
+The file-specific licensing uncertainty recorded above remains unresolved for
+future copying. These source comparisons are removable migration research;
+understanding the Rust system does not require any of these upstream documents.

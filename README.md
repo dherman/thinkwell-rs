@@ -88,6 +88,7 @@ Original code and documentation in this repository are licensed under either the
 at your option (`MIT OR Apache-2.0`).
 
 Separately identified third-party material retains its applicable license and
-notices. Any future adaptation of upstream Thinkwell code must preserve required
+notices. The Book diagram stylesheet includes Anchor Book material under its MIT
+license, with the full notice in `theme/diagrams.css`. Any future adaptation of upstream Thinkwell code must preserve required
 copyright and license notices; choosing Apache-2.0 does not remove upstream MIT
 notice obligations. See [contribution terms](CONTRIBUTING.md#licensing-and-contributions).

@@ -17,7 +17,8 @@ trusting the answer.
 
 The owner reviewed and merged PR #3, then instructed implementation to continue.
 The closeout prerequisite is satisfied at eecb8ec98424689c4deb3ce526e524421e3faef8.
-Ready was recorded and readiness reported on 2026-11-20; implementation is now In progress.
+Ready and readiness were recorded before implementation on 2026-11-20.
+All three milestones are Complete through the integration record below.
 
 **Identifier:** `meeting-scheduler-1`
 
@@ -33,7 +34,7 @@ publication, and an end-of-Porting-Phase transition remain outside this assignme
 `R-per-turn-result-types`, `R-idiomatic-reimplementation`, `R-source-provenance`,
 and the accepted [typed-conversation design](../design/typed-conversations.md).
 Source comparisons and alternatives live in [migration research](../migration.md#example-selection).
-The proposed application rules below are not new library guarantees.
+The approved application rules are not new library guarantees.
 
 **Tasks**
 
@@ -47,89 +48,20 @@ The proposed application rules below are not new library guarantees.
       example checks to CI without adding a solver dependency to the library.
 - [x] Run one bounded opt-in live demonstration with existing agent credentials,
       review the code and learning flow, and record ergonomic findings and limits.
-- [ ] Deliver through owner review, passing CI, and authorized integration.
+- [x] Deliver through owner review, passing CI, and authorized integration.
 
-### Migration references
+### Owning design and source basis
 
-Use these references for the original example's intent and teaching flow during
-implementation:
+[Example applications](../design/examples.md#meeting-scheduler) owns the approved
+caller flow, domain rules, solver boundary, teaching shape, and exclusions. The
+selected vendored Z3 setup is documented with the actual resolved dependencies
+and platform evidence below. [Migration research](../migration.md#example-selection)
+retains the TypeScript source/tutorial comparison and licensing limits.
 
-- [TypeScript scheduler source at the inspected revision](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/examples/src/schedule.ts).
-- [Published Meeting Scheduler tutorial](https://thinkwell.sh/examples/meeting-scheduler).
-- [Tutorial source at the inspected revision](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/website/examples/meeting-scheduler.mdx).
-
-The pinned source links preserve the research snapshot even if the published
-tutorial changes. These are temporary migration references, not permanent
-Thinkwell authority or a requirement for behavioral parity. The approved Rust
-scope and application rules in this roadmap govern where behavior differs.
-Follow the source-provenance requirements below before adapting substantive
-material; remove these migration references at the end of the Porting Phase.
-
-### Caller flow
-
-1. Load a small JSON roster containing stable attendee IDs, display names, and
-   natural-language availability. Reject an empty roster and duplicate IDs.
-2. Connect with `agent::Claude::connect()` and open a session without application tools.
-3. Run `Plan<ParsedAvailability>` to translate the roster into weekday/hour windows.
-   Print the extraction and validate it in Rust before solving.
-4. Solve for a one-hour weekday meeting in business hours with Z3. Return a Rust
-   enum distinguishing a valid slot, no feasible slot, and an inconclusive solver run.
-5. Run `Plan<String>` in the same session to explain that result. Display
-   Rust's canonical status/time separately from the generated prose. Let ordinary
-   ownership clean up the session and agent.
-
-The tutorial should show the actual compiled code in small steps: first a typed
-answer, then ordinary validation and solving, then a follow-up of a different
-type. Explain what each derive contributes and show sample success and no-slot
-output. Application helper functions should be visibly separate from Thinkwell
-API. Explain that Z3 checks the extracted constraints, not whether the model
-understood someone's natural-language intent correctly.
-
-This example deliberately needs no application tools: Rust calls the solver
-between prompts. A later sentiment-analysis example can exercise wrapping a Rust
-library in a borrowed tool. Adding a tool to this example merely to demonstrate
-one would obscure its central lesson.
-
-### Scope and dependency choice
-
-Use `examples/meeting-scheduler/` as an unpublished standalone Cargo package,
-with a path dependency on Thinkwell and its own lockfile. Keep it outside ordinary
-workspace builds so solver installation and compilation are paid for only by
-users of this example. CI must explicitly build/test this package; an exclusion
-must not silently remove its checks.
-
-Use the MIT-licensed `z3` crate (0.23.0 inspected), which wraps the Z3 solver.
-Prefer its `vendored` feature for a locked source build of the native solver;
-record the resolved z3-sys/z3-src versions and native compiler/CMake prerequisites
-when implementing. Verify that build on macOS and Linux before accepting this
-choice. Do not change system packages during planning. If native build cost or
-compatibility is unacceptable, bring that finding back before changing the
-example to another solving method. A system installation or pinned GitHub binary
-release is an alternative, not a verified setup path in this proposal.
-
-Use the existing Tokio, Serde, and Schemars approach. Nested records and the weekday
-enum can opt into `#[schemars(inline)]`; use `i64` hours and explicit Rust range
-checks. Do not broaden the core schema validator just to run the example. Do not
-add unsupported numeric schema keywords and imply that they are enforced.
-
-The approved application rules for this milestone are:
-
-- One shared timezone, one notional Monday–Friday week, whole-hour starts, and
-  one-hour meetings wholly inside 09:00–17:00 and each attendee's chosen window.
-- Every input attendee must appear exactly once in the extracted result; unknown,
-  duplicate, or missing IDs are errors. The original roster owns display names.
-- Validate `0 <= start < end <= 24`; intersect with business hours when solving.
-  An attendee with no available windows makes the schedule unsatisfiable.
-- Bound the solver query to ten seconds. `Unknown` (including timeout) is an
-  inconclusive result, never a claim that no slot exists. Model-extraction errors
-  are errors. Recheck any returned slot against the validated windows in Rust.
-- Any valid slot is acceptable; the example does not promise the earliest one.
-  The explanation cannot replace the solver's status or canonical slot.
-
-Exclude calendars, booking, dates/DST, multiple timezones, fractional-hour or
-variable-duration meetings, concurrent agents, streaming UI, new providers, and
-new Plan conveniences. API friction becomes evidence for a subsequent proposal,
-not automatic permission to expand this milestone.
+[Contracts](../design/contracts.md) owns automatic nonrecursive inlining;
+[typed conversations](../design/typed-conversations.md) owns JSON context.
+These were separately approved in milestones 2 and 3; they do not retroactively
+change the initial annotated-schema tests.
 
 ### Completion criteria
 
@@ -187,11 +119,9 @@ merged revision, concrete ergonomic findings, and unresolved limitations.
 - **Anchor coverage:** None — example delivery and evaluation.
 - **Evidence:** The initial implementation at 07e745b passed both Ubuntu CI jobs,
   including native Z3 and example tests, on push and PR runs. The subsequent
-  learning-focused revision passes eight example tests locally; its CI remains
-  pending until pushed. The root workspace still has only thinkwell and
-  anchor-runner and no Z3 dependency. No source or CI dependency on TypeScript
-  was added. Final revision review and authorized integration remain outstanding;
-  this criterion is not complete.
+  learning-focused revision passed eight example tests locally and in final-head
+  Linux CI. The root workspace retains only thinkwell and anchor-runner, with no
+  Z3 or TypeScript dependency. Owner review and PR #4 integration are recorded below.
 
 ### Historical planning evidence and approval boundary
 
@@ -314,12 +244,9 @@ Concrete ergonomic findings:
 - Generated prose can fail or disagree; application-owned facts should remain
   independently visible. This example adds no claim of verified model interpretation.
 
-The owner explicitly authorized committing, pushing, and opening a draft PR for
-this implementation after reviewing the local completion report. The milestone
-remains In progress pending native Linux/CI evidence, owner review, and authorized
-integration. This delivery authorization does not permit merging, package
-publication, or ending the Porting Phase. No new public API or follow-on example
-is selected by these findings.
+The owner authorized draft delivery after the local completion report, then
+reviewed and merged PR #4. The completion record below supplies native Linux CI
+and owner integration. No publication or lifecycle transition followed from it.
 
 Final documentation checks passed: `cargo anchor check --config anchorbook.toml`
 (structural/v1, zero errors), mdBook 0.5.4 rendering, and whitespace checks,
@@ -357,24 +284,10 @@ That establishes the initial native Linux build; it does not establish CI result
 for the learning-focused changes. Earlier statements about unverified Linux refer
 to the local implementation stage before these CI runs.
 
-Potential library adaptations for discussion, not implementation in this change:
-
-- Ordinary nested answer types currently need `#[schemars(inline)]` annotations.
-  Automatically inlining nonrecursive derived schemas could remove this incidental
-  burden without promising arbitrary JSON Schema reference support. Recursive
-  types and unsupported constraints would still need explicit, tested behavior.
-- Supplying structured context currently requires
-  `.text(serde_json::to_string(&roster)?)`. A JSON/context convenience could improve
-  discoverability and keep serialization errors composable. Its naming, fallibility,
-  and relationship to quoting/delimiting should be discussed first; formatting is
-  not an instruction-trust or prompt-injection security boundary.
-- The second result needs no new API: `Plan<String>` already provides the simpler
-  spelling. Synchronous Z3 work and application roster/range validation remain
-  ordinary Rust responsibilities, not reasons to introduce Thinkwell abstractions.
-
-No core API changes are made or authorized by these observations. The owner asked
-for discussion of adaptations after seeing the ergonomic evidence.
-
+The review identified inline-schema annotations and manual JSON serialization as
+API friction. The owner separately approved the inlining and context milestones
+below. `Plan<String>`, blocking Z3 execution, and application validation needed
+no new abstraction. The owning library design incorporates those accepted changes.
 
 Validation of the learning-focused revision (07e745b plus the local changes):
 example formatting, all-target compilation, Clippy with warnings denied, and all
@@ -387,31 +300,14 @@ The previous nine-test and haiku live records describe the initial implementatio
 they are retained as historical evidence rather than overwritten.
 
 
-### Automatic schema inlining exploration
+### Schema inlining research basis
 
-After the owner agreed to explore schema inlining, source inspection found that
-pinned Schemars 1.2.3 already exposes `SchemaSettings::inline_subschemas`. Its
-implementation retains references when an ordinary derived type recurs during
-generation. Thinkwell currently uses default settings for both serialization and
-deserialization contracts, then rejects unsupported schema keywords.
-
-The proposed adaptation is to enable this generation setting in both directions,
-while retaining the existing supported-contract check. Ordinary nonrecursive
-nested derived types would no longer require `#[schemars(inline)]`; recursive
-schemas and manually supplied references would still fail preflight. This is a
-proposal, not an implemented or validated behavior change. It requires no new
-public builder method or Thinkwell-specific derive. The scheduler would lose the
-three inline annotations on Day, TimeWindow, and AttendeeAvailability; its Plan
-calls and application validation would remain the same.
-
-Before implementation, assign a Ready milestone covering nested result types,
-tool inputs and outputs, direction-specific Serde names, repeated nested types,
-self/mutual recursion rejection, and continued rejection of unsupported nested
-constraints and manually supplied references. Verify these through actual product
-contract paths, then remove the scheduler annotations and run its workflow tests.
-Inlining duplicates reused schemas and can increase prompt size; this proposal
-adds no reference resolver or recursive-contract support. Source inspection alone
-does not establish runtime behavior or resource bounds for deeply nested types.
+Source inspection of Schemars 1.2.3 found `SchemaSettings::inline_subschemas` and
+its retention of references for recursive types. Milestone 2 exercised the setting
+through product input, output, and result paths. This source observation alone did
+not verify runtime behavior or deeply nested resource bounds; inlining can duplicate
+schemas and increase prompt size. The accepted finite subset still rejects recursion
+and manually supplied references, as defined in [contracts](../design/contracts.md).
 
 
 ## Milestone 2. Automatic schema inlining {#meeting-scheduler-inlining}
@@ -448,7 +344,7 @@ because ordinary nesting is intentionally accepted. All workspace tests pass.
 **Evidence:** All eight scheduler tests pass without inline annotations. Workspace
 Clippy and strict Rustdoc pass. A separate author self-review checked the diff,
 shared generation path, unchanged validator, and scope of recursion rejection;
-this is not independent or owner review. CI and owner integration remain pending.
+this is not independent or owner review. Final CI and owner integration are below.
 No new live inference run was needed for this schema-only change.
 
 Commands: `cargo test --workspace --locked`,
@@ -503,7 +399,7 @@ No quoting protocol, trust boundary, new content block, or schema requirement is
   the same as the inlining milestone above. Separate author self-review examined
   the full diff, error behavior, ownership, docs, and unchanged prompt bytes; no
   unresolved findings. This is not independent or owner review. No additional live
-  agent run was performed. CI and owner-reviewed integration remain outstanding.
+  agent run was performed. Final CI and owner-reviewed integration are recorded below.
 
 
 ## Integrated completion {#integrated-completion}
@@ -512,8 +408,8 @@ The owner reviewed and merged PR #4 on 2026-11-21 at 01:19:13 UTC, integrating
 final head `0efc8e45f29d81a2223d104f25e2a3b24d4e1493` as
 `558f3ba6e429a84f1e9630ef6b0fb6ee12b66485`. This completes the scheduler,
 automatic schema inlining, and structured prompt context milestones. Earlier
-pending statements above describe evidence at their implementation stages;
-this record supplies their final review and integration evidence.
+local-stage evidence above retains its original scope; this record supplies
+final review and integration evidence.
 
 Both **Rust and Book checks** and **Meeting scheduler example** passed on the final
 head in [PR CI](https://github.com/dherman/thinkwell-rs/actions/runs/44811985839)
@@ -539,8 +435,8 @@ Criterion closeout:
   bound Plan state, immediate serialization errors, Rustdoc and scheduler tests pass.
 
 The owner's review and merge follow the recorded author self-reviews; no independent
-agent review is claimed. This closeout is a follow-up under the same delivery
-assignment and awaits its own integration. No further implementation milestone,
+agent review is claimed. The owner integrated this closeout in PR #5 at
+`343f4253f9686a0ff56e5a1dc65d87aea00b2437`. No further implementation milestone,
 package publication, or end of the Porting Phase is authorized by completion.
 
 
@@ -557,11 +453,9 @@ source-build policy, or product behavior changes. Cache misses rebuild normally.
 
 This is an approved delivery optimization, not a new product milestone. Local
 workflow inspection, Book structure/rendering, bootstrap consistency and whitespace
-checks validate configuration only. A successful cache save and subsequent restore
-with measured native-build reuse remain CI evidence gaps. The first run may still
-perform the full native build. GitHub cache eviction and branch visibility mean
-warm-cache performance is not guaranteed.
-
+checks validated configuration only. The subsequent cache-reuse measurements below
+supply execution evidence; eviction and branch visibility mean warm-cache performance
+is not guaranteed.
 
 Cache reuse was verified on 82bfebba05af175d8603bd3b002a3f4e4b7e4760 in
 [run 44876447906, attempt 2](https://github.com/dherman/thinkwell-rs/actions/runs/44876447906/attempts/2).
@@ -572,5 +466,4 @@ an exact matching cache in approximately 48 seconds. Cargo compilation took
 scheduler tests passed. Total job time was 1m14s, about 21 times faster overall.
 The warm log contains no Z3 compilation, confirming native artifact reuse for
 this run. These results establish one warm-cache success, not guaranteed timing
-under toolchain changes, cache eviction, or different runners. Earlier evidence
-gaps above describe the pre-run state.
+under toolchain changes, cache eviction, or different runners.

@@ -106,12 +106,19 @@ async fn conversation(mode: &str) {
     agent.shutdown().await.unwrap();
     reaped(dir.path()).await;
 }
+/// anchorbook: A-scoped-turn-ownership#behavior
+/// anchorbook: A-typed-turn-completion#behavior
+/// anchorbook: A-turn-envelope-routing#behavior
+/// anchorbook: A-owned-resource-cleanup#behavior
 #[tokio::test]
 async fn typed_turns_and_stale_calls() {
     tokio::time::timeout(Duration::from_secs(20), conversation("late"))
         .await
         .unwrap();
 }
+/// anchorbook: A-scoped-turn-ownership#behavior
+/// anchorbook: A-typed-turn-completion#behavior
+/// anchorbook: A-owned-resource-cleanup#behavior
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn local_borrows_on_multithread_runtime() {
     tokio::time::timeout(Duration::from_secs(20), conversation("success"))
@@ -119,6 +126,8 @@ async fn local_borrows_on_multithread_runtime() {
         .unwrap();
 }
 
+/// anchorbook: A-typed-turn-completion#behavior
+/// anchorbook: A-cancelled-session-invalidation#behavior
 #[tokio::test]
 async fn failures_and_corrections() {
     for (mode, expected) in [
@@ -174,6 +183,7 @@ async fn failures_and_corrections() {
         reaped(dir.path()).await;
     }
 }
+/// anchorbook: A-cancelled-session-invalidation#behavior
 #[tokio::test]
 async fn preflight_is_local_and_session_reservation_reusable() {
     let dir = tempfile::tempdir().unwrap();
@@ -249,6 +259,9 @@ async fn preflight_is_local_and_session_reservation_reusable() {
     agent.shutdown().await.unwrap();
     reaped(dir.path()).await;
 }
+/// anchorbook: A-scoped-turn-ownership#behavior
+/// anchorbook: A-cancelled-session-invalidation#behavior
+/// anchorbook: A-owned-resource-cleanup#behavior
 #[tokio::test]
 async fn dropping_started_execution_releases_borrow_and_closes_connection() {
     let dir = tempfile::tempdir().unwrap();
@@ -290,6 +303,8 @@ async fn dropping_started_execution_releases_borrow_and_closes_connection() {
     drop(agent);
     reaped(dir.path()).await;
 }
+/// anchorbook: A-typed-turn-completion#behavior
+/// anchorbook: A-cancelled-session-invalidation#behavior
 #[tokio::test]
 async fn candidate_does_not_complete_before_terminal() {
     let dir = tempfile::tempdir().unwrap();
@@ -310,6 +325,7 @@ async fn candidate_does_not_complete_before_terminal() {
     drop(agent);
     reaped(dir.path()).await;
 }
+/// anchorbook: A-supported-contract-boundary#behavior
 #[tokio::test]
 async fn tool_errors_are_visible_and_recoverable() {
     for mode in ["input_error", "callback_error"] {
@@ -333,6 +349,7 @@ async fn tool_errors_are_visible_and_recoverable() {
         reaped(dir.path()).await;
     }
 }
+/// anchorbook: A-owned-resource-cleanup#behavior
 #[tokio::test]
 async fn shutdown_errors_force_fallback_and_partial_setup() {
     for mode in ["success", "forced", "exit_error", "setup_failure"] {
@@ -372,6 +389,7 @@ async fn unsupported_model_is_typed() {
     drop(agent);
     reaped(dir.path()).await;
 }
+/// anchorbook: A-owned-resource-cleanup#behavior
 #[test]
 fn runtime_teardown_reaps_child() {
     let dir = tempfile::tempdir().unwrap();
@@ -392,6 +410,7 @@ fn runtime_teardown_reaps_child() {
     observer.block_on(reaped(dir.path()));
 }
 
+/// anchorbook: A-typed-turn-completion#behavior
 #[tokio::test]
 async fn candidate_is_discarded_when_terminal_overlaps_callback() {
     let dir = tempfile::tempdir().unwrap();
@@ -426,6 +445,8 @@ impl Serialize for InvalidOutput {
         serializer.serialize_str(&self.total.to_string())
     }
 }
+/// anchorbook: A-supported-contract-boundary#behavior
+/// anchorbook: A-turn-envelope-routing#behavior
 #[tokio::test]
 async fn http_limits_and_serialized_output_validation() {
     let dir = tempfile::tempdir().unwrap();
@@ -471,6 +492,7 @@ async fn callback_deadline_is_a_tool_error() {
     agent.shutdown().await.unwrap();
     reaped(dir.path()).await;
 }
+/// anchorbook: A-owned-resource-cleanup#behavior
 #[tokio::test]
 async fn drop_cleanup_reports_errors_and_closes_listener() {
     let dir = tempfile::tempdir().unwrap();
@@ -500,6 +522,7 @@ async fn drop_cleanup_reports_errors_and_closes_listener() {
     assert!(diagnostics.outcome().unwrap().is_err());
     assert!(tokio::net::TcpStream::connect(address).await.is_err());
 }
+/// anchorbook: A-supported-contract-boundary#behavior
 #[tokio::test]
 async fn unsupported_contracts_and_options_fail_before_prompt() {
     #[derive(Deserialize, JsonSchema)]
@@ -537,6 +560,8 @@ async fn unsupported_contracts_and_options_fail_before_prompt() {
     reaped(dir.path()).await;
 }
 
+/// anchorbook: A-supported-contract-boundary#behavior
+/// anchorbook: A-typed-turn-completion#behavior
 #[tokio::test]
 async fn contracts_follow_serde_direction() {
     #[derive(Deserialize, JsonSchema)]
@@ -587,6 +612,8 @@ async fn contracts_follow_serde_direction() {
     assert!(output["properties"].get("received_total").is_none());
 }
 
+/// anchorbook: A-supported-contract-boundary#behavior
+/// anchorbook: A-typed-turn-completion#behavior
 #[tokio::test]
 async fn finite_floats_round_trip_and_nonfinite_tool_outputs_fail() {
     let dir = tempfile::tempdir().unwrap();
@@ -669,16 +696,22 @@ async fn one_shot_reuse() {
     reaped(dir.path()).await;
 }
 
+/// anchorbook: A-scoped-turn-ownership#behavior
+/// anchorbook: A-owned-resource-cleanup#behavior
 #[tokio::test]
 async fn one_shot_borrows_and_reuses_agent() {
     one_shot_reuse().await;
 }
 
+/// anchorbook: A-scoped-turn-ownership#behavior
+/// anchorbook: A-owned-resource-cleanup#behavior
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn one_shot_supports_local_borrows_on_multithread_runtime() {
     one_shot_reuse().await;
 }
 
+/// anchorbook: A-supported-contract-boundary#behavior
+/// anchorbook: A-cancelled-session-invalidation#behavior
 #[tokio::test]
 async fn one_shot_preflight_and_busy_leave_agent_available() {
     #[derive(Debug, Deserialize, JsonSchema)]
@@ -763,6 +796,8 @@ async fn one_shot_preflight_and_busy_leave_agent_available() {
     reaped(dir.path()).await;
 }
 
+/// anchorbook: A-cancelled-session-invalidation#behavior
+/// anchorbook: A-owned-resource-cleanup#behavior
 #[tokio::test]
 async fn one_shot_failure_closes_connection() {
     for mode in ["missing", "setup_failure"] {
@@ -778,6 +813,9 @@ async fn one_shot_failure_closes_connection() {
     }
 }
 
+/// anchorbook: A-scoped-turn-ownership#behavior
+/// anchorbook: A-cancelled-session-invalidation#behavior
+/// anchorbook: A-owned-resource-cleanup#behavior
 #[tokio::test]
 async fn dropping_one_shot_during_setup_or_callback_cleans_up() {
     for mode in ["setup_wait", "callback"] {
@@ -896,6 +934,8 @@ async fn delayed_startup_reports_interrupt_setup_and_turns() {
     }
 }
 
+/// anchorbook: A-scoped-turn-ownership#behavior
+/// anchorbook: A-progress-observation#behavior
 #[tokio::test(flavor = "current_thread")]
 async fn observed_turn_borrows_and_preserves_typed_result() {
     use thinkwell::{AgentToolStatus, ProgressEvent, ToolOutcome};
@@ -962,6 +1002,8 @@ async fn observed_turn_borrows_and_preserves_typed_result() {
     reaped(dir.path()).await;
 }
 
+/// anchorbook: A-progress-observation#behavior
+/// anchorbook: A-cancelled-session-invalidation#behavior
 #[tokio::test(flavor = "current_thread")]
 async fn unpolled_and_invalid_observed_plans_send_nothing() {
     let dir = tempfile::tempdir().unwrap();
@@ -990,6 +1032,9 @@ async fn unpolled_and_invalid_observed_plans_send_nothing() {
     agent.shutdown().await.unwrap();
 }
 
+/// anchorbook: A-scoped-turn-ownership#behavior
+/// anchorbook: A-progress-observation#behavior
+/// anchorbook: A-owned-resource-cleanup#behavior
 #[test]
 fn observer_panic_releases_borrows_and_closes_connection() {
     let rt = tokio::runtime::Builder::new_current_thread()
@@ -1027,6 +1072,10 @@ fn observer_panic_releases_borrows_and_closes_connection() {
     rt.block_on(reaped(dir.path()));
 }
 
+/// anchorbook: A-scoped-turn-ownership#behavior
+/// anchorbook: A-progress-observation#behavior
+/// anchorbook: A-cancelled-session-invalidation#behavior
+/// anchorbook: A-owned-resource-cleanup#behavior
 #[tokio::test(flavor = "current_thread")]
 async fn dropping_observed_turn_discards_pending_events_and_releases_capture() {
     let dir = tempfile::tempdir().unwrap();
@@ -1060,6 +1109,8 @@ async fn dropping_observed_turn_discards_pending_events_and_releases_capture() {
     reaped(dir.path()).await;
 }
 
+/// anchorbook: A-progress-observation#behavior
+/// anchorbook: A-typed-turn-completion#behavior
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn observed_errors_and_candidates_do_not_change_completion() {
     use thinkwell::{ProgressEvent, ToolOutcome};
@@ -1118,6 +1169,7 @@ async fn observed_errors_and_candidates_do_not_change_completion() {
     }
 }
 
+/// anchorbook: A-progress-observation#behavior
 #[tokio::test(flavor = "current_thread")]
 async fn observed_deadlines_distinguish_timeout_from_callback_error() {
     use thinkwell::{ProgressEvent, ToolOutcome};

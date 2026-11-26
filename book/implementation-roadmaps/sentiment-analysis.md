@@ -16,7 +16,7 @@ mutable call log borrowed by a tool callback, followed by a typed agent report.
 
 **Approval and dependencies:** The owner reviewed and merged proposal PR #5 and
 assigned implementation, including the finite-f64 decision. The milestone became
-Ready and is now In progress. The prerequisite closeout is integrated at
+Ready before implementation; final integration is recorded below. The prerequisite closeout is integrated at
 343f4253f9686a0ff56e5a1dc65d87aea00b2437; both final-head CI jobs passed in
 runs 44851884833 and 44851879894. No blocking design decision remains.
 
@@ -34,58 +34,24 @@ callback concurrency, or tool registration abstraction is proposed.
 - [x] Run a bounded live demonstration and separate author review.
 - [x] Obtain Linux CI, owner review, and integration.
 
-### Example flow
+### Owning design
 
-1. Read a fixed included feedback document. Construct one VADER analyzer and a
-   local vector of scored passages.
-2. Define `Tool<TextPassage, SentimentScores>` and open a session with that tool.
-3. Build a `Plan<Analysis>` with instructions and `.json(&feedback)?`. Bind an async
-   closure that borrows the analyzer and mutably borrows the vector. The closure
-   scores each requested passage, records the actual input/output, and returns it.
-4. Ask the agent to choose meaningful passages, call the tool, and return an
-   overall tone, summaries of the passages, and a recommendation.
-5. After awaiting the plan, print the locally recorded scores separately from the
-   generated report. The vector becomes accessible again without Arc or Mutex.
-   Preserve the tool log if the agent fails to provide its final answer.
+[Example applications](../design/examples.md#sentiment-analysis) owns the accepted
+scoring, logging, presentation, and teaching rules. This first milestone used an
+explicit catalog and per-turn binding. The separately approved
+[one-shot tools](one-shot-tools.md) later simplified the same application to an
+inline tool and `run(&agent)`; its tests and live evidence are recorded separately.
 
-Keep one tool and one agent turn. Validate that requested text is nonempty and
-is an exact excerpt of the supplied document; reject invented/paraphrased passages
-with a tool error. Require at least one successful scoring call before presenting
-an analysis as tool-backed. Do not copy scores into the model's final answer type:
-the local log owns the numbers, while the report owns generated interpretation.
-This avoids making faithful numerical transcription part of the demonstration.
-
-The intended call shape is:
-
-```rust,ignore
-let report = Plan::<Analysis>::new()
-    .text("Use analyze_sentiment on passages from this feedback, then summarize its tone.")
-    .json(&feedback)?
-    .bind(&sentiment, async |passage: TextPassage| {
-        let scores = score_passage(&analyzer, &feedback, &passage.text)?;
-        scored_passages.push((passage.text, scores.clone()));
-        Ok(scores)
-    })
-    .run_in(&mut session)
-    .await;
-```
-
-The implemented main follows this shape; the tutorial abbreviates the prompt only. Use a short bounded
-fixture and synchronous scoring inside the callback; no claim is made about
-running large documents without blocking the async runtime. No sentiment accuracy,
-sarcasm detection, multilingual support, streaming, arbitrary file inputs, or
-production document-analysis service is promised.
 
 ### Dependency and source evidence
 
 Inspected the pinned TypeScript [example](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/examples/src/sentiment.ts)
 and [tutorial source](https://github.com/dherman/thinkwell/blob/2393101fd66b8471f33bb3a4908aeee919fdf0ce/website/examples/sentiment-analysis.mdx).
-The public [tutorial](https://thinkwell.sh/examples/sentiment-analysis) is also a
-future implementation reference. These are migration evidence, not Rust authority.
+The public [tutorial](https://thinkwell.sh/examples/sentiment-analysis) was also inspected as a teaching reference. These are migration evidence, not Rust authority.
 The original uses npm sentiment/AFINN score, comparative score, and token lists;
 it lets the agent select passages and synthesize recommendations.
 
-Recommend `vader_sentiment = "=0.1.1"`, with the example's own lockfile. Its
+The selected dependency is `vader_sentiment = "=0.1.1"`, with the example's own lockfile. Its
 `SentimentIntensityAnalyzer::polarity_scores` returns a map of f64 values: positive,
 negative, neutral proportions and a compound score in [-1, 1]. Compound is not a
 probability or an AFINN score; do not label it comparative or promise numerical
@@ -107,21 +73,14 @@ Its research citation is Hutto and Gilbert (2014), VADER: A Parsimonious Rule-ba
 Model for Sentiment Analysis of Social Media Text. The old release date and limited
 smoke evidence remain limitations, not evidence of maintained upstream support.
 
-### Approved floating-point scope
+### Approved floating-point adaptation
 
-The probe confirmed Schemars 1.2.3 emits `type: number, format: double` for f64.
-Before this milestone, Thinkwell rejected that format. Approved adaptation: accept that format
-only with number, and validate finite representability in f64. Apply it to result,
-tool input and tool output contracts. Do not treat a nonfinite serialized value
-as a valid number (Serde JSON may encode nonfinite floats as null). Preserve exact
-const/enum comparisons and existing integer rules. Test invalid format/type
-combinations, finite boundaries, and nonfinite tool outputs before accepting this
-change. No general floating-point range keywords or arbitrary formats are added.
+The owner approved finite f64 support after the probe identified Schemars 1.2.3's
+`number`/`double` representation. [Contracts](../design/contracts.md) owns the
+accepted generation, validation, serialization, and exact-comparison rules.
+The numeric criterion below retains the product regression evidence; the example's
+named score fields and range checks remain application responsibilities.
 
-Implementation includes a design update and scoped library tests. Avoid
-example-specific schema overrides, string scores, or scaled integers merely to
-conceal the ergonomic gap. Typed fields should name compound/positive/negative/
-neutral explicitly instead of exposing the dependency's string-keyed map.
 
 ### Completion criteria
 
@@ -157,8 +116,8 @@ neutral explicitly instead of exposing the dependency's string-keyed map.
   deterministic checks, bounded live run, Linux CI, owner review and integration
   are recorded. Flag further API friction rather than silently expanding scope.
 - **Evidence:** Local tutorial/code review, deterministic tests and live run pass.
-  A separate CI job is authored, not yet executed. Owner review and integration
-  remain pending; the milestone is In progress.
+  The separate CI job passed on the final head and merge commit; the owner
+  reviewed and merged PR #6. See integrated completion below.
 
 
 ### Local implementation evidence
@@ -204,8 +163,8 @@ adaptation is proposed from this example.
 All Rust example code, prompts, feedback, and tutorial prose are original. Existing
 repository test-harness patterns were reused under this repository's license;
 VADER source and lexicons remain in the dependency with their original notices.
-CI and owner-reviewed delivery remain outstanding. No commit, push, publication,
-or end-of-Porting-Phase transition is implied by local implementation evidence.
+Final CI and owner-reviewed delivery are recorded below. The local implementation
+evidence alone establishes no publication or lifecycle transition.
 
 
 ### Integrated completion {#integrated-completion}
@@ -222,15 +181,12 @@ are recorded in the [scheduler roadmap](meeting-scheduler.md).
 
 This completes the milestone's tool-flow, numeric-contract, and learning/delivery
 criteria: the recorded local tests and live run, final Linux CI, author review,
-owner review, and integration now all hold. Earlier pending statements describe
-implementation-stage evidence and are superseded by this closeout. The source and
-accuracy limitations remain unchanged. This Book synchronization is delivered as
-a follow-up under the same assignment and awaits its own integration.
+owner review, and integration hold. The source and accuracy limitations remain
+unchanged. The owner subsequently integrated this Book synchronization in PR #7
+at `8e039b1215d96a23af4f6c798704f97c013fea25`.
 
 The example validates borrowed analyzer/mutable-log callbacks and immediate JSON
-context serialization. The remaining ergonomic question is the separate tool
-registration and binding for one-turn use. The earlier approved integrated API
-review already sketched inline Plan tools plus standalone run; exploring that
-convenience does not authorize implementation. Tool-use verification and faithful
-interpretation remain application concerns; no provenance guarantee is added.
-No next product milestone, publication, or end-of-Porting-Phase transition is assigned.
+context serialization. Its ergonomic finding led to the separately approved and
+integrated [one-shot tools milestone](one-shot-tools.md). Tool-use verification and
+faithful interpretation remain application concerns; no provenance guarantee,
+publication, or lifecycle transition is added by completion.

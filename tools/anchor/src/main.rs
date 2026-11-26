@@ -8,7 +8,7 @@ use std::{
     process::{self, Command, Stdio},
 };
 
-const REVISION: &str = "9689b00416fd577bfb68a02f1fa310f6088404cf";
+const REVISION: &str = "7966c9fddb3e9b9a710444c365cd698550de9b5f";
 const REPOSITORY: &str = "https://github.com/anchor-book/anchor-book";
 
 fn matches_pin(binary: &Path) -> bool {

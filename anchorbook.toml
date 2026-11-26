@@ -1,7 +1,7 @@
 schema-version = 1
 
 [project]
-phase = "prototyping"
+phase = "port"
 
 [book]
 source = "book"
@@ -12,3 +12,8 @@ mdbook = "book.toml"
 design = "design/index.md"
 authority = "authority/index.md"
 implementation-roadmaps = "implementation-roadmaps/index.md"
+
+[verification]
+sources = ["crates/thinkwell/src", "crates/thinkwell/tests"]
+output = "target/anchorbook-verify"
+runners = ["nextest"]

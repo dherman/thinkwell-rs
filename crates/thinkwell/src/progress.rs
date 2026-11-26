@@ -452,6 +452,7 @@ fn internal_tool(name: Option<&str>, title: Option<&str>) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// anchorbook: A-progress-observation#behavior
     #[tokio::test]
     async fn bounded_queue_drains_tail_and_reports_loss() {
         let sink = Sink::new();
@@ -474,6 +475,7 @@ mod tests {
         }));
         assert!(sink.pop().is_none());
     }
+    /// anchorbook: A-progress-observation#behavior
     #[test]
     fn byte_budget_counts_oversized_events_and_revokes_producers() {
         let sink = Sink::new();
@@ -498,6 +500,7 @@ mod tests {
         }));
         assert!(sink.pop().is_none());
     }
+    /// anchorbook: A-progress-observation#behavior
     #[tokio::test]
     async fn observer_runs_while_work_waits_and_preserves_retained_order() {
         let sink = Sink::new();
@@ -533,6 +536,7 @@ mod tests {
         .unwrap();
         assert_eq!(messages, ["first", "second"]);
     }
+    /// anchorbook: A-progress-observation#behavior
     #[test]
     fn panic_while_draining_completed_work_closes_agent() {
         let rt = tokio::runtime::Builder::new_current_thread()
@@ -561,6 +565,7 @@ mod tests {
         assert_eq!(error.kind, crate::ErrorKind::Closed);
         rt.block_on(agent.shutdown()).unwrap();
     }
+    /// anchorbook: A-progress-observation#behavior
     #[test]
     fn internal_tool_updates_and_filter_metadata_are_bounded() {
         let sink = Sink::new();

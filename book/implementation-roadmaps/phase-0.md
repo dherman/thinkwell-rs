@@ -180,7 +180,8 @@ termination by a signal is reported as failure (exit 1), not signal propagation.
 
 Complete for the approved local tooling follow-up. The alias enforces the expected
 local engine identity and is the common entry point for startup, checking, and
-rendering. Product design and implementation remain unassigned.
+rendering. Product design and implementation were unassigned at that milestone;
+later assignments and accepted definitions are recorded separately.
 
 ## Milestone 3. Adopt dual licensing {#phase-zero-3}
 
@@ -249,4 +250,5 @@ https://www.apache.org/licenses/LICENSE-2.0.txt.
 ### Completion record
 
 Complete for the approved licensing assignment. The project license is settled;
-upstream file-specific licensing, attribution, and product design remain open.
+upstream file-specific licensing and attribution still require per-adaptation
+review. Product design was outside this historical assignment.

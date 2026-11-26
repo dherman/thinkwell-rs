@@ -198,6 +198,7 @@ mod tests {
         fallback: Window,
     }
 
+    /// anchorbook: A-supported-contract-boundary#behavior
     #[test]
     fn nested_contracts_preserve_direction_and_validate_reused_types() {
         // The same entry points supply final answers/tool inputs and tool outputs.
@@ -270,6 +271,7 @@ mod tests {
         }
     }
 
+    /// anchorbook: A-supported-contract-boundary#behavior
     #[test]
     fn inlining_does_not_accept_recursion_references_or_unsupported_constraints() {
         rejected_in_both_directions::<Recursive>();
@@ -284,6 +286,7 @@ mod tests {
         );
     }
 
+    /// anchorbook: A-supported-contract-boundary#behavior
     #[test]
     fn finite_double_contracts_accept_boundaries_and_reject_invalid_values() {
         let input = contract::<f64>().unwrap();
@@ -318,6 +321,7 @@ mod tests {
         }
     }
 
+    /// anchorbook: A-supported-contract-boundary#behavior
     #[test]
     fn keyword_contracts_are_checked_without_serde() {
         let cases = [
@@ -359,6 +363,7 @@ mod tests {
         assert!(validate(&json!({"type":"object","required":["x"]}), &json!({})).is_err());
         assert!(validate(&json!({"type":"integer"}), &json!(3.0)).is_err());
     }
+    /// anchorbook: A-supported-contract-boundary#behavior
     #[test]
     fn numeric_constants_do_not_round_large_integers() {
         assert!(validate(&json!({"const":1}), &json!(1.0)).is_ok());
@@ -378,6 +383,7 @@ mod tests {
             .is_ok()
         );
     }
+    /// anchorbook: A-supported-contract-boundary#behavior
     #[test]
     fn unsupported_schemas_are_located() {
         for (schema, path) in [

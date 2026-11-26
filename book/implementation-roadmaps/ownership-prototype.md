@@ -2,11 +2,13 @@
 
 Roadmap identifier: `ownership-prototype`.
 
+The [library programming model](../design/typed-conversations.md) owns the current
+target. Simulated behavior and alternative adapters below retain their experimental
+scope and are not additional supported APIs.
+
 Current integration state: completed work was delivered through owner-merged
 [PR #2](https://github.com/dherman/thinkwell-rs/pull/2). See the
 [shared integration evidence](first-product-slice.md#integrated-completion).
-Earlier local-stage evidence and pending-delivery statements below are historical;
-they retain their tested scope and do not describe current integration status.
 
 Goal: assess Rust ownership and ergonomics for the proposed fluent API through
 an isolated simulated driver, before choosing product API signatures or ACP libraries.
@@ -166,15 +168,14 @@ observation. Erasing callback types simplifies conditional registration compared
 with a generic chain. A reusable/scoped marker still needs normalization with
 `scoped()` when conditional branches differ in whether a tool is added.
 
-Keep the local API as a design candidate, not an accepted runtime choice. The
-next design decision is whether execution futures must be Send, whether local
-and Send execution need distinct surfaces, and what the selected ACP library
-requires. The tested Send adapter adds syntax but preserves a borrowed invocation;
-Send does not itself imply a detached or 'static task. Shared reusable tool
-registrations, session ownership, final validation, event overflow policy, and
-async cleanup remain open. Review these before proposing product implementation.
+The tested Send adapter adds syntax but preserves a borrowed invocation; Send
+does not itself imply a detached or static task. This experiment did not settle
+product runtime, session ownership, validation, buffering, or cleanup. Their
+selected behavior now belongs to [library design](../design/index.md), informed
+by the subsequent ACP and runtime/result experiments. Shared reusable tool
+registrations and broader execution surfaces were not selected here.
 
-Subsequent [ACP library research](../open-questions.md#current-rust-acp-library-research)
+Subsequent [ACP library research](../library-foundation-research.md#current-rust-acp-library-research)
 identifies scoped Send runners and a possible channel boundary for local
 callbacks. It does not extend this experiment's implementation or evidence.
 
